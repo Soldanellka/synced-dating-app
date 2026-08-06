@@ -616,6 +616,191 @@ const VideoChat = {
 
 
 /* --------------------------------------------------------------
+   3h) MODAL – univerzálne okno (checkout + právne texty)
+   -------------------------------------------------------------- */
+const Modal = {
+  init() {
+    this.overlay = document.getElementById('modal');
+    this.body = document.getElementById('modalBody');
+    if (!this.overlay) return;
+    document.getElementById('modalClose')?.addEventListener('click', () => this.close());
+    this.overlay.addEventListener('click', (e) => { if (e.target === this.overlay) this.close(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') this.close(); });
+    // Delegované zatváracie tlačidlá vnútri modalu
+    this.body.addEventListener('click', (e) => {
+      if (e.target.closest('[data-close-modal]')) this.close();
+    });
+  },
+  open(html) { if (!this.overlay) return; this.body.innerHTML = html; this.overlay.hidden = false; },
+  close() { if (!this.overlay) return; this.overlay.hidden = true; this.body.innerHTML = ''; }
+};
+
+
+/* --------------------------------------------------------------
+   3i) BILLING – monetizácia (mock, pripravené na Stripe)
+   -------------------------------------------------------------- */
+const Billing = {
+  products: {
+    premium:      { name: 'Synced Premium',       price: 12.99, unit: ' / mesiac', icon: '💛', badge: 'Najobľúbenejšie',
+                    desc: 'Neobmedzené matchy, uvidíš kto ťa má rád, prémiové filtre a žiadne reklamy.', cta: 'Aktivovať Premium' },
+    verification: { name: 'Overenie identity',     price: 2.99,  unit: '', icon: '✅',
+                    desc: 'Odznak „Overený profil" – väčšia dôvera a kvalitnejšie matchy.', cta: 'Overiť sa' },
+    boost:        { name: 'Boost profilu',         price: 3.99,  unit: '', icon: '⚡',
+                    desc: '30 minút na vrchole – až 10× viac zobrazení tvojho profilu.', cta: 'Boostnúť profil' },
+    report:       { name: 'Kompatibilita report',  price: 3.99,  unit: '', icon: '📊',
+                    desc: 'Detailný rozbor tvojho súladu s konkrétnym matchom.', cta: 'Získať report' }
+  },
+
+  init() {
+    this.grid = document.getElementById('pricingGrid');
+    if (this.grid) this.renderGrid();
+    // Delegované CTA na kúpu (funguje aj pre data-buy mimo cenníka)
+    document.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-buy]');
+      if (!b) return;
+      e.preventDefault();
+      this.openCheckout(b.dataset.buy);
+    });
+  },
+
+  fmt(p) { return p.toFixed(2).replace('.', ',') + ' €'; },
+
+  renderGrid() {
+    this.grid.innerHTML = Object.entries(this.products).map(([key, p]) => `
+      <article class="price-card ${p.badge ? 'price-card--featured' : ''}">
+        ${p.badge ? `<span class="price-card__badge">${p.badge}</span>` : ''}
+        <div class="price-card__icon">${p.icon}</div>
+        <h3>${p.name}</h3>
+        <p class="price-card__price">${this.fmt(p.price)}<span>${p.unit}</span></p>
+        <p class="price-card__desc">${p.desc}</p>
+        <button class="btn-primary" data-buy="${key}">${p.cta}</button>
+      </article>`).join('');
+  },
+
+  openCheckout(key) {
+    const p = this.products[key];
+    if (!p) return;
+    Modal.open(`
+      <h3 class="modal__title">${p.icon} ${p.name}</h3>
+      <p class="modal__price">${this.fmt(p.price)}${p.unit}</p>
+      <p class="modal__desc">${p.desc}</p>
+      <div class="pay-form">
+        <label>Číslo karty <input type="text" placeholder="4242 4242 4242 4242" inputmode="numeric"></label>
+        <div class="pay-row">
+          <label>Platnosť <input type="text" placeholder="MM/RR"></label>
+          <label>CVC <input type="text" placeholder="123"></label>
+        </div>
+      </div>
+      <button class="btn-primary btn-lg pay-btn" data-pay="${key}">Zaplatiť ${this.fmt(p.price)}</button>
+      <p class="pay-note">🔒 Mock platba – tu sa napojí Stripe, nič sa reálne nestrhne.</p>
+    `);
+    document.querySelector('[data-pay]')?.addEventListener('click', () => this.pay(key));
+  },
+
+  pay(key) {
+    const p = this.products[key];
+    // TODO: Stripe – vytvoriť checkout session na serveri a presmerovať:
+    //   const { url } = await fetch('/api/create-checkout',
+    //       { method:'POST', body: JSON.stringify({ product: key }) }).then(r => r.json());
+    //   window.location = url;
+    AppState.payments = AppState.payments || [];
+    AppState.payments.push({ product: key, amount: p.price, currency: 'eur', status: 'paid' });
+    console.log('[Synced] (mock) Platba zaznamenaná:', key, p.price);
+    this.applyEffect(key);
+  },
+
+  applyEffect(key) {
+    if (key === 'report') return this.showReport();
+    let msg = '';
+    if (key === 'premium') { AppState.userProfile.isPremium = true; msg = 'Premium je aktívny 💛 Užime si neobmedzené matchy!'; }
+    else if (key === 'verification') { if (typeof VideoVerification !== 'undefined') VideoVerification.setStatus('verified'); msg = 'Tvoj profil je overený ✅'; }
+    else if (key === 'boost') { msg = 'Boost beží ⚡ Tvoj profil je 30 minút na vrchole.'; }
+    Modal.open(`
+      <div class="pay-success">
+        <div class="pay-success__icon">🎉</div>
+        <h3>Ďakujeme!</h3>
+        <p>${msg}</p>
+        <button class="btn-primary" data-close-modal>Super</button>
+      </div>`);
+  },
+
+  showReport() {
+    const me = (typeof Matches !== 'undefined') ? Matches.currentUser() : { valueVector: {} };
+    const users = window.SAMPLE_USERS || [];
+    if (!Object.keys(me.valueVector || {}).length || !users.length) {
+      Modal.open(`<div class="pay-success"><h3>📊 Kompatibilita report</h3>
+        <p>Najprv dokonči test kompatibility, aby sme mali z čoho report vytvoriť. 😊</p>
+        <button class="btn-primary" data-close-modal>OK</button></div>`);
+      return;
+    }
+    const top = users.map(u => ({ u, r: calculateCompatibility(me, u) }))
+                     .sort((a, b) => b.r.score - a.r.score)[0];
+    Modal.open(`
+      <h3 class="modal__title">📊 Report: ty & ${top.u.name}</h3>
+      <p class="report-score">${top.r.score}% · ${top.r.type}</p>
+      <p class="modal__desc">${top.r.desc}</p>
+      <ul class="report-list">
+        <li>Zhoda hodnôt: <b>${Math.round(top.r.valueSim * 100)}%</b></li>
+        <li>Súlad osobností: <b>${Math.round(top.r.persComponent * 100)}%</b></li>
+        <li>Zhoda zámeru: <b>${Math.round(top.r.intent * 100)}%</b></li>
+        <li>Spoločné hodnoty: <b>${top.r.shared.join(', ') || '—'}</b></li>
+      </ul>
+      <button class="btn-primary" data-close-modal>Zavrieť</button>`);
+  }
+};
+
+
+/* --------------------------------------------------------------
+   3j) LEGAL – právne texty (placeholder, nahradí právnik)
+   -------------------------------------------------------------- */
+const Legal = {
+  texts: {
+    terms: {
+      title: 'Obchodné podmienky',
+      body: `<p><em>Placeholder – tento text nahradí finálne právne znenie.</em></p>
+        <p>Používaním aplikácie Synced súhlasíš s týmito obchodnými podmienkami. Synced je platforma
+        na zoznamovanie založená na hodnotách a kompatibilite. Služby sú dostupné osobám starším ako 18 rokov.</p>
+        <p>Časť služieb je spoplatnená (Premium, overenie identity, boost, report). Platby spracúva
+        externá platobná brána. Predplatné sa obnovuje podľa zvoleného obdobia, kým ho nezrušíš.</p>
+        <p>Zaväzuješ sa uvádzať pravdivé údaje a správať sa k ostatným s rešpektom. Vyhradzujeme si právo
+        pozastaviť účty porušujúce pravidlá.</p>`
+    },
+    privacy: {
+      title: 'Ochrana osobných údajov',
+      body: `<p><em>Placeholder – tento text nahradí finálne GDPR znenie.</em></p>
+        <p>Spracúvame údaje, ktoré nám poskytneš (profil, odpovede z testu kompatibility, správy) na účel
+        poskytovania služby a hľadania vhodných matchov. Overovacie video je citlivý údaj a spracúvame ho
+        len na overenie identity.</p>
+        <p>Údaje nezdieľame s tretími stranami okrem spracovateľov nevyhnutných na chod služby (hosting,
+        platby). Máš právo na prístup, opravu a výmaz svojich údajov.</p>
+        <p>Kontakt pre otázky ochrany súkromia: privacy@synced.app (placeholder).</p>`
+    },
+    cookies: {
+      title: 'Cookies',
+      body: `<p><em>Placeholder – tento text nahradí finálne cookie znenie.</em></p>
+        <p>Používame nevyhnutné cookies na prihlásenie a fungovanie aplikácie a (po tvojom súhlase)
+        analytické cookies na zlepšovanie služby.</p>
+        <p>Súhlas s cookies môžeš kedykoľvek zmeniť v nastaveniach prehliadača alebo v nastaveniach aplikácie.</p>`
+    }
+  },
+  init() {
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-legal]');
+      if (!a) return;
+      e.preventDefault();
+      this.open(a.dataset.legal);
+    });
+  },
+  open(key) {
+    const t = this.texts[key];
+    if (!t) return;
+    Modal.open(`<h3 class="modal__title">${t.title}</h3><div class="legal-text">${t.body}</div>
+      <button class="btn-secondary" data-close-modal>Rozumiem</button>`);
+  }
+};
+
+
+/* --------------------------------------------------------------
    4) ONBOARDING WIZARD
    -------------------------------------------------------------- */
 const Onboarding = {
@@ -731,6 +916,7 @@ const Onboarding = {
       </div>
 
       <p class="summary-note">Na základe tohto profilu ti Synced vypočíta najlepšie matchy. 🎯</p>
+      <button class="btn-secondary" data-buy="report">📊 Získať detailný kompatibilita report</button>
     `;
   },
 
@@ -796,6 +982,9 @@ document.addEventListener('DOMContentLoaded', () => {
   Chat.init();
   VideoVerification.init();
   VideoChat.init();
+  Modal.init();
+  Billing.init();
+  Legal.init();
   Nav.init();
   SmoothScroll.init();
   console.log('[Synced] Aplikácia inicializovaná ✔');

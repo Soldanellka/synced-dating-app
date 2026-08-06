@@ -22,6 +22,7 @@
       <a href="#how-it-works">Ako to funguje</a>
       <a href="#matches">Matchy</a>
       <a href="#profile">Profil</a>
+      <a href="#premium">Premium</a>
       <a href="#login">Prihlásenie</a>
       <a href="#signup" class="btn-primary" data-scroll="#signup">Začni test kompatibility</a>
     </nav>
@@ -206,6 +207,9 @@
             </div>
             <video id="verifyPreview" class="verify__preview" controls hidden></video>
           </div>
+
+          <h3>Zviditeľni sa</h3>
+          <button class="btn-primary" data-buy="boost">⚡ Boost profilu</button>
         </div>
       </div>
     </section>
@@ -290,16 +294,33 @@
       </div>
     </section>
 
+    <!-- 7) MONETIZÁCIA -->
+    <section id="premium" class="section">
+      <h2>Synced Premium a extra služby</h2>
+      <p class="premium-lead">Základ je zadarmo. Keď to chceš posunúť ďalej, máme pre teba:</p>
+      <div class="pricing-grid" id="pricingGrid">
+        <!-- Naplní JS z Billing.products -->
+      </div>
+    </section>
+
   </main>
 
   <footer class="app-footer">
     <p>© Synced – zoznamka pre ľudí na rovnakej vlne</p>
     <nav class="footer-nav">
-      <a href="#terms">Obchodné podmienky</a>
-      <a href="#privacy">Ochrana osobných údajov</a>
-      <a href="#cookies">Cookies</a>
+      <a href="#terms" data-legal="terms">Obchodné podmienky</a>
+      <a href="#privacy" data-legal="privacy">Ochrana osobných údajov</a>
+      <a href="#cookies" data-legal="cookies">Cookies</a>
     </nav>
   </footer>
+
+  <!-- Univerzálne modálne okno (checkout + právne texty) -->
+  <div class="modal-overlay" id="modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true">
+      <button class="modal__close" id="modalClose" aria-label="Zavrieť">✕</button>
+      <div class="modal__body" id="modalBody"></div>
+    </div>
+  </div>
 
   <script src="data.js" defer></script>
   <script src="script.js" defer></script>

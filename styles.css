@@ -750,6 +750,114 @@ input:focus, select:focus {
 .video-ctrl--end:hover { background: #a93226; }
 
 /* ------------------------------
+   MONETIZÁCIA (cenník)
+------------------------------ */
+.premium-lead { color: var(--text-light); margin-top: -8px; margin-bottom: 24px; }
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+.price-card {
+  position: relative;
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 26px 22px;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.price-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+.price-card--featured { border-color: var(--primary-dark); box-shadow: var(--shadow); }
+.price-card__badge {
+  position: absolute;
+  top: -12px; left: 50%; transform: translateX(-50%);
+  background: var(--primary-dark);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.price-card__icon { font-size: 34px; }
+.price-card h3 { margin: 8px 0; }
+.price-card__price { font-size: 26px; font-weight: 700; color: var(--primary-dark); margin: 4px 0; }
+.price-card__price span { font-size: 14px; font-weight: 500; color: var(--text-light); }
+.price-card__desc { color: var(--text-light); font-size: 14px; min-height: 60px; }
+.price-card button { width: 100%; margin-top: 8px; }
+
+/* ------------------------------
+   MODAL
+------------------------------ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+.modal {
+  position: relative;
+  background: var(--bg-light);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  max-width: 460px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  animation: fadeIn 0.2s ease;
+}
+.modal__close {
+  position: absolute;
+  top: 14px; right: 14px;
+  border: none;
+  background: var(--accent);
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 15px;
+}
+.modal__title { margin: 0 30px 8px 0; color: var(--primary-dark); }
+.modal__price { font-size: 24px; font-weight: 700; margin: 0 0 8px; }
+.modal__desc { color: var(--text-light); margin: 0 0 18px; }
+
+.pay-form { display: grid; gap: 12px; margin-bottom: 18px; }
+.pay-row { display: flex; gap: 12px; }
+.pay-btn { width: 100%; }
+.pay-note { font-size: 13px; color: var(--text-light); text-align: center; margin: 10px 0 0; }
+
+.pay-success { text-align: center; }
+.pay-success__icon { font-size: 46px; }
+.pay-success h3 { color: var(--primary-dark); margin: 8px 0; }
+.pay-success button { margin-top: 12px; }
+
+.report-score { font-size: 22px; font-weight: 700; color: var(--primary-dark); margin: 4px 0; }
+.report-list { list-style: none; padding: 0; margin: 8px 0 18px; }
+.report-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.legal-text {
+  max-height: 50vh;
+  overflow-y: auto;
+  color: var(--text-light);
+  font-size: 14px;
+  line-height: 1.7;
+  margin-bottom: 18px;
+  padding-right: 8px;
+}
+.legal-text p { margin: 0 0 12px; }
+
+/* ------------------------------
    10. FOOTER
 ------------------------------ */
 

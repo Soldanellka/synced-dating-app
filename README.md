@@ -25,7 +25,7 @@ supabase/       – schema.sql (DB schéma + RLS pre Supabase)
 | 4 | Chat + AI návrhy správ (rule-based) | ✅ Hotovo |
 | 5 | Video overenie + video chat (architektúra) | ✅ Hotovo |
 | 6 | Backend návrh (Supabase – schéma, API, RLS) | ✅ Hotovo |
-| 7 | Monetizácia + právne sekcie | ⏳ Ďalší krok |
+| 7 | Monetizácia + právne sekcie | ✅ Hotovo |
 
 ## 🚀 Spustenie
 
