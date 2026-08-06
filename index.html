@@ -217,26 +217,23 @@
       <div class="chat-layout">
         <aside class="chat-list">
           <h3>Konverzácie</h3>
-          <ul>
-            <li>Anna (87 %)</li>
-            <li>Peter (82 %)</li>
+          <ul id="chatList">
+            <!-- Naplní JS z matchov -->
           </ul>
         </aside>
 
         <div class="chat-window">
+          <div class="chat-header" id="chatHeader">
+            <span>Vyber si konverzáciu vľavo 💬</span>
+          </div>
+
           <div class="chat-messages" id="chatMessages">
-            <div class="message message-them">
-              Ahoj, vidím, že máš rada pokojné večery doma. :)
-            </div>
-            <div class="message message-me">
-              Hej, to je presne môj štýl.
-            </div>
+            <!-- Správy napĺňa JS -->
           </div>
 
           <div class="chat-ai-suggestions" id="chatSuggestions">
-            <p>AI návrhy tém:</p>
-            <button type="button">Spýtaj sa na obľúbený spôsob relaxu</button>
-            <button type="button">Navrhni spoločnú aktivitu na víkend</button>
+            <p>💡 AI návrhy tém:</p>
+            <div class="suggestion-list" id="suggestionList"></div>
           </div>
 
           <form class="chat-input" id="chatForm">

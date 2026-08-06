@@ -570,6 +570,34 @@ input:focus, select:focus {
   transition: background 0.2s;
 }
 .chat-list li:hover { background: var(--accent); }
+.chat-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.chat-list li.is-active {
+  background: var(--primary);
+  font-weight: 600;
+}
+.chat-list__pct {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary-dark);
+  background: var(--bg-light);
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+.chat-list li.is-active .chat-list__pct { color: var(--primary-dark); }
+
+.chat-header {
+  padding: 0 0 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-light);
+}
+
+.suggestion-list { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .chat-window {
   flex: 1;

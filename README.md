@@ -20,8 +20,8 @@ data.js         – otázky testu + fiktívna databáza používateľov
 | 1 | Frontend – responzivita, komponentizácia, JS state | ✅ Hotovo |
 | 2 | Onboarding test kompatibility (otázky + scoring) | ✅ Hotovo |
 | 3 | Matchovanie – algoritmus kompatibility | ✅ Hotovo |
-| 4 | Chat + AI návrhy správ (rule-based) | ⏳ Ďalší krok |
-| 5 | Video overenie + video chat (architektúra) | ⬜ Plánované |
+| 4 | Chat + AI návrhy správ (rule-based) | ✅ Hotovo |
+| 5 | Video overenie + video chat (architektúra) | ⏳ Ďalší krok |
 | 6 | Backend návrh (Supabase – schéma, API, RLS) | ⬜ Plánované |
 | 7 | Monetizácia + právne sekcie | ⬜ Plánované |
 

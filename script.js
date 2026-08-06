@@ -34,7 +34,13 @@ const AppState = {
   answers: {},                  // surové odpovede: { qid: hodnota | [hodnoty] }
   compatibilityScore: null,
   currentStep: 1,
-  totalSteps: 5
+  totalSteps: 5,
+
+  // Chat (Krok 4): aktívna konverzácia + história správ podľa matchu
+  chat: {
+    activeMatchId: null,
+    conversations: {}           // { matchId: [ { from:'me'|'them', text } ] }
+  }
 };
 
 window.AppState = AppState;
@@ -312,6 +318,206 @@ const Matches = {
 
 
 /* --------------------------------------------------------------
+   3d) AI NÁVRHY SPRÁV (zatiaľ pravidlá v JS – bez reálnej AI)
+   --------------------------------------------------------------
+   generate(userProfile, matchProfile, messages) → [ návrhy ]
+   Neskôr stačí telo funkcie nahradiť volaním AI API (viď koniec).
+   -------------------------------------------------------------- */
+const AiSuggestions = {
+  // Otázka „na telo" pre každú hodnotu
+  valueQuestion: {
+    'rodina':        'Čo pre teba znamená rodina?',
+    'kariéra':       'Čo ťa na tvojej práci najviac napĺňa?',
+    'pokoj':         'Ako najradšej relaxuješ po náročnom dni?',
+    'spiritualita':  'Čo ti dáva v živote hlbší zmysel?',
+    'osobný rast':   'Na čom na sebe práve teraz pracuješ?',
+    'sloboda':       'Čo pre teba znamená sloboda vo vzťahu?',
+    'dobrodružstvo': 'Aké bolo tvoje najlepšie dobrodružstvo?'
+  },
+
+  generate(user, match, messages = []) {
+    const out = [];
+    const shared = this.sharedValues(user, match);
+
+    // 1) Otázka podľa najsilnejšej spoločnej hodnoty
+    if (shared.length) {
+      out.push(this.valueQuestion[shared[0]] || `Povedz mi viac o tom, čo je pre teba dôležité.`);
+    }
+
+    // 2) Návrh podľa povahy matchu (extraverzia)
+    const ext = match?.personality?.extraversion ?? 3;
+    if (ext >= 4) out.push('Navrhni spoločnú aktivitu – ideš cez víkend do niečoho?');
+    else out.push('Spýtaj sa na obľúbený pokojný večer či knihu.');
+
+    // 3) Otvárač alebo nadviazanie podľa stavu konverzácie
+    if (!messages.length) {
+      const val = shared[0] || (match?.topValue);
+      out.push(val
+        ? `Ahoj! Videl(a) som, že obom nám sedí „${val}". Ako to máš ty? 😊`
+        : 'Ahoj! Čo ti dnes spravilo radosť? 😊');
+    } else {
+      const last = messages[messages.length - 1];
+      if (last.from === 'them' && last.text.includes('?')) {
+        out.push('Odpovedz úprimne a otázku vráť naspäť.');
+      } else {
+        out.push('Pochváľ niečo z jej/jeho profilu a nadviaž otázkou.');
+      }
+    }
+
+    // Max 3 unikátne návrhy
+    return [...new Set(out)].slice(0, 3);
+  },
+
+  sharedValues(user, match) {
+    const uv = user?.valueVector || {};
+    const mv = match?.valueVector || {};
+    return Object.keys(uv)
+      .filter(k => (uv[k] ?? 0) >= 4 && (mv[k] ?? 0) >= 4)
+      .sort((a, b) => (mv[b] + uv[b]) - (mv[a] + uv[a]));
+  }
+
+  /* ---- BUDÚCE NAPOJENIE NA REÁLNE AI ----
+     async generateAI(user, match, messages) {
+       const res = await fetch('/api/suggestions', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ user, match, messages })
+       });
+       return (await res.json()).suggestions;
+     }
+  ---------------------------------------- */
+};
+
+
+/* --------------------------------------------------------------
+   3e) CHAT – zoznam konverzácií, správy, napojenie návrhov
+   -------------------------------------------------------------- */
+const Chat = {
+  init() {
+    this.listEl = document.getElementById('chatList');
+    this.msgEl = document.getElementById('chatMessages');
+    this.headerEl = document.getElementById('chatHeader');
+    this.suggEl = document.getElementById('suggestionList');
+    this.form = document.getElementById('chatForm');
+    this.input = document.getElementById('chatInput');
+    if (!this.listEl) return;
+
+    this.renderList();
+
+    // Výber konverzácie
+    this.listEl.addEventListener('click', (e) => {
+      const li = e.target.closest('li[data-match]');
+      if (li) this.openConversation(li.dataset.match);
+    });
+
+    // Odoslanie správy
+    this.form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.sendMessage();
+    });
+
+    // Klik na návrh → vloží do inputu
+    this.suggEl?.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-suggestion]');
+      if (!btn) return;
+      this.input.value = btn.dataset.suggestion;
+      this.input.focus();
+    });
+  },
+
+  // Zoznam konverzácií = matchy (ak je hotový profil, aj s %)
+  renderList() {
+    const users = window.SAMPLE_USERS || [];
+    const me = (typeof Matches !== 'undefined') ? Matches.currentUser() : null;
+    const hasProfile = me && Object.keys(me.valueVector || {}).length;
+
+    const rows = users.map(u => {
+      const pct = hasProfile ? calculateCompatibility(me, u).score : null;
+      return { u, pct };
+    }).sort((a, b) => (b.pct ?? 0) - (a.pct ?? 0));
+
+    this.listEl.innerHTML = rows.map(({ u, pct }) => `
+      <li data-match="${u.id}" class="${u.id === AppState.chat.activeMatchId ? 'is-active' : ''}">
+        ${u.name}${pct != null ? ` <span class="chat-list__pct">${pct}%</span>` : ''}
+      </li>`).join('');
+  },
+
+  openConversation(matchId) {
+    AppState.chat.activeMatchId = matchId;
+    const match = (window.SAMPLE_USERS || []).find(u => u.id === matchId);
+    if (!match) return;
+
+    // Prvá otvorená konverzácia = uvítacia správa od matchu
+    if (!AppState.chat.conversations[matchId]) {
+      AppState.chat.conversations[matchId] = [
+        { from: 'them', text: `Ahoj! Teší ma, že sme si padli do oka. 😊 ${match.bio}` }
+      ];
+    }
+
+    this.headerEl.innerHTML = `<strong>${match.name}, ${match.age}</strong> · ${match.location}`;
+    this.renderList();
+    this.renderMessages();
+    this.refreshSuggestions();
+  },
+
+  renderMessages() {
+    const msgs = AppState.chat.conversations[AppState.chat.activeMatchId] || [];
+    this.msgEl.innerHTML = msgs.map(m =>
+      `<div class="message message-${m.from === 'me' ? 'me' : 'them'}">${this.escape(m.text)}</div>`
+    ).join('');
+    this.msgEl.scrollTop = this.msgEl.scrollHeight;
+  },
+
+  sendMessage() {
+    const text = (this.input.value || '').trim();
+    const id = AppState.chat.activeMatchId;
+    if (!text || !id) return;
+
+    AppState.chat.conversations[id].push({ from: 'me', text });
+    this.input.value = '';
+    this.renderMessages();
+
+    // Jednoduchá simulovaná odpoveď (neskôr nahradí reálny druhý používateľ)
+    setTimeout(() => {
+      AppState.chat.conversations[id].push({ from: 'them', text: this.autoReply() });
+      this.renderMessages();
+      this.refreshSuggestions();
+    }, 900);
+
+    this.refreshSuggestions();
+  },
+
+  autoReply() {
+    const replies = [
+      'To znie super, povedz mi viac! 😊',
+      'Presne tak to cítim aj ja.',
+      'Zaujímavé! A ako si sa k tomu dostal(a)?',
+      'Haha, to sa mi páči.'
+    ];
+    // Deterministicky podľa počtu správ (bez Math.random)
+    const msgs = AppState.chat.conversations[AppState.chat.activeMatchId] || [];
+    return replies[msgs.length % replies.length];
+  },
+
+  refreshSuggestions() {
+    const match = (window.SAMPLE_USERS || []).find(u => u.id === AppState.chat.activeMatchId);
+    const me = (typeof Matches !== 'undefined') ? Matches.currentUser() : { valueVector: {} };
+    const msgs = AppState.chat.conversations[AppState.chat.activeMatchId] || [];
+    const suggestions = AiSuggestions.generate(me, match, msgs);
+
+    this.suggEl.innerHTML = suggestions.map(s =>
+      `<button type="button" data-suggestion="${this.escape(s)}">${this.escape(s)}</button>`
+    ).join('');
+  },
+
+  escape(str) {
+    return String(str).replace(/[&<>"']/g, c =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+};
+
+
+/* --------------------------------------------------------------
    4) ONBOARDING WIZARD
    -------------------------------------------------------------- */
 const Onboarding = {
@@ -360,6 +566,7 @@ const Onboarding = {
       this.renderSummary();
       this.syncProfileSection();
       Matches.render();           // naplní sekciu #matches reálnymi dátami
+      Chat.renderList();          // aktualizuje zoznam konverzácií o % kompatibility
     }
     this.goToStep(AppState.currentStep + 1);
   },
@@ -488,6 +695,7 @@ const SmoothScroll = {
 document.addEventListener('DOMContentLoaded', () => {
   Questions.init();
   Onboarding.init();
+  Chat.init();
   Nav.init();
   SmoothScroll.init();
   console.log('[Synced] Aplikácia inicializovaná ✔');
