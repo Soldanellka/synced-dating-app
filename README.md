@@ -11,6 +11,7 @@ index.html   – hlavná stránka (landing, onboarding, profil, matchy, chat, vi
 styles.css      – dizajn (jemná ružová paleta, responzívne, komponenty)
 script.js       – logika (state, wizard, scoring, matchovanie)
 data.js         – otázky testu + fiktívna databáza používateľov
+docs/           – návrhové dokumenty (napr. video-architektura.md)
 ```
 
 ## ✅ Postup vývoja (MVP po moduloch)
@@ -21,8 +22,8 @@ data.js         – otázky testu + fiktívna databáza používateľov
 | 2 | Onboarding test kompatibility (otázky + scoring) | ✅ Hotovo |
 | 3 | Matchovanie – algoritmus kompatibility | ✅ Hotovo |
 | 4 | Chat + AI návrhy správ (rule-based) | ✅ Hotovo |
-| 5 | Video overenie + video chat (architektúra) | ⏳ Ďalší krok |
-| 6 | Backend návrh (Supabase – schéma, API, RLS) | ⬜ Plánované |
+| 5 | Video overenie + video chat (architektúra) | ✅ Hotovo |
+| 6 | Backend návrh (Supabase – schéma, API, RLS) | ⏳ Ďalší krok |
 | 7 | Monetizácia + právne sekcie | ⬜ Plánované |
 
 ## 🚀 Spustenie

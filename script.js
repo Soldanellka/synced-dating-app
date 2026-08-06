@@ -518,6 +518,104 @@ const Chat = {
 
 
 /* --------------------------------------------------------------
+   3f) VIDEO OVERENIE (placeholder – napojí sa na Supabase Storage)
+   -------------------------------------------------------------- */
+const VideoVerification = {
+  init() {
+    this.consent = document.getElementById('verifyConsent');
+    this.pick = document.getElementById('verifyPick');
+    this.file = document.getElementById('verifyFile');
+    this.send = document.getElementById('verifySend');
+    this.preview = document.getElementById('verifyPreview');
+    this.status = document.getElementById('verifyStatus');
+    if (!this.consent) return;
+
+    // Súhlas GDPR odomkne nahrávanie
+    this.consent.addEventListener('change', () => {
+      this.pick.disabled = !this.consent.checked;
+    });
+
+    this.pick.addEventListener('click', () => this.file.click());
+
+    this.file.addEventListener('change', () => {
+      const f = this.file.files[0];
+      if (!f) return;
+      this.preview.src = URL.createObjectURL(f);
+      this.preview.hidden = false;
+      this.send.disabled = false;
+    });
+
+    this.send.addEventListener('click', () => this.upload());
+  },
+
+  upload() {
+    // TODO: napojiť na Supabase Storage:
+    //   const { data } = await supabase.storage
+    //     .from('verification-videos')
+    //     .upload(`${userId}/${Date.now()}.webm`, file);
+    //   → následne vytvoriť záznam v DB so statusom 'pending'
+    this.setStatus('pending');
+    this.send.disabled = true;
+    console.log('[Synced] (placeholder) Video odoslané na overenie – napojí sa na Supabase.');
+  },
+
+  setStatus(state) {
+    const map = {
+      none:     ['verify__badge--none', 'Neoverené'],
+      pending:  ['verify__badge--pending', 'Čaká sa na overenie…'],
+      verified: ['verify__badge--ok', 'Overený profil ✅']
+    };
+    const [cls, txt] = map[state] || map.none;
+    this.status.innerHTML = `<span class="verify__badge ${cls}">${txt}</span>`;
+  }
+};
+
+
+/* --------------------------------------------------------------
+   3g) VIDEO CHAT (placeholder – napojí sa na Daily.co / WebRTC)
+   -------------------------------------------------------------- */
+const VideoChat = {
+  init() {
+    this.idle = document.getElementById('videoIdle');
+    this.call = document.getElementById('videoCall');
+    this.remoteLabel = document.getElementById('videoRemoteLabel');
+    if (!this.idle) return;
+
+    document.getElementById('videoStart')?.addEventListener('click', () => this.startCall());
+    document.getElementById('videoEnd')?.addEventListener('click', () => this.endCall());
+    document.getElementById('videoMic')?.addEventListener('click', (e) => this.toggle(e.currentTarget));
+    document.getElementById('videoCam')?.addEventListener('click', (e) => this.toggle(e.currentTarget));
+  },
+
+  startCall() {
+    // TODO: napojiť na Daily.co:
+    //   const call = DailyIframe.createFrame(container);
+    //   call.join({ url: roomUrl, token });  // room + token vytvorí backend
+    this.idle.hidden = true;
+    this.call.hidden = false;
+
+    // Placeholder: „spojenie" s aktívnym matchom (ak je vybraný v chate)
+    const match = (window.SAMPLE_USERS || []).find(u => u.id === AppState.chat.activeMatchId);
+    this.remoteLabel.textContent = 'Čaká sa na spojenie…';
+    setTimeout(() => {
+      this.remoteLabel.textContent = match ? `${match.name} 🎥` : 'Spojené 🎥';
+    }, 1200);
+    console.log('[Synced] (placeholder) Video hovor spustený – napojí sa na Daily.co.');
+  },
+
+  endCall() {
+    // TODO: call.leave(); call.destroy();
+    this.call.hidden = true;
+    this.idle.hidden = false;
+  },
+
+  toggle(btn) {
+    btn.classList.toggle('is-off');
+  }
+};
+
+
+/* --------------------------------------------------------------
    4) ONBOARDING WIZARD
    -------------------------------------------------------------- */
 const Onboarding = {
@@ -696,6 +794,8 @@ document.addEventListener('DOMContentLoaded', () => {
   Questions.init();
   Onboarding.init();
   Chat.init();
+  VideoVerification.init();
+  VideoChat.init();
   Nav.init();
   SmoothScroll.init();
   console.log('[Synced] Aplikácia inicializovaná ✔');

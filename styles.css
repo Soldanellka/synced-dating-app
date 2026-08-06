@@ -38,6 +38,9 @@
 
 * { box-sizing: border-box; }
 
+/* Atribút hidden má vždy prednosť (inak ho prebije display:grid/flex) */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   padding: 0;
@@ -645,10 +648,42 @@ input:focus, select:focus {
 .chat-input { display: flex; gap: 10px; flex-wrap: wrap; }
 .chat-input input { flex: 1; min-width: 160px; }
 
+/* --- Overenie identity (placeholder) --- */
+.verify {
+  background: var(--accent);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-top: 8px;
+}
+.verify__status { margin: 0 0 8px; }
+.verify__badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.verify__badge--none { background: #e9e9ec; color: #555; }
+.verify__badge--pending { background: #ffe6a7; color: #8a6d1a; }
+.verify__badge--ok { background: #bfe9c8; color: #1f6b37; }
+.verify__hint { font-size: 14px; color: var(--text-light); margin: 0 0 12px; }
+.verify__consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-weight: 400;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+.verify__consent input { width: auto; margin: 3px 0 0; }
+.verify__actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.verify__preview { width: 100%; margin-top: 12px; border-radius: var(--radius); }
+
+/* --- Video hovor (placeholder) --- */
 .video-container {
   background: #1e1e28;
   color: #fff;
-  min-height: 320px;
+  min-height: 360px;
   border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
@@ -656,6 +691,63 @@ input:focus, select:focus {
   text-align: center;
   padding: 20px;
 }
+.video-idle { display: grid; gap: 16px; justify-items: center; }
+
+.video-call { width: 100%; }
+.video-stage {
+  position: relative;
+  background: #000;
+  border-radius: var(--radius);
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.video-tile--remote {
+  width: 100%;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2a2a3a, #3a2a34);
+  font-size: 18px;
+}
+.video-tile--self {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 110px;
+  height: 150px;
+  background: #444;
+  border: 2px solid #fff;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+.video-controls {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin-top: 16px;
+}
+.video-ctrl {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: #3a3a48;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.video-ctrl:hover { background: #4a4a5a; }
+.video-ctrl.is-off { background: #7a2a2a; }
+.video-ctrl--end { width: auto; padding: 0 18px; border-radius: 999px; background: #c0392b; font-size: 15px; }
+.video-ctrl--end:hover { background: #a93226; }
 
 /* ------------------------------
    10. FOOTER

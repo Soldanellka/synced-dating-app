@@ -187,7 +187,25 @@
           <p id="profilePersonality">Typ: napr. „Empatický analytik"</p>
 
           <h3>Overenie identity</h3>
-          <button class="btn-secondary">Overiť profil videom</button>
+          <!-- Placeholder video overenia (Krok 5) – napojí sa na Supabase Storage -->
+          <div class="verify" id="verify">
+            <p class="verify__status" id="verifyStatus">
+              <span class="verify__badge verify__badge--none">Neoverené</span>
+            </p>
+            <p class="verify__hint">Nahraj krátke video (5–10 s), kde povieš svoje meno – potvrdíš tým, že si reálny človek. 💛</p>
+
+            <label class="verify__consent">
+              <input type="checkbox" id="verifyConsent">
+              Súhlasím so spracovaním videa na účel overenia (GDPR).
+            </label>
+
+            <div class="verify__actions">
+              <input type="file" id="verifyFile" accept="video/*" hidden>
+              <button class="btn-secondary" id="verifyPick" disabled>🎥 Vybrať / nahrať video</button>
+              <button class="btn-primary" id="verifySend" disabled>Odoslať na overenie</button>
+            </div>
+            <video id="verifyPreview" class="verify__preview" controls hidden></video>
+          </div>
         </div>
       </div>
     </section>
@@ -248,8 +266,27 @@
     <!-- 6) VIDEO CHAT (PLACEHOLDER) -->
     <section id="video" class="section">
       <h2>Video stretnutie</h2>
+      <!-- Placeholder video hovoru (Krok 5) – napojí sa na Daily.co / WebRTC -->
       <div class="video-container" id="videoContainer">
-        <p>Tu bude prebiehať bezpečný video chat priamo v aplikácii.</p>
+
+        <!-- Stav 1: pred hovorom -->
+        <div class="video-idle" id="videoIdle">
+          <p>📹 Bezpečný video hovor priamo v aplikácii – len s tvojimi matchmi.</p>
+          <button class="btn-primary btn-lg" id="videoStart">Spustiť video hovor</button>
+        </div>
+
+        <!-- Stav 2: počas hovoru (placeholder plátna) -->
+        <div class="video-call" id="videoCall" hidden>
+          <div class="video-stage">
+            <div class="video-tile video-tile--remote"><span id="videoRemoteLabel">Čaká sa na spojenie…</span></div>
+            <div class="video-tile video-tile--self"><span>Ty</span></div>
+          </div>
+          <div class="video-controls">
+            <button class="video-ctrl" id="videoMic" title="Mikrofón">🎤</button>
+            <button class="video-ctrl" id="videoCam" title="Kamera">🎥</button>
+            <button class="video-ctrl video-ctrl--end" id="videoEnd" title="Ukončiť">📵 Zložiť</button>
+          </div>
+        </div>
       </div>
     </section>
 
