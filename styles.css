@@ -343,6 +343,126 @@ input:focus, select:focus {
 
 .profile-summary { display: grid; gap: 12px; }
 
+/* --- Otázky --- */
+.question {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.question:last-child { border-bottom: none; }
+.question__text { font-weight: 600; margin: 0 0 12px; }
+
+/* Likert škála 1–5 */
+.likert {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.likert__opt { margin: 0; cursor: pointer; font-weight: 400; }
+.likert__opt input { position: absolute; opacity: 0; width: 0; height: 0; }
+.likert__dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--primary);
+  background: var(--bg-light);
+  color: var(--primary-dark);
+  font-weight: 700;
+  transition: 0.15s;
+}
+.likert__opt:hover .likert__dot { background: var(--accent); }
+.likert__opt input:checked + .likert__dot {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+  color: #fff;
+  transform: scale(1.08);
+}
+.likert__opt input:focus-visible + .likert__dot {
+  outline: 2px solid var(--primary-dark);
+  outline-offset: 2px;
+}
+.likert__ends {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 6px;
+  max-width: 290px;
+}
+
+/* Choice / multi možnosti */
+.opts { display: flex; flex-wrap: wrap; gap: 10px; }
+.opt {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 400;
+  transition: 0.15s;
+}
+.opt:hover { border-color: var(--primary); background: var(--accent); }
+.opt input { width: auto; margin: 0; }
+.opt.is-disabled { opacity: 0.45; cursor: not-allowed; }
+.opt-hint { display: block; margin-top: 8px; color: var(--text-light); }
+
+/* --- Zhrnutie profilu (Krok 5) --- */
+.summary-card {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  padding: 20px;
+  border-radius: var(--radius);
+}
+.summary-card h4 { margin: 0 0 4px; font-size: 20px; }
+.summary-sub { margin: 0; color: #6b4a5c; }
+
+.summary-block { margin-top: 4px; }
+.summary-block h4 { margin: 0 0 10px; color: var(--primary-dark); }
+.summary-note { color: var(--text-light); margin-top: 4px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  background: var(--accent);
+  border: 1px solid var(--primary);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 14px;
+}
+.chip b { color: var(--primary-dark); }
+.chip--soft { background: var(--bg-light); }
+
+/* Pruhy osobnosti */
+.bar-row {
+  display: grid;
+  grid-template-columns: 150px 1fr 36px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+.bar {
+  height: 10px;
+  background: var(--accent);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.bar__fill {
+  display: block;
+  height: 100%;
+  background: var(--primary-dark);
+  border-radius: 999px;
+}
+.bar-row__val { text-align: right; font-weight: 600; color: var(--primary-dark); }
+
+@media (max-width: 480px) {
+  .bar-row { grid-template-columns: 110px 1fr 30px; font-size: 13px; }
+  .likert__dot { width: 40px; height: 40px; }
+}
+
 /* ------------------------------
    7. PROFIL
 ------------------------------ */

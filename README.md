@@ -17,8 +17,8 @@ script.js       – logika (state systém, onboarding wizard, navigácia)
 | # | Modul | Stav |
 |---|-------|------|
 | 1 | Frontend – responzivita, komponentizácia, JS state | ✅ Hotovo |
-| 2 | Onboarding test kompatibility (otázky + scoring) | ⏳ Ďalší krok |
-| 3 | Matchovanie – algoritmus kompatibility | ⬜ Plánované |
+| 2 | Onboarding test kompatibility (otázky + scoring) | ✅ Hotovo |
+| 3 | Matchovanie – algoritmus kompatibility | ⏳ Ďalší krok |
 | 4 | Chat + AI návrhy správ (rule-based) | ⬜ Plánované |
 | 5 | Video overenie + video chat (architektúra) | ⬜ Plánované |
 | 6 | Backend návrh (Supabase – schéma, API, RLS) | ⬜ Plánované |
