@@ -1,0 +1,544 @@
+/* ==============================
+   SYNCED – STYLES
+   ------------------------------
+   Obsah:
+   1. Globálne premenné a reset
+   2. Header + navigácia (+ hamburger)
+   3. Tlačidlá
+   4. Hero
+   5. Sekcie + "Ako to funguje"
+   6. Onboarding wizard
+   7. Profil
+   8. Matchy
+   9. Chat
+   10. Footer
+   11. Responzivita (media queries)
+============================== */
+
+/* ------------------------------
+   1. GLOBAL
+------------------------------ */
+
+:root {
+  --bg: #faf9fb;
+  --bg-light: #ffffff;
+  --text: #2a2a2a;
+  --text-light: #555;
+  --primary: #e8b7d4;      /* jemná ružová */
+  --primary-dark: #d49bbd; /* tmavšia ružová */
+  --accent: #f6eef3;       /* veľmi svetlá ružová (pozadia) */
+  --border: #eee;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --shadow: 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-hover: 0 8px 24px rgba(0,0,0,0.10);
+  --max-width: 1200px;
+  --space: 40px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+main {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+img { max-width: 100%; display: block; }
+
+/* ------------------------------
+   2. HEADER
+------------------------------ */
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 40px;
+  background: var(--bg-light);
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--primary-dark);
+  text-decoration: none;
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+}
+
+.main-nav a {
+  margin-left: 24px;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.main-nav a:hover { color: var(--primary-dark); }
+
+.main-nav a.btn-primary { color: var(--text); }
+
+/* Hamburger – skrytý na desktope */
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 28px;
+  height: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.nav-toggle span {
+  display: block;
+  height: 3px;
+  width: 100%;
+  background: var(--primary-dark);
+  border-radius: 3px;
+  transition: 0.3s;
+}
+
+/* ------------------------------
+   3. TLAČIDLÁ
+------------------------------ */
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--text);
+  padding: 10px 18px;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 15px;
+  transition: 0.2s;
+}
+
+.btn-primary:hover { background: var(--primary-dark); }
+
+.btn-lg {
+  padding: 14px 28px;
+  font-size: 17px;
+  border-radius: var(--radius-lg);
+}
+
+.btn-secondary {
+  background: #e9e9ec;
+  color: var(--text);
+  padding: 10px 18px;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.2s;
+}
+
+.btn-secondary:hover { background: #dcdce0; }
+
+/* ------------------------------
+   4. HERO
+------------------------------ */
+
+.section-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+  padding: 80px 40px;
+}
+
+.hero-text { flex: 1; }
+
+.section-hero h1 {
+  font-size: 42px;
+  line-height: 1.15;
+  margin-bottom: 10px;
+}
+
+.section-hero p {
+  font-size: 18px;
+  color: var(--text-light);
+  margin-bottom: 20px;
+}
+
+.hero-note {
+  font-size: 14px !important;
+  margin-top: 14px;
+  color: var(--text-light);
+}
+
+.hero-visual {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.hero-visual__card {
+  width: 260px;
+  height: 260px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-weight: 600;
+  font-size: 22px;
+  color: #7a4c66;
+  box-shadow: var(--shadow);
+}
+
+/* ------------------------------
+   5. SEKCIE
+------------------------------ */
+
+.section { padding: 60px 40px; }
+
+.section h2 {
+  font-size: 32px;
+  margin-bottom: 24px;
+  color: var(--primary-dark);
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.step {
+  background: var(--bg-light);
+  padding: 28px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.step:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+
+.step__num {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.step h3 { margin: 0 0 8px; font-size: 18px; }
+.step p { margin: 0; color: var(--text-light); }
+
+/* ------------------------------
+   6. ONBOARDING WIZARD
+------------------------------ */
+
+.onboarding {
+  max-width: 640px;
+}
+
+.onboarding-head { margin-bottom: 20px; }
+
+.onboarding-progress {
+  height: 8px;
+  background: var(--accent);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.onboarding-progress__bar {
+  height: 100%;
+  width: 20%;
+  background: var(--primary-dark);
+  border-radius: 999px;
+  transition: width 0.35s ease;
+}
+
+.onboarding-counter {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--text-light);
+}
+
+/* Kroky – zobrazuje sa len aktívny */
+.onboarding-step {
+  display: none;
+  background: var(--bg-light);
+  padding: 30px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.onboarding-step.is-active {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.onboarding-step h3 { margin-top: 0; }
+
+.onboarding-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+}
+
+.placeholder-note {
+  color: var(--text-light);
+  font-style: italic;
+  background: var(--accent);
+  padding: 14px;
+  border-radius: var(--radius);
+}
+
+label {
+  display: block;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+input, select {
+  width: 100%;
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-top: 6px;
+  font-size: 15px;
+  font-family: inherit;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--primary-dark);
+}
+
+.profile-summary { display: grid; gap: 12px; }
+
+/* ------------------------------
+   7. PROFIL
+------------------------------ */
+
+.profile-layout { display: flex; gap: 40px; }
+
+.profile-main { flex: 1; display: grid; gap: 20px; }
+
+.profile-photo, .profile-video {
+  background: var(--accent);
+  border-radius: var(--radius);
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light);
+}
+
+.profile-details {
+  flex: 1;
+  background: var(--bg-light);
+  padding: 24px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.profile-details h3 { color: var(--primary-dark); }
+
+/* ------------------------------
+   8. MATCHY
+------------------------------ */
+
+.matches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+.match-card {
+  background: var(--bg-light);
+  padding: 20px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.match-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+
+.match-card h3 { margin-top: 0; }
+
+.match-score { font-weight: 600; color: var(--primary-dark); }
+
+/* ------------------------------
+   9. CHAT
+------------------------------ */
+
+.chat-layout { display: flex; gap: 30px; }
+
+.chat-list {
+  width: 240px;
+  background: var(--bg-light);
+  padding: 20px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.chat-list ul { list-style: none; padding: 0; margin: 0; }
+.chat-list li {
+  padding: 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.chat-list li:hover { background: var(--accent); }
+
+.chat-window {
+  flex: 1;
+  background: var(--bg-light);
+  padding: 20px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.chat-messages {
+  height: 300px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.message {
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  max-width: 70%;
+}
+
+.message-them { background: #f1e4ec; }
+
+.message-me { background: #dfe8f7; align-self: flex-end; }
+
+.chat-ai-suggestions { margin-bottom: 16px; }
+.chat-ai-suggestions p { margin: 0 0 8px; font-weight: 600; font-size: 14px; }
+
+.chat-ai-suggestions button {
+  margin-right: 10px;
+  margin-bottom: 10px;
+  background: var(--accent);
+  border: 1px solid var(--primary);
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+.chat-ai-suggestions button:hover { background: var(--primary); }
+
+.chat-input { display: flex; gap: 10px; flex-wrap: wrap; }
+.chat-input input { flex: 1; min-width: 160px; }
+
+.video-container {
+  background: #1e1e28;
+  color: #fff;
+  min-height: 320px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+}
+
+/* ------------------------------
+   10. FOOTER
+------------------------------ */
+
+.app-footer {
+  text-align: center;
+  padding: 30px;
+  background: var(--bg-light);
+  margin-top: 60px;
+  box-shadow: var(--shadow);
+}
+
+.footer-nav a {
+  margin: 0 10px;
+  text-decoration: none;
+  color: var(--text-light);
+}
+.footer-nav a:hover { color: var(--primary-dark); }
+
+/* ------------------------------
+   11. RESPONZIVITA
+------------------------------ */
+
+@media (max-width: 860px) {
+  .section-hero { flex-direction: column; text-align: center; padding: 50px 24px; }
+  .section-hero h1 { font-size: 34px; }
+  .profile-layout { flex-direction: column; }
+  .chat-layout { flex-direction: column; }
+  .chat-list { width: 100%; }
+}
+
+@media (max-width: 720px) {
+  /* Mobilná navigácia */
+  .nav-toggle { display: flex; }
+
+  .main-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    background: var(--bg-light);
+    padding: 16px 24px;
+    box-shadow: var(--shadow);
+  }
+
+  .main-nav.is-open { display: flex; }
+
+  .main-nav a { margin: 8px 0; }
+
+  .app-header { position: sticky; }
+
+  .section { padding: 44px 24px; }
+  .section h2 { font-size: 26px; }
+  .onboarding-step { padding: 22px; }
+}
+
+@media (max-width: 420px) {
+  .section-hero h1 { font-size: 28px; }
+  .hero-visual__card { width: 200px; height: 200px; }
+}

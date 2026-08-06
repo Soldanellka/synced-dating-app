@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <title>Synced – Zoznamka na rovnakej vlne</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Synced – hodnotová zoznamka pre ľudí, ktorí hľadajú seriózny vzťah. Kompatibilita, hodnoty a video overenie.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- 1) LANDING / DOMOV -->
+  <header class="app-header">
+    <a href="#hero" class="logo">Synced</a>
+
+    <!-- Hamburger pre mobil -->
+    <button class="nav-toggle" id="navToggle" aria-label="Otvoriť menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="main-nav" id="mainNav">
+      <a href="#how-it-works">Ako to funguje</a>
+      <a href="#matches">Matchy</a>
+      <a href="#profile">Profil</a>
+      <a href="#login">Prihlásenie</a>
+      <a href="#signup" class="btn-primary" data-scroll="#signup">Začni test kompatibility</a>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- HERO SEKCIA -->
+    <section id="hero" class="section-hero">
+      <div class="hero-text">
+        <h1>Zoznamka pre ľudí, ktorí sú na rovnakej vlne.</h1>
+        <p>Žiadne fejky, žiadne hry. Len ľudia, ktorí zdieľajú tvoje hodnoty.</p>
+        <button class="btn-primary btn-lg" data-scroll="#signup">Začni test kompatibility</button>
+        <p class="hero-note">Zadarmo · 5 minút · Bez záväzkov</p>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <!-- Tu môže byť ilustrácia / Canva obrázok -->
+        <div class="hero-visual__card">💛<br>na rovnakej vlne</div>
+      </div>
+    </section>
+
+    <!-- AKO TO FUNGUJE -->
+    <section id="how-it-works" class="section">
+      <h2>Ako Synced funguje</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step__num">1</div>
+          <h3>Vyplníš test kompatibility</h3>
+          <p>Hodnoty, osobnosť, vzťahové preferencie.</p>
+        </div>
+        <div class="step">
+          <div class="step__num">2</div>
+          <h3>Dostaneš len matchy, ktoré sa k tebe hodia</h3>
+          <p>Žiadny chaos, len kvalitné profily.</p>
+        </div>
+        <div class="step">
+          <div class="step__num">3</div>
+          <h3>Chat + video stretnutie</h3>
+          <p>Bezpečne, s overenou identitou.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2) ONBOARDING + TEST KOMPATIBILITY -->
+    <section id="signup" class="section">
+      <h2>Test kompatibility</h2>
+
+      <div class="onboarding" id="onboarding">
+
+        <!-- Progres -->
+        <div class="onboarding-head">
+          <div class="onboarding-progress">
+            <div class="onboarding-progress__bar" id="progressBar"></div>
+          </div>
+          <p class="onboarding-counter">
+            Krok <span id="stepCurrent">1</span> z <span id="stepTotal">5</span>
+          </p>
+        </div>
+
+        <!-- KROK 1: ZÁKLADNÉ ÚDAJE -->
+        <div class="onboarding-step is-active" data-step="1">
+          <h3>Krok 1: Základné údaje</h3>
+          <form id="basic-info-form">
+            <label>Vek
+              <input type="number" name="age" min="18" max="80" required>
+            </label>
+            <label>Lokalita
+              <input type="text" name="location" placeholder="Napr. Bratislava">
+            </label>
+            <label>Pohlavie
+              <select name="gender">
+                <option>Žena</option>
+                <option>Muž</option>
+                <option>Iné</option>
+              </select>
+            </label>
+            <label>Čo hľadáš?
+              <select name="intent">
+                <option value="serious">Vážny vzťah</option>
+                <option value="company">Spoločnosť</option>
+                <option value="open">Neviem, chcem spoznať možnosti</option>
+              </select>
+            </label>
+          </form>
+          <div class="onboarding-nav">
+            <span></span>
+            <button type="button" class="btn-primary" data-nav="next">Pokračovať</button>
+          </div>
+        </div>
+
+        <!-- KROK 2: HODNOTY -->
+        <div class="onboarding-step" data-step="2">
+          <h3>Krok 2: Hodnoty a životný štýl</h3>
+          <div class="questions" data-questions="values">
+            <!-- Otázky doplníme v Kroku 2 (rodina, kariéra, voľný čas, spiritualita, hranice) -->
+            <p class="placeholder-note">Sem prídu otázky na hodnoty (rodina, kariéra, voľný čas, spiritualita, hranice).</p>
+          </div>
+          <div class="onboarding-nav">
+            <button type="button" class="btn-secondary" data-nav="prev">Späť</button>
+            <button type="button" class="btn-primary" data-nav="next">Pokračovať</button>
+          </div>
+        </div>
+
+        <!-- KROK 3: OSOBNOSŤ -->
+        <div class="onboarding-step" data-step="3">
+          <h3>Krok 3: Tvoja osobnosť vo vzťahu</h3>
+          <div class="questions" data-questions="personality">
+            <p class="placeholder-note">Sem prídu Big Five light otázky.</p>
+          </div>
+          <div class="onboarding-nav">
+            <button type="button" class="btn-secondary" data-nav="prev">Späť</button>
+            <button type="button" class="btn-primary" data-nav="next">Pokračovať</button>
+          </div>
+        </div>
+
+        <!-- KROK 4: PREFERENCIE PARTNERA -->
+        <div class="onboarding-step" data-step="4">
+          <h3>Krok 4: Čo hľadáš u partnera</h3>
+          <div class="questions" data-questions="preferences">
+            <p class="placeholder-note">Sem prídu preferencie, hodnoty a hranice pre partnera.</p>
+          </div>
+          <div class="onboarding-nav">
+            <button type="button" class="btn-secondary" data-nav="prev">Späť</button>
+            <button type="button" class="btn-primary" data-nav="next">Vypočítať profil</button>
+          </div>
+        </div>
+
+        <!-- KROK 5: ZHRNUTIE -->
+        <div class="onboarding-step" data-step="5">
+          <h3>Tvoj vzťahový profil</h3>
+          <div id="profileSummary" class="profile-summary">
+            <p class="placeholder-note">Tu sa zobrazí percentuálny profil, typ osobnosti a hodnoty po dokončení testu.</p>
+          </div>
+          <div class="onboarding-nav">
+            <button type="button" class="btn-secondary" data-nav="prev">Späť</button>
+            <button type="button" class="btn-primary" data-scroll="#matches">Pozri si svoje matchy</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 3) PROFIL POUŽÍVATEĽA -->
+    <section id="profile" class="section">
+      <h2>Môj profil</h2>
+      <div class="profile-layout">
+        <div class="profile-main">
+          <div class="profile-photo">
+            <span>Profilová fotka</span>
+          </div>
+          <div class="profile-video">
+            <span>Krátke video „O mne"</span>
+          </div>
+        </div>
+        <div class="profile-details">
+          <h3>Hodnotový profil</h3>
+          <ul id="profileValuesList">
+            <li>Rodina je pre mňa dôležitá</li>
+            <li>Chcem harmonický životný štýl</li>
+          </ul>
+
+          <h3>Osobnostný profil</h3>
+          <p id="profilePersonality">Typ: napr. „Empatický analytik"</p>
+
+          <h3>Overenie identity</h3>
+          <button class="btn-secondary">Overiť profil videom</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4) MATCHOVANIE -->
+    <section id="matches" class="section">
+      <h2>Tvoje dnešné matchy</h2>
+      <div class="matches-grid" id="matchesGrid">
+        <!-- Naplní JS (Krok 3). Dovtedy statické ukážky: -->
+        <article class="match-card">
+          <h3>Anna, 28</h3>
+          <p class="match-score">Kompatibilita: 87 %</p>
+          <p>Spoločné hodnoty: rodina, pokoj, osobný rast</p>
+          <button class="btn-primary">Otvoriť profil</button>
+        </article>
+        <article class="match-card">
+          <h3>Peter, 32</h3>
+          <p class="match-score">Kompatibilita: 82 %</p>
+          <button class="btn-primary">Otvoriť profil</button>
+        </article>
+      </div>
+    </section>
+
+    <!-- 5) CHAT -->
+    <section id="chat" class="section">
+      <h2>Chat</h2>
+      <div class="chat-layout">
+        <aside class="chat-list">
+          <h3>Konverzácie</h3>
+          <ul>
+            <li>Anna (87 %)</li>
+            <li>Peter (82 %)</li>
+          </ul>
+        </aside>
+
+        <div class="chat-window">
+          <div class="chat-messages" id="chatMessages">
+            <div class="message message-them">
+              Ahoj, vidím, že máš rada pokojné večery doma. :)
+            </div>
+            <div class="message message-me">
+              Hej, to je presne môj štýl.
+            </div>
+          </div>
+
+          <div class="chat-ai-suggestions" id="chatSuggestions">
+            <p>AI návrhy tém:</p>
+            <button type="button">Spýtaj sa na obľúbený spôsob relaxu</button>
+            <button type="button">Navrhni spoločnú aktivitu na víkend</button>
+          </div>
+
+          <form class="chat-input" id="chatForm">
+            <input type="text" placeholder="Napíš správu..." id="chatInput">
+            <button type="submit" class="btn-primary">Poslať</button>
+            <button type="button" class="btn-secondary" data-scroll="#video">Video chat</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6) VIDEO CHAT (PLACEHOLDER) -->
+    <section id="video" class="section">
+      <h2>Video stretnutie</h2>
+      <div class="video-container" id="videoContainer">
+        <p>Tu bude prebiehať bezpečný video chat priamo v aplikácii.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <p>© Synced – zoznamka pre ľudí na rovnakej vlne</p>
+    <nav class="footer-nav">
+      <a href="#terms">Obchodné podmienky</a>
+      <a href="#privacy">Ochrana osobných údajov</a>
+      <a href="#cookies">Cookies</a>
+    </nav>
+  </footer>
+
+  <script src="script.js" defer></script>
+</body>
+</html>

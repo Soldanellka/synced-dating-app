@@ -1,0 +1,17 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Node (pre neskoršie kroky – backend/build)
+node_modules/
+npm-debug.log*
+.env
+.env.local
+
+# Build
+dist/
+build/
