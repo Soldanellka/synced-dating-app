@@ -7,7 +7,7 @@ Moderná zoznamka založená na **hodnotách, kompatibilite a video overení**, 
 ## 🧱 Štruktúra projektu
 
 ```
-zoznamka.html   – hlavná stránka (landing, onboarding, profil, matchy, chat, video)
+index.html   – hlavná stránka (landing, onboarding, profil, matchy, chat, video)
 styles.css      – dizajn (jemná ružová paleta, responzívne, komponenty)
 script.js       – logika (state systém, onboarding wizard, navigácia)
 ```
@@ -26,12 +26,12 @@ script.js       – logika (state systém, onboarding wizard, navigácia)
 
 ## 🚀 Spustenie
 
-Projekt je čistý HTML/CSS/JS bez build kroku – stačí otvoriť `zoznamka.html` v prehliadači.
+Projekt je čistý HTML/CSS/JS bez build kroku – stačí otvoriť `index.html` v prehliadači.
 
 ```bash
 # alebo lokálny server
 python3 -m http.server 8000
-# potom otvor http://localhost:8000/zoznamka.html
+# potom otvor http://localhost:8000/index.html
 ```
 
 ## 🧠 Architektúra JS (state systém)
