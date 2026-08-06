@@ -9,7 +9,8 @@ Moderná zoznamka založená na **hodnotách, kompatibilite a video overení**, 
 ```
 index.html   – hlavná stránka (landing, onboarding, profil, matchy, chat, video)
 styles.css      – dizajn (jemná ružová paleta, responzívne, komponenty)
-script.js       – logika (state systém, onboarding wizard, navigácia)
+script.js       – logika (state, wizard, scoring, matchovanie)
+data.js         – otázky testu + fiktívna databáza používateľov
 ```
 
 ## ✅ Postup vývoja (MVP po moduloch)
@@ -18,8 +19,8 @@ script.js       – logika (state systém, onboarding wizard, navigácia)
 |---|-------|------|
 | 1 | Frontend – responzivita, komponentizácia, JS state | ✅ Hotovo |
 | 2 | Onboarding test kompatibility (otázky + scoring) | ✅ Hotovo |
-| 3 | Matchovanie – algoritmus kompatibility | ⏳ Ďalší krok |
-| 4 | Chat + AI návrhy správ (rule-based) | ⬜ Plánované |
+| 3 | Matchovanie – algoritmus kompatibility | ✅ Hotovo |
+| 4 | Chat + AI návrhy správ (rule-based) | ⏳ Ďalší krok |
 | 5 | Video overenie + video chat (architektúra) | ⬜ Plánované |
 | 6 | Backend návrh (Supabase – schéma, API, RLS) | ⬜ Plánované |
 | 7 | Monetizácia + právne sekcie | ⬜ Plánované |

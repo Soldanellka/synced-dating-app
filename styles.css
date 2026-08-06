@@ -514,9 +514,39 @@ input:focus, select:focus {
   box-shadow: var(--shadow-hover);
 }
 
-.match-card h3 { margin-top: 0; }
+.match-card h3 { margin-top: 0; margin-bottom: 0; }
 
 .match-score { font-weight: 600; color: var(--primary-dark); }
+
+.match-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.match-badge {
+  background: var(--primary-dark);
+  color: #fff;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 15px;
+  white-space: nowrap;
+}
+.match-type {
+  font-weight: 600;
+  color: var(--primary-dark);
+  margin: 10px 0 4px;
+}
+.match-desc { margin: 0 0 12px; color: var(--text-light); font-size: 14px; }
+.match-meta { margin: 4px 0; font-size: 14px; }
+.match-bio {
+  margin: 12px 0 16px;
+  font-style: italic;
+  color: var(--text-light);
+  border-left: 3px solid var(--primary);
+  padding-left: 12px;
+}
 
 /* ------------------------------
    9. CHAT
