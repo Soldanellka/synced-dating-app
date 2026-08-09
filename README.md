@@ -26,6 +26,7 @@ supabase/       – schema.sql (DB schéma + RLS pre Supabase)
 | 5 | Video overenie + video chat (architektúra) | ✅ Hotovo |
 | 6 | Backend návrh (Supabase – schéma, API, RLS) | ✅ Hotovo |
 | 7 | Monetizácia + právne sekcie | ✅ Hotovo |
+| ➕ | Rastový hook – zdieľateľný výsledok + „pozvi a porovnaj" + referral | ✅ Hotovo |
 
 ## 🚀 Spustenie
 

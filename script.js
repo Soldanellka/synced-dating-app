@@ -801,6 +801,129 @@ const Legal = {
 
 
 /* --------------------------------------------------------------
+   3k) INVITE – zdieľateľný výsledok + „pozvi a porovnaj" + referral
+   --------------------------------------------------------------
+   Funguje bez backendu: profil pozývateľa sa zakóduje do linku.
+   Neskôr: referral počítanie a odmeny rieši backend.
+   -------------------------------------------------------------- */
+const Invite = {
+  currentName: '',
+
+  init() {
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('[data-share]')) { e.preventDefault(); this.openShareModal(); }
+    });
+    this.checkIncoming();
+  },
+
+  // --- Kódovanie profilu do linku (UTF-8 safe base64) ---
+  encodeProfile(name) {
+    const P = AppState.userProfile;
+    const data = { n: name || '', t: P.personality.type || '', i: P.relationshipIntent || '',
+                   v: P.valueVector || {}, p: P.personality.scores || {} };
+    return btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+  },
+  decodeProfile(str) {
+    try { return JSON.parse(decodeURIComponent(escape(atob(str)))); } catch (_) { return null; }
+  },
+
+  buildLink(name) {
+    const base = location.origin + location.pathname;
+    const enc = this.encodeProfile(name);
+    return `${base}?ref=SYNCED&invite=${encodeURIComponent(enc)}`;
+  },
+
+  openShareModal() {
+    const P = AppState.userProfile;
+    const hasProfile = !!(P.personality && P.personality.type);
+    const link = this.buildLink(this.currentName);
+    const values = (P.values || []).map(v => v.label).join(' · ') || '—';
+
+    Modal.open(`
+      <h3 class="modal__title">💌 Pozvi kamoša a porovnajte sa</h3>
+      ${hasProfile ? `
+      <div class="share-card">
+        <div class="share-card__emoji">💛</div>
+        <p class="share-card__type">${this.esc(P.personality.type)}</p>
+        <p class="share-card__values">${this.esc(values)}</p>
+        <p class="share-card__tag">Aký vzťahový typ si ty? Zisti to na Synced.</p>
+      </div>` : `<p class="modal__desc">Sprav si najprv test, aby si mohol(a) zdieľať svoj vzťahový typ a porovnať sa. 🙂</p>`}
+
+      <label class="share-name">Tvoje meno (nepovinné – pre osobnejšiu pozvánku)
+        <input type="text" id="shareName" value="${this.esc(this.currentName)}" placeholder="Napr. Júlia">
+      </label>
+
+      <label class="share-link-label">Tvoj pozývací link
+        <span class="share-link">
+          <input type="text" id="shareLink" readonly value="${this.esc(link)}">
+          <button class="btn-primary" id="shareCopy">Kopírovať</button>
+        </span>
+      </label>
+      <button class="btn-secondary" id="shareNative">📲 Zdieľať…</button>
+
+      <div class="referral">
+        <p class="referral__title">🎁 Pozvi 3 kamošov = Premium na mesiac zadarmo</p>
+        <div class="referral__bar"><span style="width:0%"></span></div>
+        <p class="referral__count">0 / 3 pozvaní</p>
+        <p class="pay-note">Počítanie pozvaní a odmeny sa napoja na backend – zatiaľ ukážka mechaniky.</p>
+      </div>
+    `);
+
+    const nameEl = document.getElementById('shareName');
+    const linkEl = document.getElementById('shareLink');
+    nameEl?.addEventListener('input', () => {
+      this.currentName = nameEl.value;
+      linkEl.value = this.buildLink(this.currentName);
+    });
+    document.getElementById('shareCopy')?.addEventListener('click', () => this.copy(linkEl));
+    document.getElementById('shareNative')?.addEventListener('click', () => this.nativeShare(linkEl.value));
+  },
+
+  copy(input) {
+    input.select();
+    const done = () => { const b = document.getElementById('shareCopy'); if (b) b.textContent = 'Skopírované ✓'; };
+    if (navigator.clipboard) navigator.clipboard.writeText(input.value).then(done).catch(done);
+    else { try { document.execCommand('copy'); done(); } catch (_) {} }
+  },
+
+  nativeShare(url) {
+    const text = 'Aký si vzťahový typ? Zisti to na Synced 💛';
+    if (navigator.share) navigator.share({ title: 'Synced', text, url }).catch(() => {});
+    else this.copy(document.getElementById('shareLink'));
+  },
+
+  // --- Prichádzajúca pozvánka ---
+  checkIncoming() {
+    const inv = new URLSearchParams(location.search).get('invite');
+    if (!inv) return;
+    const prof = this.decodeProfile(inv);
+    if (prof) { AppState.inviter = prof; this.showWelcome(prof); }
+  },
+
+  showWelcome(prof) {
+    const bar = document.createElement('div');
+    bar.className = 'invite-banner';
+    const who = prof.n ? `<strong>${this.esc(prof.n)}</strong>` : 'Niekto';
+    bar.innerHTML = `💛 ${who} ťa pozval(a) na Synced – sprav si test a zistite váš súlad!
+      <button class="btn-primary" data-scroll="#signup">Spustiť test</button>`;
+    document.body.prepend(bar);
+  },
+
+  // Pozývateľ ako „user" pre výpočet kompatibility
+  inviterUser() {
+    const p = AppState.inviter;
+    if (!p) return null;
+    return { name: p.n || 'tvoj pozývateľ', valueVector: p.v || {}, personality: p.p || {}, intent: p.i };
+  },
+
+  esc(s) {
+    return String(s).replace(/[&<>"']/g, c =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+};
+
+
+/* --------------------------------------------------------------
    4) ONBOARDING WIZARD
    -------------------------------------------------------------- */
 const Onboarding = {
@@ -892,7 +1015,20 @@ const Onboarding = {
 
     const intentMap = { serious: 'Vážny vzťah', company: 'Spoločnosť', open: 'Otvorený možnostiam' };
 
+    // Ak používateľ prišiel cez pozvánku – ukáž % súlad s pozývateľom
+    let compareBlock = '';
+    const inviter = (typeof Invite !== 'undefined') ? Invite.inviterUser() : null;
+    if (inviter) {
+      const r = calculateCompatibility(Matches.currentUser(), inviter);
+      compareBlock = `
+        <div class="summary-card summary-card--compare">
+          <h4>💞 Ty & ${Invite.esc(inviter.name)}: ${r.score}%</h4>
+          <p class="summary-sub">${r.type} – ${r.desc}</p>
+        </div>`;
+    }
+
     box.innerHTML = `
+      ${compareBlock}
       <div class="summary-card">
         <h4>💛 Tvoj typ: ${P.personality.type || '—'}</h4>
         <p class="summary-sub">${P.personality.headline || ''}</p>
@@ -916,7 +1052,10 @@ const Onboarding = {
       </div>
 
       <p class="summary-note">Na základe tohto profilu ti Synced vypočíta najlepšie matchy. 🎯</p>
-      <button class="btn-secondary" data-buy="report">📊 Získať detailný kompatibilita report</button>
+      <div class="summary-actions">
+        <button class="btn-primary" data-share>💌 Pozvi kamoša a porovnajte sa</button>
+        <button class="btn-secondary" data-buy="report">📊 Detailný report</button>
+      </div>
     `;
   },
 
@@ -985,6 +1124,7 @@ document.addEventListener('DOMContentLoaded', () => {
   Modal.init();
   Billing.init();
   Legal.init();
+  Invite.init();
   Nav.init();
   SmoothScroll.init();
   console.log('[Synced] Aplikácia inicializovaná ✔');
