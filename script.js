@@ -34,6 +34,8 @@ const AppState = {
     shapePersona: null,         // Hra: Panáčik z tvarov – { sex, cit, rozum } počty z 10 (soft signál)
     rt: null,                   // Vzťahový kompas – { os1, os2, kut } (soft signál, nikdy % ani brána)
     archetypeSet: 'neutral',    // Archetypy: 'm' | 'z' | 'neutral' | 'none' (none → neutrálna sada)
+    archetypePrefSet: 'both',   // Koho hľadám – sada na zoraďovanie: 'm' | 'z' | 'both'
+    archetypePref: null,        // Koho hľadám – { poradie, prefOs1, prefOs2 } (soft doradenie, nikdy brána)
     assertStyle: null,          // Asertivita – { counts, dominant } (privátny self-insight, mimo scoringu)
     // Výzor (Krok 5) – abstraktný avatar, KÁNON hodnôt viď docs/vyzor-a-pravidla.md
     appearance: {},             // „Ja": { heightBand, silhouette, hair, style }
@@ -443,6 +445,216 @@ function archetypeLine(meRt, meSet, otherRt, otherGender) {
 window.archetypeLine = archetypeLine;
 
 
+/* --------------------------------------------------------------
+   KOHO HĽADÁM – preferované ladenie partnera z poradia archetypov
+   --------------------------------------------------------------
+   SOFT: nikoho neskrýva, nemení zobrazené % ani passesHardGates.
+   archPrefScore je len kozmetické doradenie výpisu + opisný riadok.
+   -------------------------------------------------------------- */
+
+// Zhoda preferovaného ladenia s RT osami profilu (0..1).
+// Bez preferencie alebo bez RT profilu → 0.5 (neutrál, neznevýhodní).
+function archPrefScore(pref, otherRt) {
+  if (!pref || typeof pref.prefOs1 !== 'number'
+    || !otherRt || typeof otherRt.os1 !== 'number') return 0.5;
+  return 1 - (Math.abs(pref.prefOs1 - otherRt.os1) + Math.abs(pref.prefOs2 - otherRt.os2)) / 4;
+}
+window.archPrefScore = archPrefScore;
+
+// Opisný riadok LEN pri výraznej zhode (≥ 0.75) a s archetypom profilu.
+// Pri nesúlade sa nikdy nič nehovorí (žiadne „nie je tvoj typ").
+function archPrefLine(pref, otherRt, otherGender) {
+  const s = archPrefScore(pref, otherRt);
+  if (!pref || s < 0.75) return '';
+  const arch = archetypeFor(otherRt, otherGender);
+  if (!arch) return '';
+  const fem = otherGender === 'z';
+  const pron = fem ? 'ona' : (otherGender === 'm' ? 'on' : 'on/ona');
+  return `<p class="match-arch match-arch--pref">🏰 Tvojmu srdcu je ${fem ? 'blízka' : 'blízky'}
+    ${arch.name} — a ${pron} ${fem ? 'ňou' : 'ním'} práve je. 💛</p>`;
+}
+window.archPrefLine = archPrefLine;
+
+
+/* Modul zoraďovania „Koho hľadám" (vzor šípok z createRankingGame) */
+const ArchetypePref = {
+  KEY: 'synced_archpref_v1',
+  setOptions: [['m', 'Mužské'], ['z', 'Ženské'], ['both', 'Oboje']],
+  set: 'both',
+  order: [],
+  result: null,     // { set, poradie, prefOs1, prefOs2 }
+
+  init() {
+    this.cardsEl = document.getElementById('apCards');
+    if (!this.cardsEl || !window.ARCHETYPES) return;
+
+    this.load();
+    this.set = this.result?.set || AppState.userProfile.archetypePrefSet || 'both';
+    this.order = this.validOrder(this.result?.poradie) || this.items(this.set).map(i => i.id);
+
+    this.renderPicker();
+    this.renderCards();
+    if (this.result) { this.renderResult(); this.renderProfileStrip(); }
+
+    document.getElementById('apSetPicker').addEventListener('click', (e) => {
+      const chip = e.target.closest('button[data-prefset]');
+      if (!chip) return;
+      this.set = chip.dataset.prefset;
+      AppState.userProfile.archetypePrefSet = this.set;
+      this.order = this.items(this.set).map(i => i.id);
+      this.renderPicker();
+      this.renderCards();
+    });
+
+    this.cardsEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-move]');
+      if (!btn) return;
+      this.move(btn.closest('li').dataset.id, btn.dataset.move);
+    });
+
+    document.getElementById('apConfirm').addEventListener('click', () => this.confirm());
+  },
+
+  // Karty zvolenej sady; 'both' = všetkých 8
+  items(set) {
+    const quads = ['BS', 'BZ', 'OS', 'OZ'];
+    const sets = set === 'both' ? ['m', 'z'] : [set];
+    const out = [];
+    quads.forEach(q => sets.forEach(s => {
+      const c = window.ARCHETYPES.corners[q];
+      out.push({ id: q + '_' + s, quad: q, name: c[s].name, desc: c[s].desc, icon: c.icon });
+    }));
+    return out;
+  },
+
+  validOrder(poradie) {
+    if (!Array.isArray(poradie)) return null;
+    const ids = this.items(this.result?.set || this.set).map(i => i.id);
+    const ok = poradie.length === ids.length && ids.every(id => poradie.includes(id));
+    return ok ? poradie : null;
+  },
+
+  renderPicker() {
+    document.getElementById('apSetPicker').innerHTML = `
+      <span class="arch-picker__label">Ktoré archetypy ti zobraziť?</span>
+      <span class="avatar-chips">
+        ${this.setOptions.map(([v, l]) => `
+          <button type="button" class="avatar-chip ${v === this.set ? 'is-active' : ''}"
+            data-prefset="${v}">${l}</button>`).join('')}
+      </span>`;
+  },
+
+  renderCards() {
+    const byId = Object.fromEntries(this.items(this.set).map(i => [i.id, i]));
+    this.cardsEl.innerHTML = this.order.map((id, i) => {
+      const it = byId[id];
+      return `
+        <li class="vg-card ap-card" data-id="${id}">
+          <span class="vg-card__rank">${i + 1}.</span>
+          ${archetypeIconSVG(it.icon)}
+          <span class="vg-card__name">${it.name}
+            <span class="ap-card__desc">${it.desc}</span></span>
+          <span class="vg-card__move">
+            <button type="button" data-move="up" aria-label="Posunúť vyššie"
+              ${i === 0 ? 'disabled' : ''}>▲</button>
+            <button type="button" data-move="down" aria-label="Posunúť nižšie"
+              ${i === this.order.length - 1 ? 'disabled' : ''}>▼</button>
+          </span>
+        </li>`;
+    }).join('');
+  },
+
+  move(id, dir) {
+    const i = this.order.indexOf(id);
+    const j = dir === 'up' ? i - 1 : i + 1;
+    if (i < 0 || j < 0 || j >= this.order.length) return;
+    [this.order[i], this.order[j]] = [this.order[j], this.order[i]];
+    this.renderCards();
+  },
+
+  // Vážené ťažisko: vyššie poradie = väčšia váha (n..1);
+  // osi archetypu = znamienka kvadrantu (B/O → ±1, S/Z → ±1)
+  compute() {
+    const n = this.order.length;
+    let s1 = 0, s2 = 0, sw = 0;
+    this.order.forEach((id, i) => {
+      const w = n - i;
+      const quad = id.split('_')[0];
+      s1 += w * (quad[0] === 'B' ? 1 : -1);
+      s2 += w * (quad[1] === 'S' ? 1 : -1);
+      sw += w;
+    });
+    const round = (x) => Math.round(x / sw * 100) / 100;
+    return { prefOs1: round(s1), prefOs2: round(s2) };
+  },
+
+  confirm() {
+    const { prefOs1, prefOs2 } = this.compute();
+    this.result = { set: this.set, poradie: [...this.order], prefOs1, prefOs2 };
+    AppState.userProfile.archetypePrefSet = this.set;
+    AppState.userProfile.archetypePref = { poradie: [...this.order], prefOs1, prefOs2 };
+    this.save();
+    this.renderResult();
+    this.renderProfileStrip();
+    // Jemné doradenie sa prejaví hneď (ak sú matchy vykreslené)
+    if (Object.keys(AppState.userProfile.valueVector || {}).length) Matches.render();
+    document.getElementById('apResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  },
+
+  orderedNames() {
+    const byId = Object.fromEntries(this.items(this.result.set).map(i => [i.id, i]));
+    return this.result.poradie.map(id => byId[id]?.name).filter(Boolean);
+  },
+
+  renderResult() {
+    const names = this.orderedNames();
+    const box = document.getElementById('apResult');
+    box.hidden = false;
+    box.innerHTML = `
+      <h3>Ku komu ťa to ťahá</h3>
+      <p class="vg-result__intro">${names.join(' › ')}</p>
+      <p class="vg-result__desc">V matchoch to ľudí s podobným ladením jemne
+        posunie vyššie — nikoho to neskryje a percentá to nemení.</p>
+      <p class="vg-result__note">Skutoční ľudia vždy prekvapia — a to je tá krajšia časť. 💛</p>`;
+  },
+
+  renderProfileStrip() {
+    const box = document.getElementById('profileArchPref');
+    if (!box) return;
+    const names = this.orderedNames();
+    const shown = names.slice(0, 4).join(', ') + (names.length > 4 ? '…' : '');
+    box.innerHTML = `
+      <p class="vg-strip">Ku komu ťa to ťahá: <strong>${shown}</strong></p>
+      <div class="vg-strip__actions">
+        <a class="vg-again" href="#archetype-pref" data-scroll="#archetype-pref">Zoradiť znova</a>
+      </div>`;
+  },
+
+  /* localStorage – dočasný most (TODO Supabase); archetypePref sú čisté
+     dáta pripravené na neskoršie serverové porovnanie medzi reálnymi účtami */
+  save() {
+    try { localStorage.setItem(this.KEY, JSON.stringify(this.result)); } catch (_) {}
+  },
+
+  load() {
+    try {
+      const raw = localStorage.getItem(this.KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      const valid = saved && ['m', 'z', 'both'].includes(saved.set)
+        && typeof saved.prefOs1 === 'number' && typeof saved.prefOs2 === 'number'
+        && Array.isArray(saved.poradie);
+      if (!valid) return;   // iný/starší formát sa ticho zahodí
+      this.result = saved;
+      AppState.userProfile.archetypePrefSet = saved.set;
+      AppState.userProfile.archetypePref = {
+        poradie: [...saved.poradie], prefOs1: saved.prefOs1, prefOs2: saved.prefOs2
+      };
+    } catch (_) { /* poškodené dáta ignorujeme */ }
+  }
+};
+
+
 /* Voľba archetypovej sady v profile (pohlavie appka nezbiera) */
 const ArchetypeSet = {
   KEY: 'synced_archetypeset_v1',
@@ -553,9 +765,22 @@ const Matches = {
         result.appearanceFit = appearanceFit(me.ideal, u.appearance);
         result.rtLine = rtStyleLine(me.rt, u.rt);   // opisný riadok, nie skóre
         result.archLine = archetypeLine(me.rt, me.archetypeSet, u.rt, u.gender);
+        result.archPrefScore = archPrefScore(me.archetypePref, u.rt);
+        result.archPrefLine = archPrefLine(me.archetypePref, u.rt, u.gender);
         return { user: u, result };
       })
-      .sort((a, b) => b.result.score - a.result.score);
+      // Primárne stále % kompatibility. archPrefScore je len KOZMETICKÉ
+      // doradenie: v rámci tesných matchov (rozdiel do 2 %) jemne nadradí
+      // profily bližšie preferovanému ladeniu z „Koho hľadám".
+      // Nie je to kritérium – nikoho neskryje, % ani brány nemení;
+      // profil bez RT má neutrál 0.5 a doradenie ho neznevýhodní.
+      .sort((a, b) => {
+        if (Math.abs(a.result.score - b.result.score) <= 2) {
+          const d = b.result.archPrefScore - a.result.archPrefScore;
+          if (d) return d;
+        }
+        return b.result.score - a.result.score;
+      });
 
     AppState.compatibilityScore = ranked[0]?.result.score ?? null;
 
@@ -607,7 +832,8 @@ const Matches = {
       appearance: P.appearance || {},
       ideal: P.ideal || { heightBand: 'nezalezi', silhouette: 'nezalezi', hair: 'nezalezi', style: 'nezalezi' },
       rt: P.rt || null,
-      archetypeSet: P.archetypeSet || 'neutral'
+      archetypeSet: P.archetypeSet || 'neutral',
+      archetypePref: P.archetypePref || null
     };
   },
 
@@ -626,6 +852,7 @@ const Matches = {
         ${reframeLove(r.appearanceFit)}
         ${r.rtLine || ''}
         ${r.archLine || ''}
+        ${r.archPrefLine || ''}
         <p class="match-bio">„${user.bio}"</p>
         <button class="btn-primary" data-scroll="#chat">Napíš správu</button>
       </article>`;
@@ -2404,6 +2631,7 @@ document.addEventListener('DOMContentLoaded', () => {
   KitchenGame.init();
   ShapeGame.init();
   ArchetypeSet.init();          // pred RTTest – sada musí byť načítaná pred vykreslením
+  ArchetypePref.init();
   RTTest.init();
   AssertTraining.init();
   VideoVerification.init();

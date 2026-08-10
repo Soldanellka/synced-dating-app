@@ -248,6 +248,14 @@
             </a>
           </div>
 
+          <h3>Koho hľadám</h3>
+          <!-- Po zoradení archetypov sem JS vykreslí pruh s poradím -->
+          <div id="profileArchPref">
+            <a class="vg-entry" href="#archetype-pref" data-scroll="#archetype-pref">
+              🏰 Koho hľadám <span class="vg-entry__time">(2 min)</span>
+            </a>
+          </div>
+
           <h3>Asertivita</h3>
           <!-- Po prejdení tréningu sem JS vykreslí tendenciu (privátna) -->
           <div id="profileAssert">
@@ -381,6 +389,22 @@
       </div>
 
       <div class="vg-result" id="rtResult" hidden></div>
+    </section>
+
+    <!-- 4e2) KOHO HĽADÁM – zoradenie archetypov (preferencia partnera) -->
+    <section id="archetype-pref" class="section">
+      <h2>🏰 Koho hľadám</h2>
+      <p class="vg-intro">Nie je to o škatuľkách – len ku komu ťa to intuitívne
+        ťahá. Skutoční ľudia vždy prekvapia. 💛</p>
+
+      <div class="vg-play ap-box">
+        <div class="arch-picker" id="apSetPicker"><!-- naplní JS --></div>
+        <p class="vg-hint">Zoraď od „najbližšie môjmu srdcu" po „najmenej".</p>
+        <ul class="vg-cards" id="apCards"><!-- naplní JS --></ul>
+        <button type="button" class="btn-primary" id="apConfirm">Potvrdiť poradie</button>
+      </div>
+
+      <div class="vg-result" id="apResult" hidden></div>
     </section>
 
     <!-- 4f) ASERTIVITA – tréning komunikácie -->
