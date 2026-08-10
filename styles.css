@@ -551,6 +551,30 @@ input:focus, select:focus {
   padding-left: 12px;
 }
 
+/* Empty-state, keď tvrdými bránami neprejde nikto */
+.match-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  background: var(--accent);
+  border-radius: var(--radius-lg);
+  padding: 40px 24px;
+}
+.match-empty__icon { font-size: 40px; margin-bottom: 8px; }
+.match-empty h3 { margin: 0 0 8px; }
+.match-empty p { margin: 0 auto; max-width: 520px; color: var(--text-light); }
+
+/* Transparentná poznámka o skrytých profiloch */
+.match-filtered-note {
+  grid-column: 1 / -1;
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--text-light);
+  background: var(--bg-light);
+  border: 1px dashed var(--primary);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+}
+
 /* ------------------------------
    9. CHAT
 ------------------------------ */

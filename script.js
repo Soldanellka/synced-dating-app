@@ -235,6 +235,46 @@ function relationshipType(valueSim, persComponent, intent) {
   return { type: 'Objavný match', desc: 'Zaujímavý potenciál – veľa objavíte cez rozhovor.' };
 }
 
+/* --------------------------------------------------------------
+   TVRDÉ BRÁNY – filtre pred skórovaním
+   --------------------------------------------------------------
+   passesHardGates(me, other) → { ok, reasons[] }
+   Kto neprejde, do skórovania a zoradenia vôbec nejde.
+   'Nečestnosť' NIE je brána (nedá sa merať z profilu).
+   -------------------------------------------------------------- */
+function passesHardGates(me, other) {
+  const reasons = [];
+
+  // 1) ZÁMER: vážny vzťah × spoločnosť sa vylučujú; 'open' je zlučiteľný so všetkým
+  const a = me.intent, b = other.intent;
+  if ((a === 'serious' && b === 'company') || (a === 'company' && b === 'serious')) {
+    reasons.push('nezhoda v zámere');
+  }
+
+  // 2) DEALBREAKERY používateľa (z Kroku 4)
+  const db = me.dealbreakers || [];
+
+  if (db.includes('Fajčenie') && other.smokes === true) {
+    reasons.push('fajčenie');
+  }
+
+  if (db.includes('Nezáujem o rodinu') && ((other.valueVector?.rodina ?? 3) <= 2)) {
+    reasons.push('nezáujem o rodinu');
+  }
+
+  if (db.includes('Rozdielne životné ciele')) {
+    const keys = Object.keys(me.valueVector || {});
+    const valueSim = keys.length
+      ? 1 - avgAbsDiff(me.valueVector || {}, other.valueVector || {}, keys) / 4
+      : 1;
+    if (valueSim < 0.5) reasons.push('rozdielne životné ciele');
+  }
+
+  return { ok: reasons.length === 0, reasons };
+}
+window.passesHardGates = passesHardGates;
+
+
 // Hlavná funkcia – vráti kompatibilitu dvoch používateľov
 function calculateCompatibility(a, b) {
   const valueKeys = Object.keys(a.valueVector || {});
@@ -277,13 +317,45 @@ const Matches = {
     const me = this.currentUser();
     const users = window.SAMPLE_USERS || [];
 
-    const ranked = users
+    // Tvrdé brány: kto neprejde, do skórovania nejde
+    const passed = [];
+    const filteredOut = [];
+    users.forEach(u => {
+      const gate = passesHardGates(me, u);
+      if (gate.ok) passed.push(u);
+      else filteredOut.push({ user: u, reasons: gate.reasons });
+    });
+
+    const ranked = passed
       .map(u => ({ user: u, result: calculateCompatibility(me, u) }))
       .sort((a, b) => b.result.score - a.result.score);
 
     AppState.compatibilityScore = ranked[0]?.result.score ?? null;
 
-    grid.innerHTML = ranked.map(({ user, result }) => this.cardHTML(user, result)).join('');
+    const cards = ranked.map(({ user, result }) => this.cardHTML(user, result)).join('');
+    grid.innerHTML = (cards || this.emptyHTML()) + this.filteredNoteHTML(filteredOut);
+  },
+
+  // Priateľský empty-state, keď tvrdými bránami neprejde nikto
+  emptyHTML() {
+    return `
+      <div class="match-empty">
+        <div class="match-empty__icon">🌱</div>
+        <h3>Zatiaľ žiadny match</h3>
+        <p>Tvoje „no-go" kritériá teraz nepustili nikoho ďalej – a to je v poriadku,
+           radšej menej, ale poctivo. Skús sa vrátiť neskôr, alebo si v teste
+           uprav svoje dealbreakery.</p>
+      </div>`;
+  },
+
+  // Transparentná poznámka: koľko profilov a prečo sme skryli
+  filteredNoteHTML(filteredOut) {
+    if (!filteredOut.length) return '';
+    const n = filteredOut.length;
+    const word = n === 1 ? 'profil' : (n <= 4 ? 'profily' : 'profilov');
+    const reasons = [...new Set(filteredOut.flatMap(f => f.reasons))].join(', ');
+    return `<p class="match-filtered-note">🔒 ${n} ${word} sme skryli, lebo
+      nesedia s tvojimi tvrdými kritériami (${reasons}).</p>`;
   },
 
   // Zostaví „mňa" z profilu do rovnakého tvaru ako sample users
@@ -294,7 +366,8 @@ const Matches = {
       intent: P.relationshipIntent,
       valueVector: P.valueVector || {},
       personality: P.personality.scores || {},
-      complementPreference: P.complementPreference
+      complementPreference: P.complementPreference,
+      dealbreakers: P.dealbreakers || []
     };
   },
 
