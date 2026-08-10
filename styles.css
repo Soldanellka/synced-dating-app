@@ -798,6 +798,47 @@ input:focus, select:focus {
   margin: 0 0 12px;
 }
 
+/* Vzťahový kompas (RT test) */
+.rt-box {
+  background: var(--bg-light);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px 24px;
+}
+.rt-item { margin-bottom: 18px; }
+.rt-progress {
+  font-size: 14px;
+  color: var(--text-light);
+  margin: 4px 0 12px;
+}
+.rt-compass {
+  display: block;
+  margin: 16px auto;
+  width: 100%;
+  max-width: 260px;
+}
+.rt-compass text {
+  font-size: 12px;
+  fill: var(--text-light);
+  font-family: inherit;
+}
+.rt-strip-desc {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--text-light);
+}
+
+/* Opisný riadok „Vzťahový štýl" v karte matchu (nikdy %) */
+.match-rt {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--text-light);
+  background: var(--bg);
+  border-left: 3px solid var(--primary);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+}
+
 /* ------------------------------
    9. CHAT
 ------------------------------ */

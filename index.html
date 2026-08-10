@@ -238,6 +238,14 @@
             </a>
           </div>
 
+          <h3>Vzťahový kompas</h3>
+          <!-- Po dokončení RT testu sem JS vykreslí pruh s kútom -->
+          <div id="profileRtTest">
+            <a class="vg-entry" href="#rt-test" data-scroll="#rt-test">
+              🧭 Vzťahový kompas <span class="vg-entry__time">(3 min)</span>
+            </a>
+          </div>
+
           <h3>Overenie identity</h3>
           <!-- Placeholder video overenia (Krok 5) – napojí sa na Supabase Storage -->
           <div class="verify" id="verify">
@@ -349,6 +357,20 @@
       </div>
 
       <div class="vg-result" id="sgResult" hidden></div>
+    </section>
+
+    <!-- 4e) VZŤAHOVÝ KOMPAS (RT test) -->
+    <section id="rt-test" class="section">
+      <h2>🧭 Vzťahový kompas</h2>
+      <p class="vg-intro"><!-- naplní JS z RT_TEST.intro --></p>
+
+      <div class="rt-box">
+        <div id="rtItems"><!-- 16 tvrdení naplní JS --></div>
+        <p class="rt-progress" id="rtProgress"></p>
+        <button type="button" class="btn-primary" id="rtConfirm" disabled>Vyhodnotiť</button>
+      </div>
+
+      <div class="vg-result" id="rtResult" hidden></div>
     </section>
 
     <!-- 5) CHAT -->

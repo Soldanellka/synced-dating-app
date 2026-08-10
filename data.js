@@ -138,6 +138,9 @@ window.SYNCED_DATA = SYNCED_DATA;
      silhouette: 'drobna' | 'atleticka' | 'plna' | 'silna'
      hair:       'tmave' | 'svetle' | 'rysave'
      style:      'prirodzeny' | 'upraveny' | 'sportovy'
+   rt: vzťahový kompas { os1, os2 } v rozsahu -1..1
+     os1: Odstup (-) ⟷ Blízkosť (+), os2: Zmena (-) ⟷ Kontinuita (+)
+     Len opisný soft signál – nikdy percento ani brána.
    ============================================================== */
 
 const SAMPLE_USERS = [
@@ -147,6 +150,7 @@ const SAMPLE_USERS = [
     intent: 'serious',
     smokes: false,
     appearance: { heightBand: 'stredna', silhouette: 'drobna', hair: 'tmave', style: 'prirodzeny' },
+    rt: { os1: 0.6, os2: 0.5 },
     valueVector: { 'rodina':5, 'kariéra':3, 'pokoj':5, 'spiritualita':3, 'osobný rast':4, 'sloboda':2, 'dobrodružstvo':2 },
     personality: { openness:3.5, conscientiousness:4, extraversion:3, agreeableness:4.5, stability:4 }
   },
@@ -156,6 +160,7 @@ const SAMPLE_USERS = [
     intent: 'serious',
     smokes: false,
     appearance: { heightBand: 'vyssia', silhouette: 'atleticka', hair: 'tmave', style: 'upraveny' },
+    rt: { os1: 0.1, os2: -0.4 },
     valueVector: { 'rodina':3, 'kariéra':5, 'pokoj':2, 'spiritualita':2, 'osobný rast':5, 'sloboda':4, 'dobrodružstvo':4 },
     personality: { openness:4, conscientiousness:4.5, extraversion:4, agreeableness:3, stability:3.5 }
   },
@@ -165,6 +170,7 @@ const SAMPLE_USERS = [
     intent: 'open',
     smokes: true,
     appearance: { heightBand: 'stredna', silhouette: 'drobna', hair: 'svetle', style: 'sportovy' },
+    rt: { os1: -0.5, os2: -0.7 },
     valueVector: { 'rodina':2, 'kariéra':3, 'pokoj':2, 'spiritualita':3, 'osobný rast':4, 'sloboda':5, 'dobrodružstvo':5 },
     personality: { openness:5, conscientiousness:2.5, extraversion:4.5, agreeableness:3.5, stability:3 }
   },
@@ -174,6 +180,7 @@ const SAMPLE_USERS = [
     intent: 'serious',
     smokes: false,
     appearance: { heightBand: 'vyssia', silhouette: 'silna', hair: 'tmave', style: 'prirodzeny' },
+    rt: { os1: 0.3, os2: 0.6 },
     valueVector: { 'rodina':4, 'kariéra':2, 'pokoj':5, 'spiritualita':5, 'osobný rast':4, 'sloboda':3, 'dobrodružstvo':2 },
     personality: { openness:4, conscientiousness:3.5, extraversion:2.5, agreeableness:4.5, stability:4.5 }
   },
@@ -183,6 +190,7 @@ const SAMPLE_USERS = [
     intent: 'serious',
     smokes: false,
     appearance: { heightBand: 'nizsia', silhouette: 'plna', hair: 'svetle', style: 'upraveny' },
+    rt: { os1: 0.7, os2: 0.4 },
     valueVector: { 'rodina':5, 'kariéra':2, 'pokoj':4, 'spiritualita':4, 'osobný rast':3, 'sloboda':2, 'dobrodružstvo':3 },
     personality: { openness:3, conscientiousness:4, extraversion:3.5, agreeableness:5, stability:4 }
   },
@@ -192,6 +200,7 @@ const SAMPLE_USERS = [
     intent: 'company',
     smokes: true,
     appearance: { heightBand: 'vyssia', silhouette: 'atleticka', hair: 'tmave', style: 'sportovy' },
+    rt: { os1: -0.6, os2: -0.2 },
     valueVector: { 'rodina':2, 'kariéra':5, 'pokoj':3, 'spiritualita':1, 'osobný rast':4, 'sloboda':5, 'dobrodružstvo':4 },
     personality: { openness:3.5, conscientiousness:4, extraversion:4, agreeableness:2.5, stability:3.5 }
   }
@@ -340,3 +349,72 @@ const SHAPE_GAME = {
 };
 
 window.SHAPE_GAME = SHAPE_GAME;
+
+
+/* ==============================================================
+   VZŤAHOVÝ KOMPAS (RT test – Riemann-Thomannov model)
+   --------------------------------------------------------------
+   Dve osi: Blízkosť ⟷ Odstup a Kontinuita ⟷ Zmena.
+   16 ORIGINÁLNYCH tvrdení napísaných pre Synced (nič prevzaté
+   z externých/chránených testov). Škála súhlasu 1–5.
+   Soft signál + sebapoznanie: ŽIADNE percento kompatibility,
+   ŽIADNA brána — nemení matching číslo ani skóre.
+   Poradie tvrdení je premiešané (nie zoskupené po póloch).
+   ============================================================== */
+
+const RT_TEST = {
+  intro: '16 krátkych tvrdení, škála 1–5. Nie je to o správne/zle — ukazuje to, ' +
+    'kde ti je vo vzťahoch prirodzene dobre.',
+
+  scaleEnds: ['Vôbec mi nesedí', 'Úplne mi sedí'],
+
+  /* pole: blizkost | odstup | kontinuita | zmena */
+  items: [
+    { id: 'rt1',  pole: 'blizkost',   text: 'Cítim sa najlepšie, keď mám k blízkym ľuďom naozaj blízko.' },
+    { id: 'rt2',  pole: 'kontinuita', text: 'Mám rád(a), keď má môj deň jasný poriadok a plán.' },
+    { id: 'rt3',  pole: 'odstup',     text: 'Potrebujem svoj vlastný priestor, aj keď mám niekoho veľmi rád(a).' },
+    { id: 'rt4',  pole: 'zmena',      text: 'Rutina ma rýchlo omrzí — potrebujem do života novosť.' },
+    { id: 'rt5',  pole: 'blizkost',   text: 'Harmónia vo vzťahu je pre mňa dôležitejšia než mať vždy pravdu.' },
+    { id: 'rt6',  pole: 'odstup',     text: 'Radšej si veci vyriešim sám(a), než by som hneď hľadal(a) pomoc.' },
+    { id: 'rt7',  pole: 'kontinuita', text: 'Na istotu a stálosť sa vo vzťahu spolieham viac než na prekvapenia.' },
+    { id: 'rt8',  pole: 'zmena',      text: 'Spontánne rozhodnutia ma nabíjajú viac než dôkladné plány.' },
+    { id: 'rt9',  pole: 'blizkost',   text: 'O svoje pocity sa rád(a) podelím hneď, ako ich mám.' },
+    { id: 'rt10', pole: 'zmena',      text: 'Rád(a) skúšam nové veci, aj keď neviem, ako dopadnú.' },
+    { id: 'rt11', pole: 'odstup',     text: 'Priveľa blízkosti ma po čase začne dusiť.' },
+    { id: 'rt12', pole: 'kontinuita', text: 'Keď niečo sľúbim, držím sa toho — spoľahlivosť je pre mňa základ.' },
+    { id: 'rt13', pole: 'zmena',      text: 'Priveľa pravidiel a stereotypu ma zväzuje.' },
+    { id: 'rt14', pole: 'blizkost',   text: 'Samota mi po čase začne chýbať — potrebujem blízkosť druhých.' },
+    { id: 'rt15', pole: 'kontinuita', text: 'Náhle zmeny ma znervózňujú; radšej mám veci predvídateľné.' },
+    { id: 'rt16', pole: 'odstup',     text: 'Svoje súkromie si strážim aj v tom najbližšom vzťahu.' }
+  ],
+
+  axes: {
+    os1: { plusLabel: 'Blízkosť',   minusLabel: 'Odstup' },
+    os2: { plusLabel: 'Kontinuita', minusLabel: 'Zmena' }
+  },
+
+  /* Láskavé nehodnotiace popisy domovských kútov */
+  corners: {
+    'Blízkosť+Kontinuita': 'Vzťahy sú pre teba domov: teplo, istota a niekto, na koho sa dá spoľahnúť.',
+    'Blízkosť+Zmena':      'Vzťah je pre teba spoločné dobrodružstvo: blízkosť ťa hreje a novosť vás drží živých.',
+    'Odstup+Kontinuita':   'Pokojná stálosť s vlastným vzduchom: si spoľahlivá kotva, ktorá potrebuje aj svoj priestor.',
+    'Odstup+Zmena':        'Voľnosť a objavovanie: najlepšie ti je, keď vzťah dýcha — dvaja slobodní ľudia na spoločnej ceste.'
+  },
+
+  /* Popisy jednotlivých pólov (keď je druhá os vyvážená) */
+  poles: {
+    'Blízkosť':   'Ťahá ťa to k ľuďom: blízkosť a zdieľanie ťa dobíjajú.',
+    'Odstup':     'Potrebuješ vlastný priestor: blízkosť áno, ale s miestom na nádych.',
+    'Kontinuita': 'Istota a stálosť sú tvoja kotva: na teba sa dá spoľahnúť.',
+    'Zmena':      'Novosť ťa nabíja: život má byť v pohybe.'
+  },
+  poleBalancedNote: 'Na druhej osi si vyvážene v strede.',
+
+  balanced: 'Si blízko stredu oboch osí: vieš dať blízkosť aj priestor, istotu ' +
+    'aj zmenu — podľa toho, čo vzťah práve potrebuje.',
+
+  note: 'Žiadny kút nie je lepší či horší — je to len mapa toho, kde ti je ' +
+    'prirodzene dobre. 💛'
+};
+
+window.RT_TEST = RT_TEST;

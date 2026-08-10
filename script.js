@@ -32,6 +32,7 @@ const AppState = {
     valuesRanking: [],          // Hra: Rebríček hodnôt – poradie kľúčov (soft signál)
     kitchenRanking: [],         // Hra: Kuchynský test – poradie 5 kľúčov (soft signál)
     shapePersona: null,         // Hra: Panáčik z tvarov – { sex, cit, rozum } počty z 10 (soft signál)
+    rt: null,                   // Vzťahový kompas – { os1, os2, kut } (soft signál, nikdy % ani brána)
     // Výzor (Krok 5) – abstraktný avatar, KÁNON hodnôt viď docs/vyzor-a-pravidla.md
     appearance: {},             // „Ja": { heightBand, silhouette, hair, style }
     ideal: {                    // „Môj ideál": samé 'nezalezi' = výzor sa ignoruje
@@ -360,6 +361,35 @@ function appearanceFit(ideal, appearance) {
 }
 window.appearanceFit = appearanceFit;
 
+/* --------------------------------------------------------------
+   VZŤAHOVÝ ŠTÝL v karte matchu – opisný soft signál z RT kompasu
+   --------------------------------------------------------------
+   Zobrazí sa LEN keď majú RT profil obaja. Žiadne %, žiadna brána
+   – NEvstupuje do čísla kompatibility ani do passesHardGates.
+   -------------------------------------------------------------- */
+function rtStyleLine(meRt, otherRt) {
+  if (!meRt || !otherRt
+    || typeof meRt.os1 !== 'number' || typeof otherRt.os1 !== 'number'
+    || typeof meRt.os2 !== 'number' || typeof otherRt.os2 !== 'number') return '';
+
+  const d1 = Math.abs(meRt.os1 - otherRt.os1);
+  const d2 = Math.abs(meRt.os2 - otherRt.os2);
+  const SIM = 0.6;   // podobní = na oboch osiach blízko seba
+
+  if (d1 <= SIM && d2 <= SIM) {
+    return `<p class="match-rt">🧭 Vzťahový štýl: Podobný vzťahový rytmus — ťaháte za rovnaký koniec.</p>`;
+  }
+  // Pomenuj os s najväčším rozdielom
+  const A = window.RT_TEST.axes;
+  const axis = d1 >= d2 ? 'os1' : 'os2';
+  const labels = axis === 'os1' ? A.os1 : A.os2;
+  const mePole = meRt[axis] >= otherRt[axis] ? labels.plusLabel : labels.minusLabel;
+  const otherPole = mePole === labels.plusLabel ? labels.minusLabel : labels.plusLabel;
+  return `<p class="match-rt">🧭 Vzťahový štýl: Iný rytmus — ty viac ${mePole.toLowerCase()},
+    on/ona viac ${otherPole.toLowerCase()}; môže sa to krásne dopĺňať, keď si dáte priestor.</p>`;
+}
+window.rtStyleLine = rtStyleLine;
+
 // Reframe „dôvod milovať" – bez menovania konkrétnej odchýlky, bez percent
 function reframeLove(fit) {
   if (fit == null) return '';
@@ -431,6 +461,7 @@ const Matches = {
       .map(u => {
         const result = calculateCompatibility(me, u);
         result.appearanceFit = appearanceFit(me.ideal, u.appearance);
+        result.rtLine = rtStyleLine(me.rt, u.rt);   // opisný riadok, nie skóre
         return { user: u, result };
       })
       .sort((a, b) => b.result.score - a.result.score);
@@ -483,7 +514,8 @@ const Matches = {
       complementPreference: P.complementPreference,
       dealbreakers: P.dealbreakers || [],
       appearance: P.appearance || {},
-      ideal: P.ideal || { heightBand: 'nezalezi', silhouette: 'nezalezi', hair: 'nezalezi', style: 'nezalezi' }
+      ideal: P.ideal || { heightBand: 'nezalezi', silhouette: 'nezalezi', hair: 'nezalezi', style: 'nezalezi' },
+      rt: P.rt || null
     };
   },
 
@@ -500,6 +532,7 @@ const Matches = {
         <p class="match-meta">📍 ${user.location}</p>
         <p class="match-meta">💛 Spoločné hodnoty: ${sharedTxt}</p>
         ${reframeLove(r.appearanceFit)}
+        ${r.rtLine || ''}
         <p class="match-bio">„${user.bio}"</p>
         <button class="btn-primary" data-scroll="#chat">Napíš správu</button>
       </article>`;
@@ -1308,6 +1341,178 @@ const ShapeGame = {
 
 
 /* --------------------------------------------------------------
+   3e4) VZŤAHOVÝ KOMPAS (RT test – Riemann-Thomannov model)
+   --------------------------------------------------------------
+   16 vlastných tvrdení → poloha na dvoch osiach + domovský kút.
+   Soft signál + sebapoznanie: ŽIADNE %, ŽIADNA brána — číselné osi
+   sa ukladajú len pre budúci soft matching (TODO Supabase).
+   Persistencia v localStorage je dočasný most, vzor ostatných hier.
+   -------------------------------------------------------------- */
+const RTTest = {
+  KEY: 'synced_rt_v1',
+  answers: {},      // { itemId: 1..5 }
+  done: false,
+
+  init() {
+    const D = window.RT_TEST;
+    this.itemsEl = document.getElementById('rtItems');
+    if (!D || !this.itemsEl) return;
+    this.D = D;
+
+    document.querySelector('#rt-test .vg-intro').textContent = D.intro;
+
+    this.load();
+    this.renderItems();
+    this.updateProgress();
+    if (this.done) { this.renderResult(); this.renderProfileStrip(); }
+
+    this.itemsEl.addEventListener('change', (e) => {
+      if (!e.target.name || !e.target.name.startsWith('rt')) return;
+      this.answers[e.target.name] = Number(e.target.value);
+      this.updateProgress();
+    });
+
+    document.getElementById('rtConfirm').addEventListener('click', () => this.confirm());
+  },
+
+  renderItems() {
+    const ends = this.D.scaleEnds;
+    this.itemsEl.innerHTML = this.D.items.map((it, i) => `
+      <div class="question rt-item">
+        <p class="question__text">${i + 1}. ${it.text}</p>
+        <div class="likert" role="radiogroup" aria-label="${it.text}">
+          ${[1, 2, 3, 4, 5].map(n => `
+          <label class="likert__opt">
+            <input type="radio" name="${it.id}" value="${n}"
+              ${this.answers[it.id] === n ? 'checked' : ''}>
+            <span class="likert__dot">${n}</span>
+          </label>`).join('')}
+        </div>
+        <div class="likert__ends"><span>${ends[0]}</span><span>${ends[1]}</span></div>
+      </div>`).join('');
+  },
+
+  answered() { return Object.keys(this.answers).length; },
+
+  updateProgress() {
+    const total = this.D.items.length;
+    document.getElementById('rtProgress').textContent =
+      `Zodpovedané ${this.answered()}/${total}`;
+    document.getElementById('rtConfirm').disabled = this.answered() < total;
+  },
+
+  // os = priemer(plus pól) − priemer(mínus pól), normalizované na -1..1
+  compute() {
+    const byPole = { blizkost: [], odstup: [], kontinuita: [], zmena: [] };
+    this.D.items.forEach(it => { byPole[it.pole].push(this.answers[it.id] ?? 3); });
+    const avg = a => a.reduce((s, n) => s + n, 0) / a.length;
+    const round = n => Math.round(n * 100) / 100;
+    return {
+      os1: round((avg(byPole.blizkost) - avg(byPole.odstup)) / 4),
+      os2: round((avg(byPole.kontinuita) - avg(byPole.zmena)) / 4)
+    };
+  },
+
+  // Domovský kút: znamienko osi; blízko 0 (|os| <= 0.125) = vyvážené
+  kutOf(os1, os2) {
+    const T = 0.125;
+    const A = this.D.axes;
+    const p1 = os1 > T ? A.os1.plusLabel : (os1 < -T ? A.os1.minusLabel : null);
+    const p2 = os2 > T ? A.os2.plusLabel : (os2 < -T ? A.os2.minusLabel : null);
+
+    if (p1 && p2) return { label: `${p1}+${p2}`, desc: this.D.corners[`${p1}+${p2}`] };
+    if (p1 || p2) {
+      const p = p1 || p2;
+      return { label: p, desc: `${this.D.poles[p]} ${this.D.poleBalancedNote}` };
+    }
+    return { label: 'Vyvážený stred', desc: this.D.balanced };
+  },
+
+  confirm() {
+    if (this.answered() < this.D.items.length) return;
+    const { os1, os2 } = this.compute();
+    const kut = this.kutOf(os1, os2);
+    this.rt = { os1, os2, kut: kut.label };
+    AppState.userProfile.rt = { ...this.rt };
+    this.done = true;
+    this.save();
+    this.renderResult();
+    this.renderProfileStrip();
+    // Obnov matchy – pribudol opisný riadok „Vzťahový štýl" (nie skóre)
+    if (typeof Matches !== 'undefined') Matches.render();
+    document.getElementById('rtResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  },
+
+  // Jednoduchý SVG kompas: os1 vodorovne (Odstup ⟵ ⟶ Blízkosť),
+  // os2 zvislo (Zmena dole, Kontinuita hore), bodka = používateľ
+  compassSVG(os1, os2) {
+    const cx = 110 + os1 * 80;
+    const cy = 110 - os2 * 80;
+    return `
+      <svg class="rt-compass" viewBox="0 0 220 220" role="img"
+        aria-label="Kompas: poloha na osiach blízkosť–odstup a kontinuita–zmena">
+        <rect x="10" y="10" width="200" height="200" rx="16" fill="var(--accent)"/>
+        <line x1="110" y1="22" x2="110" y2="198" stroke="var(--primary)" stroke-width="2"/>
+        <line x1="22" y1="110" x2="198" y2="110" stroke="var(--primary)" stroke-width="2"/>
+        <text x="110" y="36" text-anchor="middle">Kontinuita</text>
+        <text x="110" y="192" text-anchor="middle">Zmena</text>
+        <text x="194" y="104" text-anchor="end">Blízkosť</text>
+        <text x="26" y="104">Odstup</text>
+        <circle cx="${cx}" cy="${cy}" r="8" fill="var(--primary-dark)"/>
+      </svg>`;
+  },
+
+  renderResult() {
+    const { os1, os2 } = this.rt;
+    const kut = this.kutOf(os1, os2);
+    const box = document.getElementById('rtResult');
+    box.hidden = false;
+    box.innerHTML = `
+      <h3>Tvoj domovský kút: ${kut.label}</h3>
+      <p class="vg-result__intro">${kut.desc}</p>
+      ${this.compassSVG(os1, os2)}
+      <p class="vg-result__note">${this.D.note}</p>`;
+  },
+
+  renderProfileStrip() {
+    const box = document.getElementById('profileRtTest');
+    if (!box) return;
+    const kut = this.kutOf(this.rt.os1, this.rt.os2);
+    box.innerHTML = `
+      <p class="vg-strip">Môj vzťahový kompas: <strong>${kut.label}</strong></p>
+      <p class="rt-strip-desc">${kut.desc}</p>
+      <div class="vg-strip__actions">
+        <a class="vg-again" href="#rt-test" data-scroll="#rt-test">Zahrať znova</a>
+      </div>`;
+  },
+
+  /* localStorage – dočasný most (TODO Supabase), vzor ostatných hier */
+  save() {
+    try {
+      localStorage.setItem(this.KEY, JSON.stringify({ answers: this.answers, rt: this.rt }));
+    } catch (_) {}
+  },
+
+  load() {
+    try {
+      const raw = localStorage.getItem(this.KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      const ids = this.D.items.map(it => it.id);
+      const valid = saved.answers
+        && ids.every(id => [1, 2, 3, 4, 5].includes(saved.answers[id]))
+        && saved.rt && typeof saved.rt.os1 === 'number' && typeof saved.rt.os2 === 'number';
+      if (!valid) return;   // iný/starší formát sa ticho zahodí
+      this.answers = saved.answers;
+      this.rt = saved.rt;
+      AppState.userProfile.rt = { ...saved.rt };
+      this.done = true;
+    } catch (_) { /* poškodené dáta ignorujeme */ }
+  }
+};
+
+
+/* --------------------------------------------------------------
    3f) VIDEO OVERENIE (placeholder – napojí sa na Supabase Storage)
    -------------------------------------------------------------- */
 const VideoVerification = {
@@ -1915,6 +2120,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ValuesGame.init();
   KitchenGame.init();
   ShapeGame.init();
+  RTTest.init();
   VideoVerification.init();
   VideoChat.init();
   Modal.init();
