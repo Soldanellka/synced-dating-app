@@ -28,7 +28,15 @@ const AppState = {
     sharedValuesImportance: null,
     complementPreference: null,
     pace: null,
-    dealbreakers: []
+    dealbreakers: [],
+    // Výzor (Krok 5) – abstraktný avatar, KÁNON hodnôt viď docs/vyzor-a-pravidla.md
+    appearance: {},             // „Ja": { heightBand, silhouette, hair, style }
+    ideal: {                    // „Môj ideál": samé 'nezalezi' = výzor sa ignoruje
+      heightBand: 'nezalezi',
+      silhouette: 'nezalezi',
+      hair: 'nezalezi',
+      style: 'nezalezi'
+    }
   },
 
   answers: {},                  // surové odpovede: { qid: hodnota | [hodnoty] }
@@ -135,6 +143,63 @@ const Questions = {
     } else {
       AppState.answers[input.name] = input.value;
     }
+  }
+};
+
+
+/* --------------------------------------------------------------
+   2b) AVATAR – „Ja" a „Môj ideál" (Krok 5)
+   --------------------------------------------------------------
+   Abstraktné siluety podľa docs/vyzor-a-pravidla.md (sekcia 2.2).
+   KÁNON interných hodnôt – presne tie isté reťazce ako
+   v SAMPLE_USERS.appearance (appearanceFit porovnáva reťazce).
+   -------------------------------------------------------------- */
+const Avatar = {
+  fields: [
+    { key: 'heightBand', label: 'Výška',
+      options: [['nizsia', 'nižšia'], ['stredna', 'stredná'], ['vyssia', 'vyššia']] },
+    { key: 'silhouette', label: 'Postava',
+      options: [['drobna', 'drobná'], ['atleticka', 'atletická'], ['plna', 'plná'], ['silna', 'silná']] },
+    { key: 'hair', label: 'Vlasy',
+      options: [['tmave', 'tmavé'], ['svetle', 'svetlé'], ['rysave', 'ryšavé']] },
+    { key: 'style', label: 'Štýl',
+      options: [['prirodzeny', 'prirodzený'], ['upraveny', 'upravený'], ['sportovy', 'športový']] }
+  ],
+
+  init() {
+    const selfBox = document.querySelector('[data-avatar="self"]');
+    const idealBox = document.querySelector('[data-avatar="ideal"]');
+    if (!selfBox || !idealBox) return;
+
+    selfBox.innerHTML = this.panelHTML('appearance', false);
+    idealBox.innerHTML = this.panelHTML('ideal', true);
+
+    // Klik na chip → aktívny stav + uloženie do profilu
+    document.getElementById('onboarding').addEventListener('click', (e) => {
+      const chip = e.target.closest('button[data-avatar-field]');
+      if (!chip) return;
+      const { avatarTarget, avatarField, avatarValue } = chip.dataset;
+      AppState.userProfile[avatarTarget][avatarField] = avatarValue;
+      chip.closest('.avatar-chips').querySelectorAll('.avatar-chip')
+        .forEach(b => b.classList.toggle('is-active', b === chip));
+    });
+  },
+
+  panelHTML(target, withNezalezi) {
+    return this.fields.map(f => {
+      const opts = withNezalezi ? [...f.options, ['nezalezi', 'Nezáleží mi']] : f.options;
+      const current = AppState.userProfile[target]?.[f.key];
+      return `
+        <div class="avatar-field">
+          <span class="avatar-field__label">${f.label}</span>
+          <div class="avatar-chips">
+            ${opts.map(([val, lab]) => `
+              <button type="button" class="avatar-chip ${val === current ? 'is-active' : ''}"
+                data-avatar-target="${target}" data-avatar-field="${f.key}"
+                data-avatar-value="${val}">${lab}</button>`).join('')}
+          </div>
+        </div>`;
+    }).join('');
   }
 };
 
@@ -400,8 +465,8 @@ const Matches = {
       personality: P.personality.scores || {},
       complementPreference: P.complementPreference,
       dealbreakers: P.dealbreakers || [],
-      // TODO: dočasný ideál výzoru – neskôr ho nahradí krok s výberom avatara
-      ideal: P.ideal || { heightBand: 'vyssia', silhouette: 'nezalezi', hair: 'tmave', style: 'nezalezi' }
+      appearance: P.appearance || {},
+      ideal: P.ideal || { heightBand: 'nezalezi', silhouette: 'nezalezi', hair: 'nezalezi', style: 'nezalezi' }
     };
   },
 
@@ -1074,8 +1139,8 @@ const Onboarding = {
 
   next() {
     if (AppState.currentStep === 1) this.saveBasics();
-    // Po Kroku 4 spočítame profil a vykreslíme zhrnutie
-    if (AppState.currentStep === 4) {
+    // Po Kroku 5 (avatar) spočítame profil a vykreslíme zhrnutie
+    if (AppState.currentStep === 5) {
       Scoring.computeProfile();
       this.renderSummary();
       this.syncProfileSection();
@@ -1225,6 +1290,7 @@ const SmoothScroll = {
    -------------------------------------------------------------- */
 document.addEventListener('DOMContentLoaded', () => {
   Questions.init();
+  Avatar.init();
   Onboarding.init();
   Chat.init();
   VideoVerification.init();

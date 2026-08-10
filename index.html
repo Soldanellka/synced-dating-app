@@ -78,7 +78,7 @@
             <div class="onboarding-progress__bar" id="progressBar"></div>
           </div>
           <p class="onboarding-counter">
-            Krok <span id="stepCurrent">1</span> z <span id="stepTotal">5</span>
+            Krok <span id="stepCurrent">1</span> z <span id="stepTotal">6</span>
           </p>
         </div>
 
@@ -146,12 +146,39 @@
           </div>
           <div class="onboarding-nav">
             <button type="button" class="btn-secondary" data-nav="prev">Späť</button>
-            <button type="button" class="btn-primary" data-nav="next">Vypočítať profil</button>
+            <button type="button" class="btn-primary" data-nav="next">Pokračovať</button>
           </div>
         </div>
 
-        <!-- KROK 5: ZHRNUTIE -->
+        <!-- KROK 5: AVATAR – „JA" A „MÔJ IDEÁL" -->
         <div class="onboarding-step" data-step="5">
+          <h3>Krok 5: Ako to vidíš ty</h3>
+          <p class="avatar-microtext">Toto neslúži na hodnotenie – pomáha to,
+            aby na prvom stretnutí nikoho nič neprekvapilo.</p>
+          <div class="avatar-panels">
+            <div class="avatar-panel">
+              <h4>Ja</h4>
+              <p class="avatar-note">Poskladaj svoju siluetu – žiadne čísla, žiadne miery.</p>
+              <div data-avatar="self">
+                <p class="placeholder-note">Sem príde výber vlastnej siluety.</p>
+              </div>
+            </div>
+            <div class="avatar-panel">
+              <h4>Môj ideál</h4>
+              <p class="avatar-note">„Nezáleží mi" je úplne v poriadku – a odporúčaná voľba. 💛</p>
+              <div data-avatar="ideal">
+                <p class="placeholder-note">Sem príde výber ideálu.</p>
+              </div>
+            </div>
+          </div>
+          <div class="onboarding-nav">
+            <button type="button" class="btn-secondary" data-nav="prev">Späť</button>
+            <button type="button" class="btn-primary" data-nav="next">Zobraziť profil</button>
+          </div>
+        </div>
+
+        <!-- KROK 6: ZHRNUTIE -->
+        <div class="onboarding-step" data-step="6">
           <h3>Tvoj vzťahový profil</h3>
           <div id="profileSummary" class="profile-summary">
             <p class="placeholder-note">Tu sa zobrazí percentuálny profil, typ osobnosti a hodnoty po dokončení testu.</p>

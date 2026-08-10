@@ -70,6 +70,19 @@ klinické pojmy). Odporúčaný set (finálne slová prejsť s citom):
 
 `drobná` · `atletická` · `plná` · `silná` · `nezáleží`
 
+**KÁNON interných hodnôt** – tieto presné reťazce musia byť identické
+v `SAMPLE_USERS`, v avatar builderi aj kdekoľvek inde (`appearanceFit`
+porovnáva presné reťazce):
+
+| Pole | Interné hodnoty | Zobrazené labely |
+|------|-----------------|------------------|
+| `heightBand` | `nizsia` · `stredna` · `vyssia` | nižšia / stredná / vyššia |
+| `silhouette` | `drobna` · `atleticka` · `plna` · `silna` | drobná / atletická / plná / silná |
+| `hair` | `tmave` · `svetle` · `rysave` | tmavé / svetlé / ryšavé |
+| `style` | `prirodzeny` · `upraveny` · `sportovy` | prirodzený / upravený / športový |
+
+Ideál má pri **každom** poli navyše možnosť `nezalezi` („Nezáleží mi").
+
 Každý si vyberá **sám za seba**. Výber ideálu vždy ponúka aj možnosť
 **„nezáleží mi"** ako plnohodnotnú (a jemne odporúčanú) voľbu.
 

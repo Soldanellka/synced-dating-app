@@ -466,6 +466,62 @@ input:focus, select:focus {
   .likert__dot { width: 40px; height: 40px; }
 }
 
+/* Avatar krok (Krok 5) – „Ja" a „Môj ideál" */
+.avatar-microtext {
+  margin: -6px 0 16px;
+  font-size: 14px;
+  color: var(--text-light);
+}
+.avatar-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.avatar-panel {
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.avatar-panel h4 { margin: 0 0 4px; }
+.avatar-note {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--text-light);
+}
+.avatar-field { margin-bottom: 14px; }
+.avatar-field:last-child { margin-bottom: 0; }
+.avatar-field__label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.avatar-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.avatar-chip {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.avatar-chip:hover {
+  border-color: var(--primary);
+  background: var(--accent);
+}
+.avatar-chip.is-active {
+  background: var(--primary);
+  border-color: var(--primary-dark);
+  font-weight: 600;
+}
+@media (max-width: 700px) {
+  .avatar-panels { grid-template-columns: 1fr; }
+}
+
 /* ------------------------------
    7. PROFIL
 ------------------------------ */

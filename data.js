@@ -132,11 +132,12 @@ window.SYNCED_DATA = SYNCED_DATA;
    personality: 1–5 pre 5 dimenzií (Big Five light)
    intent: 'serious' | 'company' | 'open'
    smokes: true/false – pre tvrdú bránu „Fajčenie"
-   appearance: abstraktný výzor (žiadne miery ani fotky):
+   appearance: abstraktný výzor (žiadne miery ani fotky) – KÁNON
+   podľa docs/vyzor-a-pravidla.md (sekcia 2.2), presné reťazce:
      heightBand: 'nizsia' | 'stredna' | 'vyssia'
-     silhouette: 'stihla' | 'atleticka' | 'plnostihla'
-     hair:       'tmave' | 'svetle'
-     style:      'elegantny' | 'sportovy' | 'lezerny'
+     silhouette: 'drobna' | 'atleticka' | 'plna' | 'silna'
+     hair:       'tmave' | 'svetle' | 'rysave'
+     style:      'prirodzeny' | 'upraveny' | 'sportovy'
    ============================================================== */
 
 const SAMPLE_USERS = [
@@ -145,7 +146,7 @@ const SAMPLE_USERS = [
     bio: 'Pokojné večery, dobrá kniha a rodina nadovšetko.',
     intent: 'serious',
     smokes: false,
-    appearance: { heightBand: 'stredna', silhouette: 'stihla', hair: 'tmave', style: 'lezerny' },
+    appearance: { heightBand: 'stredna', silhouette: 'drobna', hair: 'tmave', style: 'prirodzeny' },
     valueVector: { 'rodina':5, 'kariéra':3, 'pokoj':5, 'spiritualita':3, 'osobný rast':4, 'sloboda':2, 'dobrodružstvo':2 },
     personality: { openness:3.5, conscientiousness:4, extraversion:3, agreeableness:4.5, stability:4 }
   },
@@ -154,7 +155,7 @@ const SAMPLE_USERS = [
     bio: 'Ambiciózny, stále sa učím niečo nové. Hľadám parťáčku do života.',
     intent: 'serious',
     smokes: false,
-    appearance: { heightBand: 'vyssia', silhouette: 'atleticka', hair: 'tmave', style: 'elegantny' },
+    appearance: { heightBand: 'vyssia', silhouette: 'atleticka', hair: 'tmave', style: 'upraveny' },
     valueVector: { 'rodina':3, 'kariéra':5, 'pokoj':2, 'spiritualita':2, 'osobný rast':5, 'sloboda':4, 'dobrodružstvo':4 },
     personality: { openness:4, conscientiousness:4.5, extraversion:4, agreeableness:3, stability:3.5 }
   },
@@ -163,7 +164,7 @@ const SAMPLE_USERS = [
     bio: 'Cestovateľka, milujem spontánnosť a slobodu. Uvidíme, kam to pôjde.',
     intent: 'open',
     smokes: true,
-    appearance: { heightBand: 'stredna', silhouette: 'stihla', hair: 'svetle', style: 'sportovy' },
+    appearance: { heightBand: 'stredna', silhouette: 'drobna', hair: 'svetle', style: 'sportovy' },
     valueVector: { 'rodina':2, 'kariéra':3, 'pokoj':2, 'spiritualita':3, 'osobný rast':4, 'sloboda':5, 'dobrodružstvo':5 },
     personality: { openness:5, conscientiousness:2.5, extraversion:4.5, agreeableness:3.5, stability:3 }
   },
@@ -172,7 +173,7 @@ const SAMPLE_USERS = [
     bio: 'Hlbšie rozhovory, príroda a pokoj. Vážim si autentickosť.',
     intent: 'serious',
     smokes: false,
-    appearance: { heightBand: 'vyssia', silhouette: 'stihla', hair: 'tmave', style: 'lezerny' },
+    appearance: { heightBand: 'vyssia', silhouette: 'silna', hair: 'tmave', style: 'prirodzeny' },
     valueVector: { 'rodina':4, 'kariéra':2, 'pokoj':5, 'spiritualita':5, 'osobný rast':4, 'sloboda':3, 'dobrodružstvo':2 },
     personality: { openness:4, conscientiousness:3.5, extraversion:2.5, agreeableness:4.5, stability:4.5 }
   },
@@ -181,7 +182,7 @@ const SAMPLE_USERS = [
     bio: 'Rodina, viera a láskavosť. Verím na vzťahy, ktoré rastú.',
     intent: 'serious',
     smokes: false,
-    appearance: { heightBand: 'nizsia', silhouette: 'plnostihla', hair: 'svetle', style: 'elegantny' },
+    appearance: { heightBand: 'nizsia', silhouette: 'plna', hair: 'svetle', style: 'upraveny' },
     valueVector: { 'rodina':5, 'kariéra':2, 'pokoj':4, 'spiritualita':4, 'osobný rast':3, 'sloboda':2, 'dobrodružstvo':3 },
     personality: { openness:3, conscientiousness:4, extraversion:3.5, agreeableness:5, stability:4 }
   },
