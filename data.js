@@ -198,3 +198,40 @@ const SAMPLE_USERS = [
 ];
 
 window.SAMPLE_USERS = SAMPLE_USERS;
+
+
+/* ==============================================================
+   HRA: REBRÍČEK HODNÔT (príbeh o Lole)
+   --------------------------------------------------------------
+   Soft signál + obsah do profilu + zdieľateľná vec.
+   NIE je to tvrdá brána ani percento kompatibility — nemení
+   matching ani skóre. Mapovanie postava → hodnota je hráčovi
+   počas hrania SKRYTÉ, odhalí sa až vo výsledku.
+   ============================================================== */
+
+const VALUES_GAME = {
+  intro: 'Nie je to o správne/zle — ukazuje to, čo máš práve teraz na prvom mieste.',
+
+  story: 'Lola miluje Eduarda. Nevie bez neho žiť, a tak sa rozhodne vydať sa ' +
+    'za ním. Cestou stretne Radoma, ktorý spláva rieku, a poprosí ho, aby ju ' +
+    'previezol na plti. Radom odmietne — blíži sa búrka a splav by nebol ' +
+    'bezpečný. Vydá sa teda cez pozemky: najprv poprosí Paloma, ktorý ju pustí ' +
+    'za peniaze, potom Selina, ktorý ju pustí za sex. Nakoniec sa dostane ' +
+    'k Eduardovi — a ten jej povie, že takú, zneuctenú a bez peňazí, nechce.',
+
+  /* Poradie = poradie v príbehu (východiskové poradie kariet) */
+  characters: [
+    { id: 'laska',   name: 'Lola',   value: 'Láska',
+      desc: 'Cit, ktorý ťa ženie za druhým človekom — aj cez rieku, aj cez prekážky.' },
+    { id: 'ego',     name: 'Eduard', value: 'Ego',
+      desc: 'Vlastná hrdosť a obraz o sebe — potreba chrániť si svoju hodnotu.' },
+    { id: 'sex',     name: 'Selin',  value: 'Sex',
+      desc: 'Telesná blízkosť a príťažlivosť — sila, ktorá je prirodzenou súčasťou vzťahov.' },
+    { id: 'peniaze', name: 'Palom',  value: 'Peniaze',
+      desc: 'Istota a praktickosť — svet, v ktorom majú veci svoju cenu.' },
+    { id: 'rozum',   name: 'Radom',  value: 'Rozum',
+      desc: 'Rozvaha a hranice — vedieť povedať nie, keď to nie je bezpečné.' }
+  ]
+};
+
+window.VALUES_GAME = VALUES_GAME;

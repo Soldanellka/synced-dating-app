@@ -29,6 +29,7 @@ const AppState = {
     complementPreference: null,
     pace: null,
     dealbreakers: [],
+    valuesRanking: [],          // Hra: Rebríček hodnôt – poradie kľúčov (soft signál)
     // Výzor (Krok 5) – abstraktný avatar, KÁNON hodnôt viď docs/vyzor-a-pravidla.md
     appearance: {},             // „Ja": { heightBand, silhouette, hair, style }
     ideal: {                    // „Môj ideál": samé 'nezalezi' = výzor sa ignoruje
@@ -932,6 +933,146 @@ const Chat = {
 
 
 /* --------------------------------------------------------------
+   3e2) HRA: REBRÍČEK HODNÔT (príbeh o Lole)
+   --------------------------------------------------------------
+   Soft signál + obsah do profilu + zdieľateľná vec.
+   NIE tvrdá brána, NIE percento — nemení matching ani skóre.
+   Persistencia v localStorage je dočasný most — TODO: neskôr
+   do Supabase + do profilu pre soft matching.
+   -------------------------------------------------------------- */
+const ValuesGame = {
+  KEY: 'synced_valuesgame_v1',
+  order: [],        // aktuálne poradie id-čiek počas hrania
+  played: false,
+
+  init() {
+    const D = window.VALUES_GAME;
+    this.cardsEl = document.getElementById('vgCards');
+    if (!D || !this.cardsEl) return;
+
+    this.byId = Object.fromEntries(D.characters.map(c => [c.id, c]));
+    this.order = D.characters.map(c => c.id);
+
+    document.querySelector('.vg-intro').textContent = D.intro;
+    document.getElementById('vgStory').textContent = D.story;
+
+    this.load();
+    this.renderCards();
+    if (this.played) { this.renderResult(); this.renderProfileStrip(); }
+
+    // Šípky hore/dole (delegovane – karty sa prekresľujú)
+    this.cardsEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-move]');
+      if (!btn) return;
+      this.move(btn.closest('li').dataset.id, btn.dataset.move);
+    });
+
+    document.getElementById('vgConfirm').addEventListener('click', () => this.confirm());
+
+    // Zdieľať z profilového pruhu (pruh sa vykresľuje dynamicky)
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('#vgShare')) this.share();
+    });
+  },
+
+  move(id, dir) {
+    const i = this.order.indexOf(id);
+    const j = dir === 'up' ? i - 1 : i + 1;
+    if (i < 0 || j < 0 || j >= this.order.length) return;
+    [this.order[i], this.order[j]] = [this.order[j], this.order[i]];
+    this.renderCards();
+  },
+
+  renderCards() {
+    this.cardsEl.innerHTML = this.order.map((id, i) => `
+      <li class="vg-card" data-id="${id}">
+        <span class="vg-card__rank">${i + 1}.</span>
+        <span class="vg-card__name">${this.byId[id].name}</span>
+        <span class="vg-card__move">
+          <button type="button" data-move="up" aria-label="Posunúť vyššie"
+            ${i === 0 ? 'disabled' : ''}>▲</button>
+          <button type="button" data-move="down" aria-label="Posunúť nižšie"
+            ${i === this.order.length - 1 ? 'disabled' : ''}>▼</button>
+        </span>
+      </li>`).join('');
+  },
+
+  confirm() {
+    AppState.userProfile.valuesRanking = [...this.order];
+    this.played = true;
+    this.save();
+    this.renderResult();
+    this.renderProfileStrip();
+    document.getElementById('vgResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  },
+
+  renderResult() {
+    const box = document.getElementById('vgResult');
+    box.hidden = false;
+    box.innerHTML = `
+      <h3>Tvoj rebríček hodnôt</h3>
+      <p class="vg-result__intro">Každá postava predstavovala jednu hodnotu.
+        Tvoje poradie sympatií ukazuje, čo máš práve teraz na prvom mieste:</p>
+      <ol class="vg-result__list">
+        ${this.order.map(id => {
+          const c = this.byId[id];
+          return `<li><strong>${c.value}</strong>
+            <span class="vg-result__who">(v príbehu ${c.name})</span><br>
+            <span class="vg-result__desc">${c.desc}</span></li>`;
+        }).join('')}
+      </ol>
+      <p class="vg-result__note">Nie je to diagnóza ani skóre — len momentka.
+        O rok môže vyzerať inak, a to je v poriadku. 💛</p>`;
+  },
+
+  renderProfileStrip() {
+    const box = document.getElementById('profileValuesGame');
+    if (!box) return;
+    box.innerHTML = `
+      <p class="vg-strip">Môj rebríček hodnôt: <strong>${this.rankingText()}</strong></p>
+      <div class="vg-strip__actions">
+        <button type="button" class="btn-secondary" id="vgShare">💌 Zdieľať</button>
+        <a class="vg-again" href="#values-game" data-scroll="#values-game">Zahrať znova</a>
+      </div>`;
+  },
+
+  rankingText() {
+    return this.order.map(id => this.byId[id].value).join(' › ');
+  },
+
+  share() {
+    const text = `Môj rebríček hodnôt na Synced: ${this.rankingText()}. Aký je tvoj? 💛`;
+    const done = () => {
+      const b = document.getElementById('vgShare');
+      if (b) b.textContent = 'Skopírované ✓';
+    };
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(done);
+    else done();
+  },
+
+  /* localStorage – dočasný most (TODO Supabase), vzor Safety store */
+  save() {
+    try { localStorage.setItem(this.KEY, JSON.stringify({ ranking: this.order })); } catch (_) {}
+  },
+
+  load() {
+    try {
+      const raw = localStorage.getItem(this.KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      const valid = Array.isArray(saved.ranking)
+        && saved.ranking.length === this.order.length
+        && this.order.every(id => saved.ranking.includes(id));
+      if (!valid) return;
+      this.order = saved.ranking;
+      AppState.userProfile.valuesRanking = [...this.order];
+      this.played = true;
+    } catch (_) { /* poškodené dáta ignorujeme */ }
+  }
+};
+
+
+/* --------------------------------------------------------------
    3f) VIDEO OVERENIE (placeholder – napojí sa na Supabase Storage)
    -------------------------------------------------------------- */
 const VideoVerification = {
@@ -1536,6 +1677,7 @@ document.addEventListener('DOMContentLoaded', () => {
   Onboarding.init();
   Chat.init();
   SafetyUI.init();
+  ValuesGame.init();
   VideoVerification.init();
   VideoChat.init();
   Modal.init();

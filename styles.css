@@ -642,6 +642,110 @@ input:focus, select:focus {
 }
 
 /* ------------------------------
+   8b. HRA: REBRÍČEK HODNÔT
+------------------------------ */
+
+.vg-intro { color: var(--text-light); margin-top: -10px; }
+
+.vg-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  align-items: start;
+}
+
+.vg-story {
+  background: var(--accent);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+}
+.vg-story h3 { margin-top: 0; }
+.vg-story p { margin: 0; font-style: italic; }
+
+.vg-play {
+  background: var(--bg-light);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+.vg-play h3 { margin-top: 0; }
+.vg-hint { font-size: 14px; color: var(--text-light); }
+
+.vg-cards {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.vg-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+}
+.vg-card__rank { font-weight: 700; color: var(--primary-dark); min-width: 22px; }
+.vg-card__name { flex: 1; font-weight: 600; }
+.vg-card__move { display: flex; gap: 6px; }
+.vg-card__move button {
+  border: 1px solid var(--border);
+  background: var(--bg-light);
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.vg-card__move button:hover:not(:disabled) {
+  background: var(--accent);
+  border-color: var(--primary);
+}
+.vg-card__move button:disabled { opacity: 0.35; cursor: default; }
+
+.vg-result {
+  margin-top: 24px;
+  background: var(--bg-light);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px 24px;
+}
+.vg-result h3 { margin-top: 0; }
+.vg-result__intro { color: var(--text-light); }
+.vg-result__list li { margin-bottom: 10px; }
+.vg-result__who, .vg-result__desc, .vg-result__note {
+  color: var(--text-light);
+  font-size: 14px;
+}
+
+/* Vstupná karta + pruh v profile */
+.vg-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  border: 1px dashed var(--primary);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.vg-entry:hover { background: var(--primary); }
+.vg-entry__time { font-weight: 400; color: var(--text-light); font-size: 13px; }
+.vg-strip { margin: 0 0 8px; }
+.vg-strip__actions { display: flex; align-items: center; gap: 12px; }
+.vg-again { font-size: 13px; color: var(--primary-dark); }
+
+@media (max-width: 800px) {
+  .vg-layout { grid-template-columns: 1fr; }
+}
+
+/* ------------------------------
    9. CHAT
 ------------------------------ */
 
