@@ -30,6 +30,7 @@ const AppState = {
     pace: null,
     dealbreakers: [],
     valuesRanking: [],          // Hra: Rebríček hodnôt – poradie kľúčov (soft signál)
+    kitchenRanking: [],         // Hra: Kuchynský test – poradie 5 kľúčov (soft signál)
     // Výzor (Krok 5) – abstraktný avatar, KÁNON hodnôt viď docs/vyzor-a-pravidla.md
     appearance: {},             // „Ja": { heightBand, silhouette, hair, style }
     ideal: {                    // „Môj ideál": samé 'nezalezi' = výzor sa ignoruje
@@ -933,143 +934,183 @@ const Chat = {
 
 
 /* --------------------------------------------------------------
-   3e2) HRA: REBRÍČEK HODNÔT (príbeh o Lole)
+   3e2) ZORAĎOVACIE HRY – spoločná mechanika
    --------------------------------------------------------------
-   Soft signál + obsah do profilu + zdieľateľná vec.
+   Rebríček hodnôt (Lola) a Kuchynský test zdieľajú rovnaký engine:
+   zoradenie kariet šípkami, výsledok s odhaleným mapovaním,
+   pruh v profile + zdieľanie. Soft signál + obsah do profilu —
    NIE tvrdá brána, NIE percento — nemení matching ani skóre.
    Persistencia v localStorage je dočasný most — TODO: neskôr
    do Supabase + do profilu pre soft matching.
    -------------------------------------------------------------- */
-const ValuesGame = {
-  KEY: 'synced_valuesgame_v1',
-  order: [],        // aktuálne poradie id-čiek počas hrania
-  played: false,
+function createRankingGame(cfg) {
+  return {
+    order: [],        // aktuálne poradie id-čiek počas hrania
+    played: false,
 
-  init() {
-    const D = window.VALUES_GAME;
-    this.cardsEl = document.getElementById('vgCards');
-    if (!D || !this.cardsEl) return;
+    init() {
+      const D = cfg.data();
+      this.cardsEl = document.getElementById(cfg.ids.cards);
+      if (!D || !this.cardsEl) return;
 
-    this.byId = Object.fromEntries(D.characters.map(c => [c.id, c]));
-    this.order = D.characters.map(c => c.id);
+      this.byId = Object.fromEntries(D.characters.map(c => [c.id, c]));
+      this.order = D.characters.map(c => c.id);
 
-    document.querySelector('.vg-intro').textContent = D.intro;
-    document.getElementById('vgStory').textContent = D.story;
+      const introEl = document.querySelector(cfg.ids.intro);
+      if (introEl) introEl.textContent = D.intro;
+      document.getElementById(cfg.ids.story).textContent = D.story;
 
-    this.load();
-    this.renderCards();
-    if (this.played) { this.renderResult(); this.renderProfileStrip(); }
+      this.load();
+      this.renderCards();
+      if (this.played) { this.renderResult(); this.renderProfileStrip(); }
 
-    // Šípky hore/dole (delegovane – karty sa prekresľujú)
-    this.cardsEl.addEventListener('click', (e) => {
-      const btn = e.target.closest('button[data-move]');
-      if (!btn) return;
-      this.move(btn.closest('li').dataset.id, btn.dataset.move);
-    });
+      // Šípky hore/dole (delegovane – karty sa prekresľujú)
+      this.cardsEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-move]');
+        if (!btn) return;
+        this.move(btn.closest('li').dataset.id, btn.dataset.move);
+      });
 
-    document.getElementById('vgConfirm').addEventListener('click', () => this.confirm());
+      document.getElementById(cfg.ids.confirm).addEventListener('click', () => this.confirm());
 
-    // Zdieľať z profilového pruhu (pruh sa vykresľuje dynamicky)
-    document.addEventListener('click', (e) => {
-      if (e.target.closest('#vgShare')) this.share();
-    });
-  },
+      // Zdieľať z profilového pruhu (pruh sa vykresľuje dynamicky)
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('#' + cfg.ids.share)) this.share();
+      });
+    },
 
-  move(id, dir) {
-    const i = this.order.indexOf(id);
-    const j = dir === 'up' ? i - 1 : i + 1;
-    if (i < 0 || j < 0 || j >= this.order.length) return;
-    [this.order[i], this.order[j]] = [this.order[j], this.order[i]];
-    this.renderCards();
-  },
+    move(id, dir) {
+      const i = this.order.indexOf(id);
+      const j = dir === 'up' ? i - 1 : i + 1;
+      if (i < 0 || j < 0 || j >= this.order.length) return;
+      [this.order[i], this.order[j]] = [this.order[j], this.order[i]];
+      this.renderCards();
+    },
 
-  renderCards() {
-    this.cardsEl.innerHTML = this.order.map((id, i) => `
-      <li class="vg-card" data-id="${id}">
-        <span class="vg-card__rank">${i + 1}.</span>
-        <span class="vg-card__name">${this.byId[id].name}</span>
-        <span class="vg-card__move">
-          <button type="button" data-move="up" aria-label="Posunúť vyššie"
-            ${i === 0 ? 'disabled' : ''}>▲</button>
-          <button type="button" data-move="down" aria-label="Posunúť nižšie"
-            ${i === this.order.length - 1 ? 'disabled' : ''}>▼</button>
-        </span>
-      </li>`).join('');
-  },
+    renderCards() {
+      this.cardsEl.innerHTML = this.order.map((id, i) => `
+        <li class="vg-card" data-id="${id}">
+          <span class="vg-card__rank">${i + 1}.</span>
+          <span class="vg-card__name">${this.byId[id].name}</span>
+          <span class="vg-card__move">
+            <button type="button" data-move="up" aria-label="Posunúť vyššie"
+              ${i === 0 ? 'disabled' : ''}>▲</button>
+            <button type="button" data-move="down" aria-label="Posunúť nižšie"
+              ${i === this.order.length - 1 ? 'disabled' : ''}>▼</button>
+          </span>
+        </li>`).join('');
+    },
 
-  confirm() {
-    AppState.userProfile.valuesRanking = [...this.order];
-    this.played = true;
-    this.save();
-    this.renderResult();
-    this.renderProfileStrip();
-    document.getElementById('vgResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  },
-
-  renderResult() {
-    const box = document.getElementById('vgResult');
-    box.hidden = false;
-    box.innerHTML = `
-      <h3>Tvoj rebríček hodnôt</h3>
-      <p class="vg-result__intro">Každá postava predstavovala jednu hodnotu.
-        Tvoje poradie sympatií ukazuje, čo máš práve teraz na prvom mieste:</p>
-      <ol class="vg-result__list">
-        ${this.order.map(id => {
-          const c = this.byId[id];
-          return `<li><strong>${c.value}</strong>
-            <span class="vg-result__who">(v príbehu ${c.name})</span><br>
-            <span class="vg-result__desc">${c.desc}</span></li>`;
-        }).join('')}
-      </ol>
-      <p class="vg-result__note">Nie je to diagnóza ani skóre — len momentka.
-        O rok môže vyzerať inak, a to je v poriadku. 💛</p>`;
-  },
-
-  renderProfileStrip() {
-    const box = document.getElementById('profileValuesGame');
-    if (!box) return;
-    box.innerHTML = `
-      <p class="vg-strip">Môj rebríček hodnôt: <strong>${this.rankingText()}</strong></p>
-      <div class="vg-strip__actions">
-        <button type="button" class="btn-secondary" id="vgShare">💌 Zdieľať</button>
-        <a class="vg-again" href="#values-game" data-scroll="#values-game">Zahrať znova</a>
-      </div>`;
-  },
-
-  rankingText() {
-    return this.order.map(id => this.byId[id].value).join(' › ');
-  },
-
-  share() {
-    const text = `Môj rebríček hodnôt na Synced: ${this.rankingText()}. Aký je tvoj? 💛`;
-    const done = () => {
-      const b = document.getElementById('vgShare');
-      if (b) b.textContent = 'Skopírované ✓';
-    };
-    if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(done);
-    else done();
-  },
-
-  /* localStorage – dočasný most (TODO Supabase), vzor Safety store */
-  save() {
-    try { localStorage.setItem(this.KEY, JSON.stringify({ ranking: this.order })); } catch (_) {}
-  },
-
-  load() {
-    try {
-      const raw = localStorage.getItem(this.KEY);
-      if (!raw) return;
-      const saved = JSON.parse(raw);
-      const valid = Array.isArray(saved.ranking)
-        && saved.ranking.length === this.order.length
-        && this.order.every(id => saved.ranking.includes(id));
-      if (!valid) return;
-      this.order = saved.ranking;
-      AppState.userProfile.valuesRanking = [...this.order];
+    confirm() {
+      AppState.userProfile[cfg.profileField] = [...this.order];
       this.played = true;
-    } catch (_) { /* poškodené dáta ignorujeme */ }
-  }
-};
+      this.save();
+      this.renderResult();
+      this.renderProfileStrip();
+      document.getElementById(cfg.ids.result).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    },
+
+    renderResult() {
+      const box = document.getElementById(cfg.ids.result);
+      box.hidden = false;
+      box.innerHTML = `
+        <h3>${cfg.resultTitle}</h3>
+        <p class="vg-result__intro">${cfg.resultIntro}</p>
+        <ol class="vg-result__list">
+          ${this.order.map(id => {
+            const c = this.byId[id];
+            return `<li><strong>${c.value}</strong>
+              <span class="vg-result__who">${cfg.whoLine(c)}</span><br>
+              <span class="vg-result__desc">${c.desc}</span></li>`;
+          }).join('')}
+        </ol>
+        <p class="vg-result__note">Nie je to diagnóza ani skóre — len momentka.
+          O rok môže vyzerať inak, a to je v poriadku. 💛</p>`;
+    },
+
+    renderProfileStrip() {
+      const box = document.getElementById(cfg.ids.profileBox);
+      if (!box) return;
+      box.innerHTML = `
+        <p class="vg-strip">${cfg.stripLabel} <strong>${this.rankingText()}</strong></p>
+        <div class="vg-strip__actions">
+          <button type="button" class="btn-secondary" id="${cfg.ids.share}">💌 Zdieľať</button>
+          <a class="vg-again" href="${cfg.sectionAnchor}" data-scroll="${cfg.sectionAnchor}">Zahrať znova</a>
+        </div>`;
+    },
+
+    rankingText() {
+      return this.order.map(id => this.byId[id].value).join(' › ');
+    },
+
+    share() {
+      const text = cfg.shareText(this.rankingText());
+      const done = () => {
+        const b = document.getElementById(cfg.ids.share);
+        if (b) b.textContent = 'Skopírované ✓';
+      };
+      if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(done);
+      else done();
+    },
+
+    /* localStorage – dočasný most (TODO Supabase), vzor Safety store */
+    save() {
+      try { localStorage.setItem(cfg.storageKey, JSON.stringify({ ranking: this.order })); } catch (_) {}
+    },
+
+    load() {
+      try {
+        const raw = localStorage.getItem(cfg.storageKey);
+        if (!raw) return;
+        const saved = JSON.parse(raw);
+        const valid = Array.isArray(saved.ranking)
+          && saved.ranking.length === this.order.length
+          && this.order.every(id => saved.ranking.includes(id));
+        if (!valid) return;   // starší/iný formát sa ticho zahodí, hra začne odznova
+        this.order = saved.ranking;
+        AppState.userProfile[cfg.profileField] = [...this.order];
+        this.played = true;
+      } catch (_) { /* poškodené dáta ignorujeme */ }
+    }
+  };
+}
+
+/* Hra 1: Rebríček hodnôt (príbeh o Lole) */
+const ValuesGame = createRankingGame({
+  data: () => window.VALUES_GAME,
+  storageKey: 'synced_valuesgame_v1',
+  profileField: 'valuesRanking',
+  sectionAnchor: '#values-game',
+  ids: { intro: '#values-game .vg-intro', story: 'vgStory', cards: 'vgCards',
+         confirm: 'vgConfirm', result: 'vgResult',
+         profileBox: 'profileValuesGame', share: 'vgShare' },
+  stripLabel: 'Môj rebríček hodnôt:',
+  resultTitle: 'Tvoj rebríček hodnôt',
+  resultIntro: 'Každá postava predstavovala jednu hodnotu. ' +
+    'Tvoje poradie sympatií ukazuje, čo máš práve teraz na prvom mieste:',
+  whoLine: (c) => `(v príbehu ${c.name})`,
+  shareText: (r) => `Môj rebríček hodnôt na Synced: ${r}. Aký je tvoj? 💛`
+});
+
+/* Hra 2: Kuchynský test (5 podnetov)
+   localStorage 'synced_kitchengame_v1' – formát = 5 kľúčov vrátane
+   'ja' (sporák). Prípadný starší 4-podnetový záznam by load()
+   ticho zahodil a hra by začala odznova. */
+const KitchenGame = createRankingGame({
+  data: () => window.KITCHEN_GAME,
+  storageKey: 'synced_kitchengame_v1',
+  profileField: 'kitchenRanking',
+  sectionAnchor: '#kitchen-game',
+  ids: { intro: '#kitchen-game .vg-intro', story: 'kgStory', cards: 'kgCards',
+         confirm: 'kgConfirm', result: 'kgResult',
+         profileBox: 'profileKitchenGame', share: 'kgShare' },
+  stripLabel: 'Moje priority:',
+  resultTitle: 'Tvoje priority',
+  resultIntro: 'Každý podnet predstavuje jednu oblasť života. ' +
+    'Tvoje poradie ukazuje, čo máš práve teraz na prvom mieste:',
+  whoLine: (c) => `(podnet: ${c.short})`,
+  shareText: (r) => `Moje priority na Synced: ${r}. Aké sú tvoje? 💛`
+});
 
 
 /* --------------------------------------------------------------
@@ -1678,6 +1719,7 @@ document.addEventListener('DOMContentLoaded', () => {
   Chat.init();
   SafetyUI.init();
   ValuesGame.init();
+  KitchenGame.init();
   VideoVerification.init();
   VideoChat.init();
   Modal.init();

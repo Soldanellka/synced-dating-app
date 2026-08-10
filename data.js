@@ -235,3 +235,46 @@ const VALUES_GAME = {
 };
 
 window.VALUES_GAME = VALUES_GAME;
+
+
+/* ==============================================================
+   HRA: KUCHYNSKÝ TEST (5 súčasných podnetov)
+   --------------------------------------------------------------
+   Rovnaký princíp ako VALUES_GAME: soft signál, NIE brána,
+   NIE percento. Hráč zoradí podnety podľa toho, čo by riešil
+   prvé — poradie = jeho priority. Mapovanie podnet → oblasť
+   je počas hrania skryté.
+   Formát: 5 podnetov (rozšírené zo 4 o sporák = starostlivosť
+   o seba). 'short' sa používa vo výsledku ako názov podnetu.
+   ============================================================== */
+
+const KITCHEN_GAME = {
+  intro: 'Nie je to o správne/zle — ukazuje to, čo máš práve teraz na prvom mieste.',
+
+  story: 'Si v kuchyni a naraz sa deje päť vecí: vytrvalo ti zvoní telefón, ' +
+    'v izbe sa rozplakalo dieťa, niekto zvoní pri dverách, z kohútika tečie ' +
+    'voda prúdom — a na sporáku ti kypí obed, ktorý si si prvýkrát za deň ' +
+    'spravila len pre seba. Zoraď, čo by si riešila ako prvé.',
+
+  characters: [
+    { id: 'praca',     short: 'telefón', name: 'Zdvihnúť telefón – niekto ti vytrvalo volá.',
+      value: 'Práca a povinnosti',
+      desc: 'Svet, ktorý na teba čaká „vonku" — zodpovednosť, ktorá sa hlási sama.' },
+    { id: 'rodina',    short: 'dieťa',   name: 'Utíšiť dieťa – rozplakalo sa v izbe.',
+      value: 'Rodina a blízki',
+      desc: 'Ľudia, ktorí ťa potrebujú — starostlivosť a blízkosť, ktorá nepočká.' },
+    { id: 'priatelia', short: 'dvere',   name: 'Otvoriť dvere – niekto zvoní.',
+      value: 'Priatelia a okolie',
+      desc: 'Tí, čo stoja za dverami — otvorenosť voči svetu a vzťahom okolo teba.' },
+    { id: 'peniaze',   short: 'voda',    name: 'Zastaviť vodu – z kohútika tečie prúdom.',
+      value: 'Peniaze a istota',
+      desc: 'Zdroje, ktoré odtekajú — praktická stránka života a pocit istoty.' },
+    { id: 'ja',        short: 'sporák',  name: 'Vypnúť sporák – kypí ti obed, ktorý si si prvýkrát za deň spravila len pre seba.',
+      value: 'Ty sama',
+      desc: 'Jediná vec v tom chaose, ktorá je len tvoja. Kam si ju zaradíš, ' +
+        'ukazuje, koľko priestoru si necháš pre seba – vysoko či nízko, oboje ' +
+        'je len momentka, nie hodnotenie.' }
+  ]
+};
+
+window.KITCHEN_GAME = KITCHEN_GAME;

@@ -222,6 +222,14 @@
             </a>
           </div>
 
+          <h3>Moje priority</h3>
+          <!-- Po dohraní kuchynského testu sem JS vykreslí pruh + Zdieľať -->
+          <div id="profileKitchenGame">
+            <a class="vg-entry" href="#kitchen-game" data-scroll="#kitchen-game">
+              🍳 Hra: Kuchynský test <span class="vg-entry__time">(2 min)</span>
+            </a>
+          </div>
+
           <h3>Overenie identity</h3>
           <!-- Placeholder video overenia (Krok 5) – napojí sa na Supabase Storage -->
           <div class="verify" id="verify">
@@ -288,6 +296,28 @@
       </div>
 
       <div class="vg-result" id="vgResult" hidden></div>
+    </section>
+
+    <!-- 4c) HRA: KUCHYNSKÝ TEST (5 podnetov) -->
+    <section id="kitchen-game" class="section">
+      <h2>🍳 Hra: Kuchynský test</h2>
+      <p class="vg-intro"><!-- naplní JS z KITCHEN_GAME.intro --></p>
+
+      <div class="vg-layout">
+        <div class="vg-story">
+          <h3>Chaos v kuchyni</h3>
+          <p id="kgStory"><!-- naplní JS z KITCHEN_GAME.story --></p>
+        </div>
+
+        <div class="vg-play">
+          <h3>Zoraď podnety</h3>
+          <p class="vg-hint">Od prvého, čo by si riešila, po posledné.</p>
+          <ul class="vg-cards" id="kgCards"></ul>
+          <button type="button" class="btn-primary" id="kgConfirm">Potvrdiť poradie</button>
+        </div>
+      </div>
+
+      <div class="vg-result" id="kgResult" hidden></div>
     </section>
 
     <!-- 5) CHAT -->
