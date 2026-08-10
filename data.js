@@ -141,6 +141,8 @@ window.SYNCED_DATA = SYNCED_DATA;
    rt: vzťahový kompas { os1, os2 } v rozsahu -1..1
      os1: Odstup (-) ⟷ Blízkosť (+), os2: Zmena (-) ⟷ Kontinuita (+)
      Len opisný soft signál – nikdy percento ani brána.
+   gender: 'm' | 'z' – len pre zobrazenie archetypovej sady
+     a zámen v opisnom riadku (nie matching, nie filter)
    ============================================================== */
 
 const SAMPLE_USERS = [
@@ -150,7 +152,7 @@ const SAMPLE_USERS = [
     intent: 'serious',
     smokes: false,
     appearance: { heightBand: 'stredna', silhouette: 'drobna', hair: 'tmave', style: 'prirodzeny' },
-    rt: { os1: 0.6, os2: 0.5 },
+    gender: 'z', rt: { os1: 0.6, os2: 0.5 },
     valueVector: { 'rodina':5, 'kariéra':3, 'pokoj':5, 'spiritualita':3, 'osobný rast':4, 'sloboda':2, 'dobrodružstvo':2 },
     personality: { openness:3.5, conscientiousness:4, extraversion:3, agreeableness:4.5, stability:4 }
   },
@@ -160,7 +162,7 @@ const SAMPLE_USERS = [
     intent: 'serious',
     smokes: false,
     appearance: { heightBand: 'vyssia', silhouette: 'atleticka', hair: 'tmave', style: 'upraveny' },
-    rt: { os1: 0.1, os2: -0.4 },
+    gender: 'm', rt: { os1: 0.1, os2: -0.4 },
     valueVector: { 'rodina':3, 'kariéra':5, 'pokoj':2, 'spiritualita':2, 'osobný rast':5, 'sloboda':4, 'dobrodružstvo':4 },
     personality: { openness:4, conscientiousness:4.5, extraversion:4, agreeableness:3, stability:3.5 }
   },
@@ -170,7 +172,7 @@ const SAMPLE_USERS = [
     intent: 'open',
     smokes: true,
     appearance: { heightBand: 'stredna', silhouette: 'drobna', hair: 'svetle', style: 'sportovy' },
-    rt: { os1: -0.5, os2: -0.7 },
+    gender: 'z', rt: { os1: -0.5, os2: -0.7 },
     valueVector: { 'rodina':2, 'kariéra':3, 'pokoj':2, 'spiritualita':3, 'osobný rast':4, 'sloboda':5, 'dobrodružstvo':5 },
     personality: { openness:5, conscientiousness:2.5, extraversion:4.5, agreeableness:3.5, stability:3 }
   },
@@ -180,7 +182,7 @@ const SAMPLE_USERS = [
     intent: 'serious',
     smokes: false,
     appearance: { heightBand: 'vyssia', silhouette: 'silna', hair: 'tmave', style: 'prirodzeny' },
-    rt: { os1: 0.3, os2: 0.6 },
+    gender: 'm', rt: { os1: 0.3, os2: 0.6 },
     valueVector: { 'rodina':4, 'kariéra':2, 'pokoj':5, 'spiritualita':5, 'osobný rast':4, 'sloboda':3, 'dobrodružstvo':2 },
     personality: { openness:4, conscientiousness:3.5, extraversion:2.5, agreeableness:4.5, stability:4.5 }
   },
@@ -190,7 +192,7 @@ const SAMPLE_USERS = [
     intent: 'serious',
     smokes: false,
     appearance: { heightBand: 'nizsia', silhouette: 'plna', hair: 'svetle', style: 'upraveny' },
-    rt: { os1: 0.7, os2: 0.4 },
+    gender: 'z', rt: { os1: 0.7, os2: 0.4 },
     valueVector: { 'rodina':5, 'kariéra':2, 'pokoj':4, 'spiritualita':4, 'osobný rast':3, 'sloboda':2, 'dobrodružstvo':3 },
     personality: { openness:3, conscientiousness:4, extraversion:3.5, agreeableness:5, stability:4 }
   },
@@ -200,7 +202,7 @@ const SAMPLE_USERS = [
     intent: 'company',
     smokes: true,
     appearance: { heightBand: 'vyssia', silhouette: 'atleticka', hair: 'tmave', style: 'sportovy' },
-    rt: { os1: -0.6, os2: -0.2 },
+    gender: 'm', rt: { os1: -0.6, os2: -0.2 },
     valueVector: { 'rodina':2, 'kariéra':5, 'pokoj':3, 'spiritualita':1, 'osobný rast':4, 'sloboda':5, 'dobrodružstvo':4 },
     personality: { openness:3.5, conscientiousness:4, extraversion:4, agreeableness:2.5, stability:3.5 }
   }
@@ -558,3 +560,45 @@ const ASSERT_TRAINING = {
 };
 
 window.ASSERT_TRAINING = ASSERT_TRAINING;
+
+
+/* ==============================================================
+   ARCHETYPY – stredoveký svet nad Vzťahovým kompasom (RT test)
+   --------------------------------------------------------------
+   Honosnejšie oblečenie RT kúta, nie jeho náhrada. Sebapoznanie
+   a jemný opisný signál – NIKDY percento, NIKDY brána.
+   Kvadranty: B/O (os1 Blízkosť/Odstup) × S/Z (os2 Stálosť/Zmena);
+   pri presnej nule sa uprednostní Blízkosť resp. Stálosť.
+   Sady: m (mužská) | z (ženská) | neutral (aj pre „nechcem uvádzať").
+   ============================================================== */
+
+const ARCHETYPES = {
+  corners: {
+    BS: {
+      icon: 'mec',
+      m:       { name: 'Rytier',     desc: 'Verné srdce ríše. Držíš slovo aj tých, na ktorých ti záleží — pri tebe má človek pocit domova a istoty.' },
+      z:       { name: 'Kráľovná',   desc: 'Verné srdce ríše. Držíš slovo aj svojich ľudí — pri tebe má človek pocit domova a istoty.' },
+      neutral: { name: 'Ochranca',   desc: 'Verné srdce ríše. Držíš slovo aj tých, na ktorých ti záleží — pri tebe má človek pocit domova a istoty.' }
+    },
+    BZ: {
+      icon: 'lutna',
+      m:       { name: 'Trubadúr',   desc: 'Duša, čo spája a zapaľuje. Prinášaš ľuďom nové obzory a robíš všedné dni krajšími.' },
+      z:       { name: 'Múza',       desc: 'Duša, čo spája a zapaľuje. Prinášaš ľuďom nové obzory a robíš všedné dni krajšími.' },
+      neutral: { name: 'Trubadúr',   desc: 'Duša, čo spája a zapaľuje. Prinášaš ľuďom nové obzory a robíš všedné dni krajšími.' }
+    },
+    OS: {
+      icon: 'hviezda',
+      m:       { name: 'Alchymista', desc: 'Majster tichého umenia. Ideš vlastnou hĺbkou, poctivo a sústredene — a to, čo vytvoríš, má váhu.' },
+      z:       { name: 'Hvezdárka',  desc: 'Majsterka tichého umenia. Ideš vlastnou hĺbkou, poctivo a sústredene — a to, čo vytvoríš, má váhu.' },
+      neutral: { name: 'Alchymista', desc: 'Tiché umenie hĺbky. Ideš vlastnou cestou, poctivo a sústredene — a to, čo vytvoríš, má váhu.' }
+    },
+    OZ: {
+      icon: 'luk',
+      m:       { name: 'Templár',    desc: 'Nebojácny hľadač vlastnej cesty. Nezastavíš sa pri hraniciach mapy — sloboda a odvaha sú tvoj kompas.' },
+      z:       { name: 'Amazonka',   desc: 'Nebojácna hľadačka vlastnej cesty. Nezastavíš sa pri hraniciach mapy — sloboda a odvaha sú tvoj kompas.' },
+      neutral: { name: 'Pútnik',     desc: 'Srdce na ceste. Nezastavíš sa pri hraniciach mapy — sloboda a odvaha sú tvoj kompas.' }
+    }
+  }
+};
+
+window.ARCHETYPES = ARCHETYPES;

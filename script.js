@@ -33,6 +33,7 @@ const AppState = {
     kitchenRanking: [],         // Hra: Kuchynský test – poradie 5 kľúčov (soft signál)
     shapePersona: null,         // Hra: Panáčik z tvarov – { sex, cit, rozum } počty z 10 (soft signál)
     rt: null,                   // Vzťahový kompas – { os1, os2, kut } (soft signál, nikdy % ani brána)
+    archetypeSet: 'neutral',    // Archetypy: 'm' | 'z' | 'neutral' | 'none' (none → neutrálna sada)
     assertStyle: null,          // Asertivita – { counts, dominant } (privátny self-insight, mimo scoringu)
     // Výzor (Krok 5) – abstraktný avatar, KÁNON hodnôt viď docs/vyzor-a-pravidla.md
     appearance: {},             // „Ja": { heightBand, silhouette, hair, style }
@@ -391,6 +392,94 @@ function rtStyleLine(meRt, otherRt) {
 }
 window.rtStyleLine = rtStyleLine;
 
+
+/* --------------------------------------------------------------
+   ARCHETYPY nad RT kompasom – hrdé oblečenie kúta, nie náhrada
+   --------------------------------------------------------------
+   Nevstupujú do čísla kompatibility ani do brán. Sada podľa
+   voľby používateľa ('none' → neutrálna).
+   -------------------------------------------------------------- */
+function rtQuadrant(rt) {
+  // pri presnej nule sa uprednostní Blízkosť resp. Stálosť
+  return ((rt.os1 ?? 0) >= 0 ? 'B' : 'O') + ((rt.os2 ?? 0) >= 0 ? 'S' : 'Z');
+}
+
+function archetypeFor(rt, set) {
+  if (!rt || typeof rt.os1 !== 'number' || typeof rt.os2 !== 'number') return null;
+  const corner = window.ARCHETYPES?.corners[rtQuadrant(rt)];
+  if (!corner) return null;
+  const s = (set === 'm' || set === 'z') ? set : 'neutral';
+  return { name: corner[s].name, desc: corner[s].desc, icon: corner.icon };
+}
+window.archetypeFor = archetypeFor;
+
+// Malé štylizované erby (meč, lutna, hviezda, luk) – čisté SVG v palete
+function archetypeIconSVG(icon) {
+  const shapes = {
+    mec: `<path d="M14 2 L16.5 4.5 L16.5 15 L11.5 15 L11.5 4.5 Z" fill="var(--primary-dark)"/>
+      <rect x="8" y="15" width="12" height="3" rx="1.5" fill="var(--primary)"/>
+      <rect x="12.5" y="18" width="3" height="7" rx="1.5" fill="var(--primary-dark)"/>`,
+    lutna: `<circle cx="11" cy="18.5" r="7" fill="var(--primary)"/>
+      <circle cx="11" cy="18.5" r="2.2" fill="var(--bg-light)"/>
+      <rect x="15.5" y="2" width="3" height="14" rx="1.5" fill="var(--primary-dark)"
+        transform="rotate(32 17 9)"/>`,
+    hviezda: `<polygon fill="var(--primary-dark)" points="14,3 17.2,10.2 25,10.5 18.9,15.6 20.9,23.4 14,18.9 7.1,23.4 9.1,15.6 3,10.5 10.8,10.2"/>`,
+    luk: `<path d="M8 3 Q23 14 8 25" fill="none" stroke="var(--primary-dark)" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="8" y1="3" x2="8" y2="25" stroke="var(--primary)" stroke-width="1.6"/>
+      <line x1="8" y1="14" x2="24" y2="14" stroke="var(--primary-dark)" stroke-width="2"/>
+      <path d="M24 14 L20 11 M24 14 L20 17" fill="none" stroke="var(--primary-dark)" stroke-width="2" stroke-linecap="round"/>`
+  };
+  return `<svg class="arch-icon" viewBox="0 0 28 28" aria-hidden="true">${shapes[icon] || ''}</svg>`;
+}
+
+// Opisný riadok do karty matchu – len keď majú archetyp obaja
+function archetypeLine(meRt, meSet, otherRt, otherGender) {
+  const mine = archetypeFor(meRt, meSet);
+  const theirs = archetypeFor(otherRt, otherGender);
+  if (!mine || !theirs) return '';
+  const pron = otherGender === 'z' ? 'ona' : (otherGender === 'm' ? 'on' : 'on/ona');
+  return `<p class="match-arch">🏰 Ty ${mine.name} · ${pron} ${theirs.name}</p>`;
+}
+window.archetypeLine = archetypeLine;
+
+
+/* Voľba archetypovej sady v profile (pohlavie appka nezbiera) */
+const ArchetypeSet = {
+  KEY: 'synced_archetypeset_v1',
+  options: [['m', 'Mužské'], ['z', 'Ženské'], ['neutral', 'Neutrálne'], ['none', 'Nechcem uvádzať']],
+
+  init() {
+    this.box = document.getElementById('archetypeSetPicker');
+    if (!this.box) return;
+    try {
+      const v = localStorage.getItem(this.KEY);
+      if (['m', 'z', 'neutral', 'none'].includes(v)) AppState.userProfile.archetypeSet = v;
+    } catch (_) {}
+    this.render();
+    this.box.addEventListener('click', (e) => {
+      const chip = e.target.closest('button[data-set]');
+      if (!chip) return;
+      AppState.userProfile.archetypeSet = chip.dataset.set;
+      try { localStorage.setItem(this.KEY, chip.dataset.set); } catch (_) {}
+      this.render();
+      // Prekresli, kde sa archetyp ukazuje
+      if (RTTest.done) { RTTest.renderResult(); RTTest.renderProfileStrip(); }
+      if (Object.keys(AppState.userProfile.valueVector || {}).length) Matches.render();
+    });
+  },
+
+  render() {
+    const cur = AppState.userProfile.archetypeSet || 'neutral';
+    this.box.innerHTML = `
+      <span class="arch-picker__label">Archetypy zobrazovať ako:</span>
+      <span class="avatar-chips">
+        ${this.options.map(([v, l]) => `
+          <button type="button" class="avatar-chip ${v === cur ? 'is-active' : ''}"
+            data-set="${v}">${l}</button>`).join('')}
+      </span>`;
+  }
+};
+
 // Reframe „dôvod milovať" – bez menovania konkrétnej odchýlky, bez percent
 function reframeLove(fit) {
   if (fit == null) return '';
@@ -463,6 +552,7 @@ const Matches = {
         const result = calculateCompatibility(me, u);
         result.appearanceFit = appearanceFit(me.ideal, u.appearance);
         result.rtLine = rtStyleLine(me.rt, u.rt);   // opisný riadok, nie skóre
+        result.archLine = archetypeLine(me.rt, me.archetypeSet, u.rt, u.gender);
         return { user: u, result };
       })
       .sort((a, b) => b.result.score - a.result.score);
@@ -516,7 +606,8 @@ const Matches = {
       dealbreakers: P.dealbreakers || [],
       appearance: P.appearance || {},
       ideal: P.ideal || { heightBand: 'nezalezi', silhouette: 'nezalezi', hair: 'nezalezi', style: 'nezalezi' },
-      rt: P.rt || null
+      rt: P.rt || null,
+      archetypeSet: P.archetypeSet || 'neutral'
     };
   },
 
@@ -534,6 +625,7 @@ const Matches = {
         <p class="match-meta">💛 Spoločné hodnoty: ${sharedTxt}</p>
         ${reframeLove(r.appearanceFit)}
         ${r.rtLine || ''}
+        ${r.archLine || ''}
         <p class="match-bio">„${user.bio}"</p>
         <button class="btn-primary" data-scroll="#chat">Napíš správu</button>
       </article>`;
@@ -1466,11 +1558,20 @@ const RTTest = {
   renderResult() {
     const { os1, os2 } = this.rt;
     const kut = this.kutOf(os1, os2);
+    const arch = archetypeFor(this.rt, AppState.userProfile.archetypeSet);
     const box = document.getElementById('rtResult');
     box.hidden = false;
     box.innerHTML = `
       <h3>Tvoj domovský kút: ${kut.label}</h3>
       <p class="vg-result__intro">${kut.desc}</p>
+      ${arch ? `
+      <div class="rt-archetype">
+        ${archetypeIconSVG(arch.icon)}
+        <div>
+          <p class="rt-archetype__name">🏰 Tvoj archetyp: <strong>${arch.name}</strong></p>
+          <p class="rt-archetype__desc">${arch.desc}</p>
+        </div>
+      </div>` : ''}
       ${this.compassSVG(os1, os2)}
       <p class="vg-result__note">${this.D.note}</p>`;
   },
@@ -1479,8 +1580,10 @@ const RTTest = {
     const box = document.getElementById('profileRtTest');
     if (!box) return;
     const kut = this.kutOf(this.rt.os1, this.rt.os2);
+    const arch = archetypeFor(this.rt, AppState.userProfile.archetypeSet);
     box.innerHTML = `
       <p class="vg-strip">Môj vzťahový kompas: <strong>${kut.label}</strong></p>
+      ${arch ? `<p class="rt-strip-desc">🏰 Archetyp: <strong>${arch.name}</strong></p>` : ''}
       <p class="rt-strip-desc">${kut.desc}</p>
       <div class="vg-strip__actions">
         <a class="vg-again" href="#rt-test" data-scroll="#rt-test">Zahrať znova</a>
@@ -2300,6 +2403,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ValuesGame.init();
   KitchenGame.init();
   ShapeGame.init();
+  ArchetypeSet.init();          // pred RTTest – sada musí byť načítaná pred vykreslením
   RTTest.init();
   AssertTraining.init();
   VideoVerification.init();
