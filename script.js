@@ -1093,9 +1093,11 @@ const ValuesGame = createRankingGame({
 });
 
 /* Hra 2: Kuchynský test (5 podnetov)
-   localStorage 'synced_kitchengame_v1' – formát = 5 kľúčov vrátane
-   'ja' (sporák). Prípadný starší 4-podnetový záznam by load()
-   ticho zahodil a hra by začala odznova. */
+   localStorage 'synced_kitchengame_v1' – formát = 5 kľúčov
+   ja | sex | praca | rodina | priatelia (kúpeľ = Moja chvíľka,
+   umývadlo = Sex). Starší záznam s inou sadou kľúčov (napr.
+   'peniaze' alebo 4 podnety) load() ticho zahodí a hra začne
+   odznova. */
 const KitchenGame = createRankingGame({
   data: () => window.KITCHEN_GAME,
   storageKey: 'synced_kitchengame_v1',
