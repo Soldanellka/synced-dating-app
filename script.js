@@ -33,6 +33,7 @@ const AppState = {
     kitchenRanking: [],         // Hra: Kuchynský test – poradie 5 kľúčov (soft signál)
     shapePersona: null,         // Hra: Panáčik z tvarov – { sex, cit, rozum } počty z 10 (soft signál)
     rt: null,                   // Vzťahový kompas – { os1, os2, kut } (soft signál, nikdy % ani brána)
+    assertStyle: null,          // Asertivita – { counts, dominant } (privátny self-insight, mimo scoringu)
     // Výzor (Krok 5) – abstraktný avatar, KÁNON hodnôt viď docs/vyzor-a-pravidla.md
     appearance: {},             // „Ja": { heightBand, silhouette, hair, style }
     ideal: {                    // „Môj ideál": samé 'nezalezi' = výzor sa ignoruje
@@ -1513,6 +1514,185 @@ const RTTest = {
 
 
 /* --------------------------------------------------------------
+   3e5) ASERTIVITA – tréning komunikácie (cvičné scény)
+   --------------------------------------------------------------
+   SOFT/self-insight: ŽIADEN vplyv na matching ani brány,
+   assertStyle sa NEpoužíva v scoringu. Výsledok je privátny;
+   zdieľanie len dobrovoľné tlačidlom.
+   Persistencia v localStorage je dočasný most (TODO Supabase).
+   -------------------------------------------------------------- */
+const AssertTraining = {
+  KEY: 'synced_assert_v1',
+  idx: 0,
+  answered: false,
+  counts: { pasivny: 0, agresivny: 0, pasivne_agresivny: 0, asertivny: 0 },
+  result: null,     // { counts, dominant } – uložený výsledok (aj po refreshi)
+
+  init() {
+    const D = window.ASSERT_TRAINING;
+    this.sceneEl = document.getElementById('atScene');
+    if (!D || !this.sceneEl) return;
+    this.D = D;
+    this.labelOf = Object.fromEntries(D.styles.map(s => [s.id, s.label]));
+
+    document.getElementById('atPhilosophy').textContent = D.intro;
+    document.getElementById('atStyles').innerHTML = `
+      <h4>Prečo sa mi to deje — štyri štýly</h4>
+      ${D.styles.map(s => `<p class="at-style"><strong>${s.label}:</strong> ${s.desc}</p>`).join('')}`;
+    document.getElementById('atTriangle').innerHTML = `
+      <h4>Dramatický trojuholník</h4>
+      <p class="at-style">${D.triangle}</p>`;
+
+    this.load();
+    this.renderScene();
+    if (this.result) { this.renderResult(); this.renderProfileStrip(); }
+
+    this.sceneEl.addEventListener('click', (e) => {
+      const a = e.target.closest('button[data-answer]');
+      if (a && !this.answered) { this.choose(Number(a.dataset.answer)); return; }
+      if (e.target.closest('[data-at-next]')) this.next();
+      if (e.target.closest('[data-at-restart]')) this.restart();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('#atShare')) this.share();
+    });
+  },
+
+  renderScene() {
+    const sc = this.D.scenes[this.idx];
+    this.answered = false;
+    this.sceneEl.innerHTML = `
+      <p class="at-progress">Scéna ${this.idx + 1}/${this.D.scenes.length}</p>
+      <p class="at-situation">${sc.text}</p>
+      <div class="at-answers">
+        ${sc.answers.map((a, i) => `
+          <button type="button" class="at-answer" data-answer="${i}">${a.text}</button>`).join('')}
+      </div>
+      <div class="at-feedback" id="atFeedback" hidden></div>`;
+  },
+
+  choose(i) {
+    const sc = this.D.scenes[this.idx];
+    const chosen = sc.answers[i];
+    this.answered = true;
+    this.counts[chosen.style]++;
+
+    const assertIdx = sc.answers.findIndex(a => a.style === 'asertivny');
+    this.sceneEl.querySelectorAll('.at-answer').forEach((btn, j) => {
+      btn.disabled = true;
+      btn.classList.toggle('is-chosen', j === i);
+      if (j === assertIdx) {
+        btn.classList.add('is-assert');
+        btn.insertAdjacentHTML('beforeend',
+          `<span class="at-badge">asertívna cesta · ${sc.answers[assertIdx].technika}</span>`);
+      }
+    });
+
+    const fb = document.getElementById('atFeedback');
+    fb.hidden = false;
+    const last = this.idx === this.D.scenes.length - 1;
+    fb.innerHTML = `
+      <p><strong>Tvoja voľba (${this.labelOf[chosen.style]} štýl):</strong> ${chosen.feedback}</p>
+      <button type="button" class="btn-primary" data-at-next>${last ? 'Vyhodnotiť' : 'Ďalej'}</button>`;
+  },
+
+  next() {
+    if (this.idx < this.D.scenes.length - 1) {
+      this.idx++;
+      this.renderScene();
+    } else {
+      this.finish();
+    }
+  },
+
+  finish() {
+    // Dominantný štýl; pri remíze láskavo uprednostni asertívny
+    const order = ['asertivny', 'pasivny', 'agresivny', 'pasivne_agresivny'];
+    const dominant = order.reduce((best, s) =>
+      this.counts[s] > this.counts[best] ? s : best, order[0]);
+
+    this.result = { counts: { ...this.counts }, dominant };
+    AppState.userProfile.assertStyle = { ...this.result.counts, dominant };
+    this.save();
+    this.renderResult();
+    this.renderProfileStrip();
+
+    this.sceneEl.innerHTML = `
+      <p class="at-situation">Prešiel/prešla si všetky scény. 💛</p>
+      <button type="button" class="btn-secondary" data-at-restart>Prejsť scény znova</button>`;
+    document.getElementById('atResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  },
+
+  restart() {
+    this.idx = 0;
+    this.counts = { pasivny: 0, agresivny: 0, pasivne_agresivny: 0, asertivny: 0 };
+    this.renderScene();
+  },
+
+  countsText(counts) {
+    return this.D.styles
+      .map(s => `${s.label} ${counts[s.id]}×`)
+      .join(' · ');
+  },
+
+  renderResult() {
+    const R = this.D.results[this.result.dominant];
+    const box = document.getElementById('atResult');
+    box.hidden = false;
+    box.innerHTML = `
+      <h3>Tvoja tendencia: prevažne ${this.labelOf[this.result.dominant]} štýl</h3>
+      <p class="vg-result__intro">${R.desc}</p>
+      <p class="at-counts">Tvoje voľby: ${this.countsText(this.result.counts)}</p>
+      <p class="vg-result__desc">🛠 Na precvičenie: ${R.technika}</p>
+      <p class="vg-result__desc">🔺 ${R.rola}</p>
+      <p class="vg-result__note">${this.D.note}</p>`;
+  },
+
+  renderProfileStrip() {
+    const box = document.getElementById('profileAssert');
+    if (!box) return;
+    box.innerHTML = `
+      <p class="vg-strip">Moja tendencia: <strong>prevažne ${this.labelOf[this.result.dominant]} štýl</strong></p>
+      <div class="vg-strip__actions">
+        <button type="button" class="btn-secondary" id="atShare">💌 Zdieľať tendenciu</button>
+        <a class="vg-again" href="#assert-training" data-scroll="#assert-training">Prejsť znova</a>
+      </div>`;
+  },
+
+  share() {
+    const text = `Môj komunikačný tréning na Synced: tendencia prevažne ` +
+      `${this.labelOf[this.result.dominant]} štýl. Trénujem „vyhrať bez boja". 💛`;
+    const done = () => {
+      const b = document.getElementById('atShare');
+      if (b) b.textContent = 'Skopírované ✓';
+    };
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(done);
+    else done();
+  },
+
+  /* localStorage – dočasný most (TODO Supabase), vzor ostatných hier */
+  save() {
+    try { localStorage.setItem(this.KEY, JSON.stringify(this.result)); } catch (_) {}
+  },
+
+  load() {
+    try {
+      const raw = localStorage.getItem(this.KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      const styles = this.D.styles.map(s => s.id);
+      const valid = saved && styles.includes(saved.dominant)
+        && saved.counts && styles.every(s => Number.isFinite(saved.counts[s]));
+      if (!valid) return;   // iný/starší formát sa ticho zahodí
+      this.result = saved;
+      AppState.userProfile.assertStyle = { ...saved.counts, dominant: saved.dominant };
+    } catch (_) { /* poškodené dáta ignorujeme */ }
+  }
+};
+
+
+/* --------------------------------------------------------------
    3f) VIDEO OVERENIE (placeholder – napojí sa na Supabase Storage)
    -------------------------------------------------------------- */
 const VideoVerification = {
@@ -2121,6 +2301,7 @@ document.addEventListener('DOMContentLoaded', () => {
   KitchenGame.init();
   ShapeGame.init();
   RTTest.init();
+  AssertTraining.init();
   VideoVerification.init();
   VideoChat.init();
   Modal.init();

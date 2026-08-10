@@ -418,3 +418,143 @@ const RT_TEST = {
 };
 
 window.RT_TEST = RT_TEST;
+
+
+/* ==============================================================
+   ASERTIVITA – „pevný a láskavý zároveň" (tréning komunikácie)
+   --------------------------------------------------------------
+   SOFT/self-insight: ŽIADEN vplyv na matching ani brány.
+   Cieľ je udržať vlastnú hranicu, NIE zlomiť cudzie „nie" –
+   nič tu neučí manipulovať ani pretlačiť druhého.
+   Texty láskavé a nehodnotiace (docs/vyzor-a-pravidla.md).
+   ============================================================== */
+
+const ASSERT_TRAINING = {
+  intro: 'Keď na teba niekto tlačí, máš tri cesty. Bojovať — presadíš sa, ale ' +
+    'zraníš. Vzdať sa — ustúpiš, ale zradíš seba. A tretia cesta: asertivita — ' +
+    'udržíš svoje a zároveň neublížiš. „Vyhrať bez boja" znamená, že nikto ' +
+    'nemusí prehrať. A pozor: cieľom je udržať vlastnú hranicu — nikdy nie ' +
+    'zlomiť cudzie nie.',
+
+  styles: [
+    { id: 'pasivny',           label: 'pasívny',
+      desc: 'Ustúpim, aby bol pokoj — ostatní ma časom prevalcujú.' },
+    { id: 'agresivny',         label: 'agresívny',
+      desc: 'Presadím sa silou — druhí sa zľaknú a bránia.' },
+    { id: 'pasivne_agresivny', label: 'pasívne-agresívny',
+      desc: 'Naznačujem a štipľavo mlčím, ale nepoviem to priamo.' },
+    { id: 'asertivny',         label: 'asertívny',
+      desc: 'Poviem, čo potrebujem, pokojne a priamo — berú ma vážne.' }
+  ],
+
+  triangle: 'Dramatický trojuholník: obeť ⟷ záchranca ⟷ agresor. Keď spadnem ' +
+    'do roly obete, priťahujem si tie druhé dve — niekto ma zachraňuje, niekto ' +
+    'na mňa útočí, a točíme sa dokola. Vystúpiť sa dá jediným smerom: do ' +
+    'dospelej, asertívnej polohy — poviem, čo cítim a čo potrebujem, bez útoku ' +
+    'a bez sebazapretia.',
+
+  scenes: [
+    {
+      id: 'natlak',
+      text: 'Píše ti: „Ak ma máš naozaj rád(a), pošli mi odvážnu fotku."',
+      answers: [
+        { style: 'pasivny', text: '„Tak dobre, keď to pre teba znamená…"',
+          feedback: 'Ustúpiš proti sebe. Druhý sa naučí, že tlak funguje.' },
+        { style: 'agresivny', text: '„Si normálny? Okamžite prestaň otravovať!"',
+          feedback: 'Ubránil si sa, ale útokom — hovor sa zasekne v konflikte.' },
+        { style: 'pasivne_agresivny', text: '„No jasné, veď ja som asi jediná, kto to nerobí…"',
+          feedback: 'Nepovieš priame nie, len pichneš — druhý nevie, na čom je.' },
+        { style: 'asertivny', text: '„Nie. Fotky takto neposielam — a to, či ťa mám rád(a), s tým nesúvisí."',
+          feedback: 'Jasné nie + oddelenie citu od nátlaku. Držíš hranicu bez útoku.',
+          technika: 'právo povedať nie' }
+      ]
+    },
+    {
+      id: 'vycitanie',
+      text: 'Znova na poslednú chvíľu zrušil(a) spoločný plán. Keď to spomenieš, povie: „Ty vždy len kritizuješ."',
+      answers: [
+        { style: 'pasivny', text: '„Prepáč, asi som precitlivený(á)…"',
+          feedback: 'Vezmeš vinu, ktorá nie je tvoja.' },
+        { style: 'agresivny', text: '„Ty si ten, kto stále všetko ruší, tak nekecaj!"',
+          feedback: 'Pravda v tom je, ale forma spustí obranu, nie riešenie.' },
+        { style: 'pasivne_agresivny', text: '„Ale nie, to nič, veď mne je to jedno."',
+          feedback: 'Povieš „nič", hoci nie je — problém ostane a nazbiera sa.' },
+        { style: 'asertivny', text: '„Nekritizujem teba. Hovorím, že ma mrzí, keď sa plán zruší na poslednú chvíľu — a potrebujem sa naň vedieť spoľahnúť."',
+          feedback: 'Fakt + pocit + potreba, bez obviňovania. Ťažko sa to zhodí zo stola.',
+          technika: 'ja-výrok' }
+      ]
+    },
+    {
+      id: 'pasivna_agresia',
+      text: 'Napíše: „No nič. Veď to je jedno. Aj tak ti na tom asi nezáleží."',
+      answers: [
+        { style: 'pasivny', text: '„Prepáč, čo som spravil(a)? Povedz, napravím to!"',
+          feedback: 'Skočíš do roly, ktorú ti nastavil — ospravedlňuješ sa naslepo.' },
+        { style: 'agresivny', text: '„Tak keď je to jedno, tak čo riešiš?"',
+          feedback: 'Odpáliš — eskalácia namiesto rozhovoru.' },
+        { style: 'pasivne_agresivny', text: '„Aha, dobre teda. Fajn."',
+          feedback: 'Vrátiš mu tú istú hru — obaja mlčíte a hneváte.' },
+        { style: 'asertivny', text: '„Znie to, akoby ti to vadilo. Mne na tom záleží — povedz mi priamo, čo sa deje?"',
+          feedback: 'Pomenuješ nevyslovené a pozveš na priamy rozhovor. Vyvedieš to z hry.',
+          technika: 'pomenovanie + otázka' }
+      ]
+    },
+    {
+      id: 'hranica_doma',
+      text: 'Dohodli ste sa, že prvé stretnutie bude na verejnosti. Deň pred rande napíše: „Príď radšej rovno ku mne, uvaríme si, bude to príjemnejšie."',
+      answers: [
+        { style: 'agresivny', text: '„Ty to skúšaš? Také typy poznám. Zabudni!"',
+          feedback: 'Hranicu udržíš, ale súdom — druhý sa nedozvie, čo potrebuješ, len že je odsúdený.' },
+        { style: 'asertivny', text: '„Prvé stretnutie chcem na verejnosti, tak sme sa dohodli. Rád/rada prídem do kaviarne."',
+          feedback: 'Pokojne zopakuješ dohodu bez ospravedlňovania a bez útoku. Hranica stojí.',
+          technika: 'pokazená platňa' },
+        { style: 'pasivny', text: '„No… dobre, tak prídem."',
+          feedback: 'Prekročíš vlastnú hranicu, aby si nepokazil(a) náladu — a ideš do situácie, v ktorej ti nie je dobre.' },
+        { style: 'pasivne_agresivny', text: '„Hm, uvidíme, možno hej…" (a potom sa odmlčíš)',
+          feedback: 'Nepovieš nie, len sa vyparíš — neistota na oboch stranách.' }
+      ]
+    },
+    {
+      id: 'odmietnutie',
+      text: 'Po prvom rande ti napíše: „Bolo mi s tebou krásne! Kedy sa vidíme zas?" Ty ale pokračovať nechceš.',
+      answers: [
+        { style: 'pasivne_agresivny', text: '(Neodpíšeš a dúfaš, že to pochopí.)',
+          feedback: 'Ticho je tiež odpoveď — ale taká, ktorá druhého necháva domýšľať si.' },
+        { style: 'pasivny', text: '„Uvidíme, teraz mám veľa práce, možno niekedy…"',
+          feedback: 'Odsunieš to, aby si neranil(a) — druhý ostane v nádeji a čakaní.' },
+        { style: 'asertivny', text: '„Ďakujem za pekný večer. Necítim z mojej strany to, čo by tam malo byť, tak nechcem pokračovať — želám ti niekoho, kto to cítiť bude."',
+          feedback: 'Priame, láskavé nie bez falošnej nádeje — rešpekt k druhému aj k sebe.',
+          technika: 'ja-výrok + jasné nie' },
+        { style: 'agresivny', text: '„Úprimne? Nezaujal(a) si ma. Nemá to zmysel."',
+          feedback: 'Pravda bez láskavosti zraní viac, než musí.' }
+      ]
+    }
+  ],
+
+  results: {
+    pasivny: {
+      desc: 'Často ustúpiš, aby bol pokoj — a ostaneš s pocitom, že tvoje potreby sa nepočítajú. Druhí sa učia, že tvoje hranice sa dajú posunúť.',
+      technika: 'Skús ja-výrok: fakt + pocit + potreba. Malá veta, veľká zmena.',
+      rola: 'V dramatickom trojuholníku sa najčastejšie ocitáš v role obete — vystúpiš z nej vo chvíli, keď svoju potrebu povieš nahlas.'
+    },
+    agresivny: {
+      desc: 'Ubrániš sa — ale silou, ktorá druhých zatlačí do obrany. Vyhráš boj a prehráš rozhovor.',
+      technika: 'Skús pokazenú platňu: pokojne zopakuj svoju hranicu bez zvyšovania hlasu.',
+      rola: 'V trojuholníku ľahko skĺzneš do roly agresora — vystúpiš z nej, keď hranicu povieš bez útoku.'
+    },
+    pasivne_agresivny: {
+      desc: 'Nahnevanie naznačíš, ale nepovieš — druhý cíti napätie a nevie, na čom je. Problém sa točí dokola.',
+      technika: 'Skús pomenovanie: povedz priamo, čo sa deje a čo potrebuješ.',
+      rola: 'V trojuholníku krúžiš medzi obeťou a tichým agresorom — von vedie priama, dospelá veta.'
+    },
+    asertivny: {
+      desc: 'Držíš svoje a zároveň neubližuješ — presne o tom je „vyhrať bez boja". Ľudia pri tebe vedia, na čom sú.',
+      technika: 'Udrž si to: ja-výrok a právo povedať nie sú svaly — silnejú používaním.',
+      rola: 'Z dramatického trojuholníka vystupuješ do dospelej polohy — drž sa toho.'
+    }
+  },
+
+  note: 'Toto je momentka, nie nálepka. Štýl je zvyk — a zvyky sa dajú preučiť. 💛'
+};
+
+window.ASSERT_TRAINING = ASSERT_TRAINING;
