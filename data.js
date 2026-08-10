@@ -266,7 +266,7 @@ const KITCHEN_GAME = {
       desc: 'Jediná vec v tom chaose, ktorá je len tvoja. Kam si ju zaradíš, ' +
         'ukazuje, koľko priestoru si necháš pre seba — vysoko či nízko, oboje ' +
         'je len momentka, nie hodnotenie.' },
-    { id: 'sex',       short: 'umývadlo', name: 'Zastaviť vodu, čo prúdom preteká z kuchynského umývadla',
+    { id: 'sex',       short: 'tečúca voda z umývadla', name: 'Zastaviť vodu, čo prúdom tečie z kuchynského umývadla',
       value: 'Sex a telesnosť',
       desc: 'Telesnosť a vášeň. Nie je to o množstve — len o tom, kde ju máš ' +
         'práve teraz v rebríčku.' },
