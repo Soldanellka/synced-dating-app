@@ -283,3 +283,60 @@ const KITCHEN_GAME = {
 };
 
 window.KITCHEN_GAME = KITCHEN_GAME;
+
+
+/* ==============================================================
+   HRA: PANÁČIK Z TVAROV (10 dielikov, 3 tvary)
+   --------------------------------------------------------------
+   Soft signál + self-insight. Podiel tvarov = balans troch zložiek.
+   Percentá sú tu POVOLENÉ, ale len ako opis seba („60 % rozum…"),
+   NIKDY ako zhoda s niekým. NIE brána — nemení matching ani skóre.
+   Mapovanie: trojuholník=sex, kruh=cit, štvorec=rozum
+   (počas skladania sa mapovanie neukazuje, odhalí sa vo výsledku).
+   ============================================================== */
+
+const SHAPE_GAME = {
+  intro: 'Nie je lepšie ani horšie — ukazuje to len, z čoho práve teraz skladáš sám seba.',
+
+  howto: 'Poskladaj panáčika z 10 dielikov. Klikaním na dielik prepínaš tvar: ' +
+    '△ trojuholník, ○ kruh, □ štvorec. Pre každé miesto vyber tvar, ktorý ti sedí — ' +
+    'nerozmýšľaj dlho, prvé pocity bývajú najúprimnejšie.',
+
+  /* Poradie = poradie cyklovania pri klikaní */
+  shapes: [
+    { id: 'sex',   glyph: '△', label: 'Sex',   long: 'Sex a telesnosť (vášeň, energia)' },
+    { id: 'cit',   glyph: '○', label: 'Cit',   long: 'Cit (emócie, blízkosť, srdce)' },
+    { id: 'rozum', glyph: '□', label: 'Rozum', long: 'Rozum (logika, poriadok, hlava)' }
+  ],
+
+  /* 10 slotov tela – id sa používa aj ako grid-area v CSS */
+  slots: [
+    { id: 'hlava',     label: 'Hlava' },
+    { id: 'trup',      label: 'Trup' },
+    { id: 'lruka',     label: 'Ľavá ruka' },
+    { id: 'pruka',     label: 'Pravá ruka' },
+    { id: 'ldlan',     label: 'Ľavá dlaň' },
+    { id: 'pdlan',     label: 'Pravá dlaň' },
+    { id: 'lstehno',   label: 'Ľavá noha' },
+    { id: 'pstehno',   label: 'Pravá noha' },
+    { id: 'lchodidlo', label: 'Ľavé chodidlo' },
+    { id: 'pchodidlo', label: 'Pravé chodidlo' }
+  ],
+
+  results: {
+    dominant: {
+      rozum: 'Ideš hlavou — poriadok a jasná myšlienka ti dávajú istotu.',
+      cit:   'Ideš srdcom — blízkosť a emócie sú pre teba kompas.',
+      sex:   'Ideš telom — vášeň a energia ťa poháňajú.'
+    },
+    lowest: {
+      rozum: 'Rozum je dnes v úzadí — rozhoduješ viac citom a telom, a aj to je cesta.',
+      cit:   'Emócie sú dnes tichšie — čo neznamená, že tam nie sú.',
+      sex:   'Telesnosť je dnes v úzadí — energia sa práve sústreďuje inde.'
+    },
+    note: 'Nie je lepšie ani horšie — ukazuje to len, z čoho práve teraz skladáš ' +
+      'sám seba. Ideálny nie je prevaha jednej zložky, ale balans, ktorý sedí práve tebe. 💛'
+  }
+};
+
+window.SHAPE_GAME = SHAPE_GAME;

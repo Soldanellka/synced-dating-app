@@ -745,6 +745,59 @@ input:focus, select:focus {
   .vg-layout { grid-template-columns: 1fr; }
 }
 
+/* Panáčik z tvarov – mriežka tela + SVG tvary */
+.sg-board {
+  display: grid;
+  grid-template-columns: repeat(5, 52px);
+  grid-template-areas:
+    ".     .       hlava .       ."
+    "ldlan lruka   trup  pruka   pdlan"
+    ".     lstehno .     pstehno ."
+    ".     lchodidlo .   pchodidlo .";
+  gap: 8px;
+  justify-content: center;
+  margin: 12px 0;
+}
+.sg-slot--hlava     { grid-area: hlava; }
+.sg-slot--trup      { grid-area: trup; }
+.sg-slot--lruka     { grid-area: lruka; }
+.sg-slot--pruka     { grid-area: pruka; }
+.sg-slot--ldlan     { grid-area: ldlan; }
+.sg-slot--pdlan     { grid-area: pdlan; }
+.sg-slot--lstehno   { grid-area: lstehno; }
+.sg-slot--pstehno   { grid-area: pstehno; }
+.sg-slot--lchodidlo { grid-area: lchodidlo; }
+.sg-slot--pchodidlo { grid-area: pchodidlo; }
+
+.sg-slot {
+  width: 52px;
+  height: 52px;
+  border: 1px dashed var(--primary);
+  background: var(--bg-light);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.1s;
+}
+.sg-slot:hover { background: var(--accent); }
+.sg-slot:active { transform: scale(0.94); }
+.sg-slot.is-filled { border-style: solid; border-color: var(--border); }
+
+.sg-shape { width: 100%; height: 100%; }
+.sg-shape--sex   { fill: var(--primary-dark); }
+.sg-shape--cit   { fill: var(--primary); }
+.sg-shape--rozum { fill: var(--accent); stroke: var(--primary-dark); stroke-width: 2; }
+.sg-empty { color: var(--primary-dark); font-size: 20px; line-height: 1; }
+
+.sg-counter {
+  font-size: 14px;
+  color: var(--text-light);
+  margin: 0 0 12px;
+}
+
 /* ------------------------------
    9. CHAT
 ------------------------------ */

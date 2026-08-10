@@ -230,6 +230,14 @@
             </a>
           </div>
 
+          <h3>Z čoho sa skladám</h3>
+          <!-- Po dohraní hry s tvarmi sem JS vykreslí pruh + Zdieľať -->
+          <div id="profileShapeGame">
+            <a class="vg-entry" href="#shape-game" data-scroll="#shape-game">
+              🔺 Hra: Panáčik z tvarov <span class="vg-entry__time">(2 min)</span>
+            </a>
+          </div>
+
           <h3>Overenie identity</h3>
           <!-- Placeholder video overenia (Krok 5) – napojí sa na Supabase Storage -->
           <div class="verify" id="verify">
@@ -318,6 +326,29 @@
       </div>
 
       <div class="vg-result" id="kgResult" hidden></div>
+    </section>
+
+    <!-- 4d) HRA: PANÁČIK Z TVAROV (10 dielikov, 3 tvary) -->
+    <section id="shape-game" class="section">
+      <h2>🔺 Hra: Panáčik z tvarov</h2>
+      <p class="vg-intro"><!-- naplní JS zo SHAPE_GAME.intro --></p>
+
+      <div class="vg-layout">
+        <div class="vg-story">
+          <h3>Ako na to</h3>
+          <p id="sgHowto"><!-- naplní JS zo SHAPE_GAME.howto --></p>
+        </div>
+
+        <div class="vg-play">
+          <h3>Poskladaj sa</h3>
+          <p class="vg-hint">Klikaním na dieliky prepínaš tvary.</p>
+          <div class="sg-board" id="sgBoard"></div>
+          <p class="sg-counter" id="sgCounter"></p>
+          <button type="button" class="btn-primary" id="sgConfirm" disabled>Hotovo</button>
+        </div>
+      </div>
+
+      <div class="vg-result" id="sgResult" hidden></div>
     </section>
 
     <!-- 5) CHAT -->

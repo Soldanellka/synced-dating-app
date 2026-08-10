@@ -31,6 +31,7 @@ const AppState = {
     dealbreakers: [],
     valuesRanking: [],          // Hra: Rebríček hodnôt – poradie kľúčov (soft signál)
     kitchenRanking: [],         // Hra: Kuchynský test – poradie 5 kľúčov (soft signál)
+    shapePersona: null,         // Hra: Panáčik z tvarov – { sex, cit, rozum } počty z 10 (soft signál)
     // Výzor (Krok 5) – abstraktný avatar, KÁNON hodnôt viď docs/vyzor-a-pravidla.md
     appearance: {},             // „Ja": { heightBand, silhouette, hair, style }
     ideal: {                    // „Môj ideál": samé 'nezalezi' = výzor sa ignoruje
@@ -1116,6 +1117,197 @@ const KitchenGame = createRankingGame({
 
 
 /* --------------------------------------------------------------
+   3e3) HRA: PANÁČIK Z TVAROV (iná mechanika – skladanie, nie
+        zoraďovanie, preto samostatný modul mimo createRankingGame)
+   --------------------------------------------------------------
+   10 slotov tela, každý klikaním cykluje △ → ○ → □.
+   Podiel tvarov = balans zložiek (trojuholník=sex, kruh=cit,
+   štvorec=rozum). Percentá LEN ako opis seba, NIKDY ako zhoda
+   s niekým. NIE brána — shapePersona sa NEpoužíva v scoringu.
+   Persistencia v localStorage je dočasný most — TODO: neskôr
+   do Supabase + do profilu pre soft matching.
+   -------------------------------------------------------------- */
+const ShapeGame = {
+  KEY: 'synced_shapegame_v1',
+  slots: {},        // { slotId: 'sex' | 'cit' | 'rozum' }
+  done: false,
+
+  init() {
+    const D = window.SHAPE_GAME;
+    this.boardEl = document.getElementById('sgBoard');
+    if (!D || !this.boardEl) return;
+    this.D = D;
+    this.cycle = D.shapes.map(s => s.id);
+    this.shapeById = Object.fromEntries(D.shapes.map(s => [s.id, s]));
+
+    document.querySelector('#shape-game .vg-intro').textContent = D.intro;
+    document.getElementById('sgHowto').textContent = D.howto;
+
+    this.load();
+    this.renderBoard();
+    this.renderCounter();
+    if (this.done) { this.renderResult(); this.renderProfileStrip(); }
+
+    // Klik na slot → cyklus tvaru (delegovane – board sa prekresľuje)
+    this.boardEl.addEventListener('click', (e) => {
+      const slot = e.target.closest('button[data-slot]');
+      if (!slot) return;
+      this.cycleSlot(slot.dataset.slot);
+    });
+
+    document.getElementById('sgConfirm').addEventListener('click', () => this.confirm());
+
+    // Zdieľať z profilového pruhu (pruh sa vykresľuje dynamicky)
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('#sgShare')) this.share();
+    });
+  },
+
+  cycleSlot(slotId) {
+    const cur = this.slots[slotId];
+    const idx = cur ? this.cycle.indexOf(cur) : -1;
+    this.slots[slotId] = this.cycle[(idx + 1) % this.cycle.length];
+    this.renderBoard();
+    this.renderCounter();
+  },
+
+  counts() {
+    const c = { sex: 0, cit: 0, rozum: 0 };
+    Object.values(this.slots).forEach(id => { c[id]++; });
+    return c;
+  },
+
+  filled() { return Object.keys(this.slots).length; },
+
+  shapeSVG(shapeId) {
+    if (!shapeId) return '<span class="sg-empty">+</span>';
+    const inner = {
+      sex:   '<polygon points="20,4 36,36 4,36"/>',
+      cit:   '<circle cx="20" cy="20" r="16"/>',
+      rozum: '<rect x="4" y="4" width="32" height="32" rx="4"/>'
+    }[shapeId];
+    return `<svg class="sg-shape sg-shape--${shapeId}" viewBox="0 0 40 40" aria-hidden="true">${inner}</svg>`;
+  },
+
+  renderBoard() {
+    this.boardEl.innerHTML = this.D.slots.map(slot => {
+      const cur = this.slots[slot.id];
+      const stateTxt = cur ? this.shapeById[cur].glyph : 'prázdne';
+      return `
+        <button type="button" class="sg-slot sg-slot--${slot.id} ${cur ? 'is-filled' : ''}"
+          data-slot="${slot.id}" title="${slot.label}"
+          aria-label="${slot.label}: ${stateTxt}">
+          ${this.shapeSVG(cur)}
+        </button>`;
+    }).join('');
+    document.getElementById('sgConfirm').disabled = this.filled() < this.D.slots.length;
+  },
+
+  renderCounter() {
+    const c = this.counts();
+    document.getElementById('sgCounter').textContent =
+      `△ ${c.sex} · ○ ${c.cit} · □ ${c.rozum} (spolu ${this.filled()}/${this.D.slots.length})`;
+  },
+
+  confirm() {
+    if (this.filled() < this.D.slots.length) return;
+    AppState.userProfile.shapePersona = this.counts();
+    this.done = true;
+    this.save();
+    this.renderResult();
+    this.renderProfileStrip();
+    document.getElementById('sgResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  },
+
+  // Zložky zoradené od najsilnejšej (percentá = počet × 10)
+  ranked() {
+    const c = this.counts();
+    return this.D.shapes
+      .map(s => ({ ...s, n: c[s.id], pct: c[s.id] * 10 }))
+      .sort((a, b) => b.n - a.n);
+  },
+
+  renderResult() {
+    const R = this.D.results;
+    const ranked = this.ranked();
+    const top = ranked[0];
+    const low = ranked[ranked.length - 1];
+
+    // Pri remíze na vrchole spomeň obe zložky
+    const tops = ranked.filter(s => s.n === top.n);
+    const domTxt = tops.map(s => R.dominant[s.id]).join(' ');
+
+    const bars = ranked.map(s => `
+      <div class="bar-row">
+        <span class="bar-row__label">${s.label}</span>
+        <span class="bar"><span class="bar__fill" style="width:${s.pct}%"></span></span>
+        <span class="bar-row__val">${s.pct} %</span>
+      </div>`).join('');
+
+    const box = document.getElementById('sgResult');
+    box.hidden = false;
+    box.innerHTML = `
+      <h3>Z čoho sa práve skladáš</h3>
+      <p class="vg-result__intro">${this.D.shapes.map(s => `${s.glyph} = ${s.long}`).join(' · ')}</p>
+      ${bars}
+      <p class="vg-result__desc">${domTxt}${tops.length < ranked.length && low.n < top.n ? ' ' + R.lowest[low.id] : ''}</p>
+      <p class="vg-result__note">${R.note}</p>`;
+  },
+
+  personaText() {
+    return this.ranked().map(s => `${s.label} ${s.pct} %`).join(' · ');
+  },
+
+  renderProfileStrip() {
+    const box = document.getElementById('profileShapeGame');
+    if (!box) return;
+    box.innerHTML = `
+      <p class="vg-strip">Z čoho sa skladám: <strong>${this.personaText()}</strong></p>
+      <div class="vg-strip__actions">
+        <button type="button" class="btn-secondary" id="sgShare">💌 Zdieľať</button>
+        <a class="vg-again" href="#shape-game" data-scroll="#shape-game">Zahrať znova</a>
+      </div>`;
+  },
+
+  share() {
+    const text = `Z čoho sa skladám (Synced): ${this.personaText()}. A ty? 💛`;
+    const done = () => {
+      const b = document.getElementById('sgShare');
+      if (b) b.textContent = 'Skopírované ✓';
+    };
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(done);
+    else done();
+  },
+
+  /* localStorage – dočasný most (TODO Supabase), vzor ostatných hier */
+  save() {
+    try {
+      localStorage.setItem(this.KEY, JSON.stringify({
+        slots: this.slots,
+        persona: this.counts()
+      }));
+    } catch (_) {}
+  },
+
+  load() {
+    try {
+      const raw = localStorage.getItem(this.KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      const ids = this.D.slots.map(s => s.id);
+      const valid = saved.slots
+        && Object.keys(saved.slots).length === ids.length
+        && ids.every(id => this.cycle.includes(saved.slots[id]));
+      if (!valid) return;   // iný/starší formát sa ticho zahodí
+      this.slots = saved.slots;
+      AppState.userProfile.shapePersona = this.counts();
+      this.done = true;
+    } catch (_) { /* poškodené dáta ignorujeme */ }
+  }
+};
+
+
+/* --------------------------------------------------------------
    3f) VIDEO OVERENIE (placeholder – napojí sa na Supabase Storage)
    -------------------------------------------------------------- */
 const VideoVerification = {
@@ -1722,6 +1914,7 @@ document.addEventListener('DOMContentLoaded', () => {
   SafetyUI.init();
   ValuesGame.init();
   KitchenGame.init();
+  ShapeGame.init();
   VideoVerification.init();
   VideoChat.init();
   Modal.init();
