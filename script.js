@@ -410,10 +410,15 @@ const Matches = {
     const me = this.currentUser();
     const users = window.SAMPLE_USERS || [];
 
+    // Safety vrstva: blokovaní/nahlásení sa nezobrazujú vôbec
+    // (iná kategória než brány – nepočítajú sa do „skryli sme N")
+    const visible = users.filter(u => !Safety.isSuppressed(u.id));
+    const suppressedCount = users.length - visible.length;
+
     // Tvrdé brány: kto neprejde, do skórovania nejde
     const passed = [];
     const filteredOut = [];
-    users.forEach(u => {
+    visible.forEach(u => {
       const gate = passesHardGates(me, u);
       if (gate.ok) passed.push(u);
       else filteredOut.push({ user: u, reasons: gate.reasons });
@@ -430,7 +435,16 @@ const Matches = {
     AppState.compatibilityScore = ranked[0]?.result.score ?? null;
 
     const cards = ranked.map(({ user, result }) => this.cardHTML(user, result)).join('');
-    grid.innerHTML = (cards || this.emptyHTML()) + this.filteredNoteHTML(filteredOut);
+    grid.innerHTML = (cards || this.emptyHTML())
+      + this.filteredNoteHTML(filteredOut)
+      + this.suppressedNoteHTML(suppressedCount);
+  },
+
+  // Nenápadný riadok – len keď je niekto blokovaný/nahlásený
+  suppressedNoteHTML(n) {
+    if (!n) return '';
+    return `<p class="match-suppressed-note">🛡️ Niektoré profily nevidíš,
+      lebo si ich zablokoval(a) alebo nahlásil(a).</p>`;
   },
 
   // Priateľský empty-state, keď tvrdými bránami neprejde nikto
@@ -563,6 +577,210 @@ const AiSuggestions = {
 
 
 /* --------------------------------------------------------------
+   3d2) SAFETY – report, blok a feedback po rande
+   --------------------------------------------------------------
+   Ochranná vrstva proti nátlaku (docs/vyzor-a-pravidla.md, 5B).
+   Rozsah teraz = vymáhanie na strane používateľa: suppressed
+   profily sa skryjú z MOJICH matchov a chatu.
+   TODO: presunúť do Supabase (tabuľky blocks/reports/date_feedback)
+   – potom bude vymáhanie globálne (strike systém pre celú appku).
+   localStorage je len dočasný most, aby prototyp prežil refresh.
+   -------------------------------------------------------------- */
+const Safety = {
+  KEY: 'synced_safety_v1',
+  data: { blocked: [], reported: [], strikes: {}, dateFeedback: [] },
+
+  load() {
+    try {
+      const raw = localStorage.getItem(this.KEY);
+      if (raw) this.data = { ...this.data, ...JSON.parse(raw) };
+    } catch (_) { /* poškodené dáta ignorujeme, ostane čistý stav */ }
+  },
+
+  save() {
+    try { localStorage.setItem(this.KEY, JSON.stringify(this.data)); } catch (_) {}
+  },
+
+  isSuppressed(userId) {
+    return this.data.blocked.includes(userId)
+      || this.data.reported.some(r => r.id === userId)
+      || (this.data.strikes[userId] || 0) >= 1;
+  },
+
+  block(id) {
+    if (!this.data.blocked.includes(id)) this.data.blocked.push(id);
+    this.save();
+  },
+
+  report(id, dovod, text) {
+    this.data.reported.push({ id, dovod, text: text || '' });
+    this.save();
+  },
+
+  recordDate(id, vysledok) {
+    this.data.dateFeedback.push({ id, vysledok });
+    if (vysledok === 'nataku') {
+      this.data.strikes[id] = (this.data.strikes[id] || 0) + 1;
+    }
+    this.save();
+  }
+};
+window.Safety = Safety;
+
+
+/* --------------------------------------------------------------
+   3d3) SAFETY UI – ⋯ menu v chate + modaly (vzor Modal/Billing)
+   -------------------------------------------------------------- */
+const SafetyUI = {
+  reasons: [
+    'Tlačil(a) na sex / sexuálny nátlak',
+    'Obťažovanie alebo neúcta',
+    'Falošný profil / iný než tvrdil(a)',
+    'Niečo iné'
+  ],
+
+  init() {
+    document.addEventListener('click', (e) => {
+      const menu = document.getElementById('chatSafetyMenu');
+
+      // ⋯ prepína menu; klik kamkoľvek inam ho zavrie
+      if (e.target.closest('[data-safety-menu]')) {
+        if (menu) menu.hidden = !menu.hidden;
+        return;
+      }
+      if (menu && !menu.hidden && !e.target.closest('#chatSafetyMenu')) menu.hidden = true;
+
+      const action = e.target.closest('[data-safety-action]');
+      if (action) {
+        const id = action.dataset.safetyId;
+        if (action.dataset.safetyAction === 'block') this.confirmBlock(id);
+        if (action.dataset.safetyAction === 'report') this.openReport(id);
+        return;
+      }
+
+      const dateBtn = e.target.closest('[data-date-feedback]');
+      if (dateBtn) { this.openDateFeedback(dateBtn.dataset.safetyId); return; }
+
+      const confirmBlock = e.target.closest('[data-confirm-block]');
+      if (confirmBlock) { this.doBlock(confirmBlock.dataset.confirmBlock); return; }
+
+      const reportSubmit = e.target.closest('[data-report-submit]');
+      if (reportSubmit) { this.doReport(reportSubmit.dataset.reportSubmit); return; }
+
+      const dateResult = e.target.closest('[data-date-result]');
+      if (dateResult) this.doDate(dateResult.dataset.safetyId, dateResult.dataset.dateResult);
+    });
+
+    // Výber dôvodu odomkne odoslanie reportu
+    document.addEventListener('change', (e) => {
+      if (e.target.name === 'reportReason') {
+        const btn = document.querySelector('[data-report-submit]');
+        if (btn) btn.disabled = false;
+      }
+    });
+  },
+
+  userName(id) {
+    const u = (window.SAMPLE_USERS || []).find(x => x.id === id);
+    return u ? u.name : 'tento profil';
+  },
+
+  // Po skrytí profilu obnov chat aj matchy
+  afterSuppress() {
+    Chat.closeConversation();
+    Chat.renderList();
+    Matches.render();
+  },
+
+  /* --- BLOK --- */
+  confirmBlock(id) {
+    Modal.open(`
+      <h3 class="modal__title">🚫 Zablokovať ${this.userName(id)}?</h3>
+      <p class="modal__desc">Už sa vám nezobrazí a nemôžete si písať.</p>
+      <div class="safety-actions">
+        <button class="btn-secondary" data-close-modal>Zrušiť</button>
+        <button class="btn-primary" data-confirm-block="${id}">Zablokovať</button>
+      </div>`);
+  },
+
+  doBlock(id) {
+    Safety.block(id);
+    this.afterSuppress();
+    Modal.open(`
+      <div class="pay-success">
+        <div class="pay-success__icon">🚫</div>
+        <h3>Hotovo</h3>
+        <p>Profil bol zablokovaný.</p>
+        <button class="btn-primary" data-close-modal>OK</button>
+      </div>`);
+  },
+
+  /* --- REPORT --- */
+  openReport(id) {
+    Modal.open(`
+      <h3 class="modal__title">🚩 Nahlásiť ${this.userName(id)}</h3>
+      <p class="modal__desc">Čo sa stalo? Zostane to medzi nami.</p>
+      <div class="opts safety-reasons">
+        ${this.reasons.map(r => `
+        <label class="opt">
+          <input type="radio" name="reportReason" value="${r}"> <span>${r}</span>
+        </label>`).join('')}
+      </div>
+      <label class="safety-text">Chceš doplniť detail? (nepovinné)
+        <textarea id="reportText" rows="3" placeholder="Napíš, čo sa stalo…"></textarea>
+      </label>
+      <div class="safety-actions">
+        <button class="btn-secondary" data-close-modal>Zrušiť</button>
+        <button class="btn-primary" data-report-submit="${id}" disabled>Odoslať</button>
+      </div>`);
+  },
+
+  doReport(id) {
+    const reason = document.querySelector('input[name="reportReason"]:checked')?.value;
+    if (!reason) return;
+    const text = (document.getElementById('reportText')?.value || '').trim();
+    Safety.report(id, reason, text);
+    this.afterSuppress();
+    Modal.open(`
+      <div class="pay-success">
+        <div class="pay-success__icon">💛</div>
+        <h3>Ďakujeme</h3>
+        <p>Ďakujeme, že si to nahlásil(a). Tento profil sa ti už nezobrazí
+           a záznam sme si uložili.</p>
+        <button class="btn-primary" data-close-modal>OK</button>
+      </div>`);
+  },
+
+  /* --- FEEDBACK PO RANDE --- */
+  openDateFeedback(id) {
+    Modal.open(`
+      <h3 class="modal__title">🌹 Boli ste na rande</h3>
+      <p class="modal__desc">Správal(a) sa ${this.userName(id)} v poriadku?</p>
+      <div class="safety-date-options">
+        <button class="btn-secondary" data-date-result="ok" data-safety-id="${id}">Áno, v pohode 👍</button>
+        <button class="btn-secondary" data-date-result="slabe" data-safety-id="${id}">Skôr nie</button>
+        <button class="btn-secondary" data-date-result="nataku" data-safety-id="${id}">Tlačil(a) na sex / bol(a) neúctivý(á)</button>
+      </div>`);
+  },
+
+  doDate(id, result) {
+    Safety.recordDate(id, result);
+    if (Safety.isSuppressed(id)) this.afterSuppress();
+    const reassure = (result === 'slabe' || result === 'nataku')
+      ? '<p>Mrzí nás to. Postaráme sa, aby si takýto prístup nemusel(a) zažiť znova.</p>'
+      : '';
+    Modal.open(`
+      <div class="pay-success">
+        <div class="pay-success__icon">💛</div>
+        <h3>Ďakujeme za spätnú väzbu</h3>
+        ${reassure}
+        <button class="btn-primary" data-close-modal>OK</button>
+      </div>`);
+  }
+};
+
+
+/* --------------------------------------------------------------
    3e) CHAT – zoznam konverzácií, správy, napojenie návrhov
    -------------------------------------------------------------- */
 const Chat = {
@@ -599,8 +817,9 @@ const Chat = {
   },
 
   // Zoznam konverzácií = matchy (ak je hotový profil, aj s %)
+  // Blokovaní/nahlásení sa v zozname vôbec neukážu
   renderList() {
-    const users = window.SAMPLE_USERS || [];
+    const users = (window.SAMPLE_USERS || []).filter(u => !Safety.isSuppressed(u.id));
     const me = (typeof Matches !== 'undefined') ? Matches.currentUser() : null;
     const hasProfile = me && Object.keys(me.valueVector || {}).length;
 
@@ -616,6 +835,7 @@ const Chat = {
   },
 
   openConversation(matchId) {
+    if (Safety.isSuppressed(matchId)) return;   // so suppressed profilom sa nepíše
     AppState.chat.activeMatchId = matchId;
     const match = (window.SAMPLE_USERS || []).find(u => u.id === matchId);
     if (!match) return;
@@ -627,10 +847,31 @@ const Chat = {
       ];
     }
 
-    this.headerEl.innerHTML = `<strong>${match.name}, ${match.age}</strong> · ${match.location}`;
+    this.headerEl.innerHTML = `
+      <span><strong>${match.name}, ${match.age}</strong> · ${match.location}</span>
+      <span class="chat-safety">
+        <button type="button" class="btn-secondary chat-date-btn"
+          data-date-feedback data-safety-id="${match.id}">🌹 Boli sme na rande</button>
+        <span class="chat-menu-wrap">
+          <button type="button" class="chat-menu-btn" data-safety-menu
+            aria-label="Ďalšie možnosti" aria-haspopup="true">⋯</button>
+          <span class="chat-menu" id="chatSafetyMenu" hidden>
+            <button type="button" data-safety-action="report" data-safety-id="${match.id}">🚩 Nahlásiť</button>
+            <button type="button" data-safety-action="block" data-safety-id="${match.id}">🚫 Blokovať</button>
+          </span>
+        </span>
+      </span>`;
     this.renderList();
     this.renderMessages();
     this.refreshSuggestions();
+  },
+
+  // Zavrie aktívnu konverzáciu (po bloku/reporte/strike)
+  closeConversation() {
+    AppState.chat.activeMatchId = null;
+    if (this.headerEl) this.headerEl.innerHTML = '<span>Vyber si konverzáciu vľavo 💬</span>';
+    if (this.msgEl) this.msgEl.innerHTML = '';
+    if (this.suggEl) this.suggEl.innerHTML = '';
   },
 
   renderMessages() {
@@ -1289,10 +1530,12 @@ const SmoothScroll = {
    7) ŠTART
    -------------------------------------------------------------- */
 document.addEventListener('DOMContentLoaded', () => {
+  Safety.load();                // pred Chat/Matches – rešpektuje uložené bloky
   Questions.init();
   Avatar.init();
   Onboarding.init();
   Chat.init();
+  SafetyUI.init();
   VideoVerification.init();
   VideoChat.init();
   Modal.init();

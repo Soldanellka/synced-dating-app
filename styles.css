@@ -690,6 +690,77 @@ input:focus, select:focus {
   color: var(--text-light);
 }
 
+/* Safety – ⋯ menu, report/blok a feedback po rande */
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.chat-safety { display: flex; align-items: center; gap: 8px; }
+.chat-date-btn { font-size: 13px; padding: 6px 12px; }
+.chat-menu-wrap { position: relative; display: inline-block; }
+.chat-menu-btn {
+  border: 1px solid var(--border);
+  background: var(--bg-light);
+  border-radius: 999px;
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.chat-menu-btn:hover { background: var(--accent); border-color: var(--primary); }
+.chat-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-hover);
+  overflow: hidden;
+}
+.chat-menu button {
+  border: 0;
+  background: none;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text);
+  cursor: pointer;
+}
+.chat-menu button:hover { background: var(--accent); }
+.safety-reasons { margin: 10px 0; }
+.safety-text { display: block; font-size: 14px; margin: 10px 0; }
+.safety-text textarea {
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+}
+.safety-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+.safety-actions .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.safety-date-options { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.match-suppressed-note {
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-light);
+}
+
 .suggestion-list { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .chat-window {
