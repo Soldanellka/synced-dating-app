@@ -563,6 +563,16 @@ input:focus, select:focus {
 .match-empty h3 { margin: 0 0 8px; }
 .match-empty p { margin: 0 auto; max-width: 520px; color: var(--text-light); }
 
+/* Tichý reframe výzoru – „dôvod milovať" (nikdy percento) */
+.match-love-note {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--primary-dark);
+  background: var(--accent);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+}
+
 /* Transparentná poznámka o skrytých profiloch */
 .match-filtered-note {
   grid-column: 1 / -1;

@@ -275,6 +275,34 @@ function passesHardGates(me, other) {
 window.passesHardGates = passesHardGates;
 
 
+/* --------------------------------------------------------------
+   VÝZOR – tichý signál (NIKDY brána, NIKDY percento)
+   --------------------------------------------------------------
+   appearanceFit(ideal, appearance) → 0–1 alebo null
+   Porovnáva len polia, kde ideál !== 'nezalezi'.
+   Výsledok sa nikdy nezobrazuje ako číslo – len ako jemný reframe.
+   -------------------------------------------------------------- */
+function appearanceFit(ideal, appearance) {
+  if (!ideal || !appearance) return null;
+  const keys = ['heightBand', 'silhouette', 'hair', 'style']
+    .filter(k => ideal[k] && ideal[k] !== 'nezalezi');
+  if (!keys.length) return null;
+  const hits = keys.filter(k => appearance[k] === ideal[k]).length;
+  return hits / keys.length;
+}
+window.appearanceFit = appearanceFit;
+
+// Reframe „dôvod milovať" – bez menovania konkrétnej odchýlky, bez percent
+function reframeLove(fit) {
+  if (fit == null) return '';
+  const text = fit >= 1
+    ? 'Sedí do tvojej predstavy – no skutoční ľudia sú vždy o kúsok inde, a to je tá krajšia časť. 💛'
+    : 'Niečo na ňom celkom nesedí do tvojej predstavy – a práve to sa časom často stane tým, čo miluješ. 💛';
+  return `<p class="match-love-note">${text}</p>`;
+}
+window.reframeLove = reframeLove;
+
+
 // Hlavná funkcia – vráti kompatibilitu dvoch používateľov
 function calculateCompatibility(a, b) {
   const valueKeys = Object.keys(a.valueVector || {});
@@ -327,7 +355,11 @@ const Matches = {
     });
 
     const ranked = passed
-      .map(u => ({ user: u, result: calculateCompatibility(me, u) }))
+      .map(u => {
+        const result = calculateCompatibility(me, u);
+        result.appearanceFit = appearanceFit(me.ideal, u.appearance);
+        return { user: u, result };
+      })
       .sort((a, b) => b.result.score - a.result.score);
 
     AppState.compatibilityScore = ranked[0]?.result.score ?? null;
@@ -367,7 +399,9 @@ const Matches = {
       valueVector: P.valueVector || {},
       personality: P.personality.scores || {},
       complementPreference: P.complementPreference,
-      dealbreakers: P.dealbreakers || []
+      dealbreakers: P.dealbreakers || [],
+      // TODO: dočasný ideál výzoru – neskôr ho nahradí krok s výberom avatara
+      ideal: P.ideal || { heightBand: 'vyssia', silhouette: 'nezalezi', hair: 'tmave', style: 'nezalezi' }
     };
   },
 
@@ -383,6 +417,7 @@ const Matches = {
         <p class="match-desc">${r.desc}</p>
         <p class="match-meta">📍 ${user.location}</p>
         <p class="match-meta">💛 Spoločné hodnoty: ${sharedTxt}</p>
+        ${reframeLove(r.appearanceFit)}
         <p class="match-bio">„${user.bio}"</p>
         <button class="btn-primary" data-scroll="#chat">Napíš správu</button>
       </article>`;
