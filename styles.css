@@ -919,8 +919,67 @@ input:focus, select:focus {
 }
 .at-feedback p { margin: 0 0 10px; }
 .at-counts { font-size: 13px; color: var(--text-light); }
+
+/* Prehľad modulu – dlaždice mikro-lekcií a knižnice */
+.at-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.at-tile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.at-tile:hover { border-color: var(--primary); background: var(--accent); }
+.at-tile.is-open { border-color: var(--primary-dark); background: var(--accent); }
+.at-tile__icon { font-size: 20px; }
+.at-tile__title { flex: 1; font-weight: 600; }
+.at-tile__done { color: var(--primary-dark); font-weight: 700; }
+
+.at-extra { margin-bottom: 20px; }
+.at-extra h3 { margin-top: 0; }
+.at-extra-nav { display: flex; gap: 10px; margin-top: 12px; }
+.at-amy-card { font-weight: 400; }
+.at-amy-triangle {
+  background: var(--accent);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 14px;
+}
+.at-scenes-title { margin: 0 0 10px; }
+
+/* Knižnica techník */
+.at-tech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.at-tech {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+.at-tech__name { margin: 0 0 6px; font-weight: 700; color: var(--primary-dark); }
+.at-tech__when { margin: 0 0 6px; font-size: 14px; }
+.at-tech__example { margin: 0 0 10px; font-size: 14px; font-style: italic; color: var(--text-light); }
+.at-tech__extra { margin: 10px 0 0; font-size: 14px; color: var(--primary-dark); }
+
 @media (max-width: 700px) {
   .at-explainers { grid-template-columns: 1fr; }
+  .at-tiles { grid-template-columns: 1fr; }
 }
 
 /* Opisný riadok „Vzťahový štýl" v karte matchu (nikdy %) */

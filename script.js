@@ -37,6 +37,7 @@ const AppState = {
     archetypePrefSet: 'both',   // Koho hľadám – sada na zoraďovanie: 'm' | 'z' | 'both'
     archetypePref: null,        // Koho hľadám – { poradie, prefOs1, prefOs2 } (soft doradenie, nikdy brána)
     assertStyle: null,          // Asertivita – { counts, dominant } (privátny self-insight, mimo scoringu)
+    assertProgress: null,       // Asertivita – prejdené mikro-lekcie { amygdala, kindness, techniques }
     // Výzor (Krok 5) – abstraktný avatar, KÁNON hodnôt viď docs/vyzor-a-pravidla.md
     appearance: {},             // „Ja": { heightBand, silhouette, hair, style }
     ideal: {                    // „Môj ideál": samé 'nezalezi' = výzor sa ignoruje
@@ -1853,10 +1854,17 @@ const RTTest = {
    -------------------------------------------------------------- */
 const AssertTraining = {
   KEY: 'synced_assert_v1',
+  PROG_KEY: 'synced_assertprogress_v1',
   idx: 0,
   answered: false,
   counts: { pasivny: 0, agresivny: 0, pasivne_agresivny: 0, asertivny: 0 },
   result: null,     // { counts, dominant } – uložený výsledok (aj po refreshi)
+  // Mikro-lekcie a knižnica (bez vplyvu na scoring)
+  progress: { amygdala: false, kindness: false, techniques: false },
+  extraView: null,  // 'amygdala' | 'kindness' | 'tech' | null
+  amyIdx: 0,
+  kindIdx: 0,
+  kindAnswered: false,
 
   init() {
     const D = window.ASSERT_TRAINING;
@@ -1874,7 +1882,9 @@ const AssertTraining = {
       <p class="at-style">${D.triangle}</p>`;
 
     this.load();
+    this.loadProgress();
     this.renderScene();
+    this.renderTiles();
     if (this.result) { this.renderResult(); this.renderProfileStrip(); }
 
     this.sceneEl.addEventListener('click', (e) => {
@@ -1884,9 +1894,183 @@ const AssertTraining = {
       if (e.target.closest('[data-at-restart]')) this.restart();
     });
 
+    // Dlaždice prehľadu + obsah mikro-lekcií a knižnice
+    document.getElementById('atTiles').addEventListener('click', (e) => {
+      const tile = e.target.closest('button[data-at-view]');
+      if (tile) this.toggleExtra(tile.dataset.atView);
+    });
+    document.getElementById('atExtra').addEventListener('click', (e) => {
+      if (e.target.closest('[data-amy-nav]')) {
+        this.amyIdx += e.target.closest('[data-amy-nav]').dataset.amyNav === 'next' ? 1 : -1;
+        this.renderAmygdala();
+        return;
+      }
+      const kindBtn = e.target.closest('button[data-kind]');
+      if (kindBtn && !this.kindAnswered) { this.kindChoose(kindBtn.dataset.kind); return; }
+      if (e.target.closest('[data-kind-next]')) { this.kindNext(); return; }
+      const practice = e.target.closest('button[data-practice]');
+      if (practice) this.practice(practice.dataset.practice);
+    });
+
     document.addEventListener('click', (e) => {
       if (e.target.closest('#atShare')) this.share();
     });
+  },
+
+  /* --- Prehľad modulu: dlaždice --- */
+  renderTiles() {
+    const tiles = [
+      ['amygdala', '🧠', this.D.amygdala.title],
+      ['kindness', '💛', this.D.kindness.title],
+      ['tech', '📚', this.D.techniques.title]
+    ];
+    const doneKey = { amygdala: 'amygdala', kindness: 'kindness', tech: 'techniques' };
+    document.getElementById('atTiles').innerHTML = tiles.map(([view, icon, title]) => `
+      <button type="button" class="at-tile ${this.extraView === view ? 'is-open' : ''}"
+        data-at-view="${view}">
+        <span class="at-tile__icon">${icon}</span>
+        <span class="at-tile__title">${title}</span>
+        ${this.progress[doneKey[view]] ? '<span class="at-tile__done">✓</span>' : ''}
+      </button>`).join('');
+  },
+
+  toggleExtra(view) {
+    const box = document.getElementById('atExtra');
+    if (this.extraView === view) {
+      this.extraView = null;
+      box.hidden = true;
+      this.renderTiles();
+      return;
+    }
+    this.extraView = view;
+    box.hidden = false;
+    if (view === 'amygdala') { this.amyIdx = 0; this.renderAmygdala(); }
+    if (view === 'kindness') { this.kindIdx = 0; this.kindAnswered = false; this.renderKindness(); }
+    if (view === 'tech') {
+      this.renderTechniques();
+      this.markDone('techniques');   // referenčný prehľad = otvorené → prejdené
+    }
+    this.renderTiles();
+  },
+
+  markDone(key) {
+    if (this.progress[key]) return;
+    this.progress[key] = true;
+    AppState.userProfile.assertProgress = { ...this.progress };
+    try { localStorage.setItem(this.PROG_KEY, JSON.stringify(this.progress)); } catch (_) {}
+    this.renderTiles();
+  },
+
+  loadProgress() {
+    try {
+      const raw = localStorage.getItem(this.PROG_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      ['amygdala', 'kindness', 'techniques'].forEach(k => {
+        if (saved[k] === true) this.progress[k] = true;
+      });
+      AppState.userProfile.assertProgress = { ...this.progress };
+    } catch (_) { /* poškodené dáta ignorujeme */ }
+  },
+
+  /* --- Mikro-lekcia: amygdala (3 karty + trojuholník) --- */
+  renderAmygdala() {
+    const A = this.D.amygdala;
+    const n = A.cards.length;
+    this.amyIdx = Math.max(0, Math.min(this.amyIdx, n - 1));
+    const last = this.amyIdx === n - 1;
+    if (last) this.markDone('amygdala');
+    document.getElementById('atExtra').innerHTML = `
+      <h3>🧠 ${A.title}</h3>
+      <p class="at-progress">Karta ${this.amyIdx + 1}/${n}</p>
+      <p class="at-situation at-amy-card">${A.cards[this.amyIdx]}</p>
+      ${last ? `<p class="at-amy-triangle">🔺 ${A.triangleNote}</p>` : ''}
+      <div class="at-extra-nav">
+        <button type="button" class="btn-secondary" data-amy-nav="prev"
+          ${this.amyIdx === 0 ? 'disabled' : ''}>Späť</button>
+        ${last ? '' : '<button type="button" class="btn-primary" data-amy-nav="next">Ďalej</button>'}
+      </div>`;
+  },
+
+  /* --- Cvičenie: láskavosť vs. oprávnený nárok --- */
+  renderKindness() {
+    const K = this.D.kindness;
+    if (this.kindIdx >= K.items.length) {
+      this.markDone('kindness');
+      document.getElementById('atExtra').innerHTML = `
+        <h3>💛 ${K.title}</h3>
+        <p class="vg-result__note">${K.outro}</p>`;
+      return;
+    }
+    const it = K.items[this.kindIdx];
+    this.kindAnswered = false;
+    document.getElementById('atExtra').innerHTML = `
+      <h3>💛 ${K.title}</h3>
+      ${this.kindIdx === 0 ? `<p class="at-style">${K.intro}</p>` : ''}
+      <p class="at-progress">Situácia ${this.kindIdx + 1}/${K.items.length}</p>
+      <p class="at-situation">${it.text}</p>
+      <div class="at-answers">
+        <button type="button" class="at-answer" data-kind="laskavost">Láskavosť (slobodne dávam)</button>
+        <button type="button" class="at-answer" data-kind="narok">Môj oprávnený nárok (mám na to právo)</button>
+      </div>
+      <div class="at-feedback" id="atKindFeedback" hidden></div>`;
+  },
+
+  kindChoose(choice) {
+    const it = this.D.kindness.items[this.kindIdx];
+    this.kindAnswered = true;
+    document.querySelectorAll('#atExtra .at-answer').forEach(b => {
+      b.disabled = true;
+      b.classList.toggle('is-chosen', b.dataset.kind === choice);
+      if (it.answer !== 'oboje' && b.dataset.kind === it.answer) b.classList.add('is-assert');
+    });
+    const ok = it.answer === 'oboje' || choice === it.answer;
+    const lead = it.answer === 'oboje' ? 'Tu platí oboje:'
+      : (ok ? 'Presne tak.' : 'Skús sa na to pozrieť takto:');
+    const fb = document.getElementById('atKindFeedback');
+    fb.hidden = false;
+    fb.innerHTML = `
+      <p><strong>${lead}</strong> ${it.feedback}</p>
+      <button type="button" class="btn-primary" data-kind-next>Ďalej</button>`;
+  },
+
+  kindNext() {
+    this.kindIdx++;
+    this.renderKindness();
+  },
+
+  /* --- Knižnica techník --- */
+  renderTechniques() {
+    const T = this.D.techniques;
+    document.getElementById('atExtra').innerHTML = `
+      <h3>📚 ${T.title}</h3>
+      <div class="at-tech-grid">
+        ${T.items.map(t => `
+          <div class="at-tech" data-tech="${t.id}">
+            <p class="at-tech__name">${t.name}</p>
+            <p class="at-tech__when">${t.when}</p>
+            <p class="at-tech__example">${t.example}</p>
+            <button type="button" class="btn-secondary" data-practice="${t.id}">Precvičiť</button>
+            <p class="at-tech__extra" hidden></p>
+          </div>`).join('')}
+      </div>`;
+  },
+
+  // „Precvičiť": otvorí cvičnú scénu s technikou, inak ukáže ďalší príklad
+  practice(techId) {
+    const t = this.D.techniques.items.find(x => x.id === techId);
+    if (!t) return;
+    if (t.sceneId) {
+      const i = this.D.scenes.findIndex(s => s.id === t.sceneId);
+      if (i >= 0) {
+        this.idx = i;
+        this.renderScene();
+        this.sceneEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        return;
+      }
+    }
+    const box = document.querySelector(`#atExtra .at-tech[data-tech="${techId}"] .at-tech__extra`);
+    if (box) { box.hidden = false; box.textContent = 'Ďalší príklad: ' + t.extra; }
   },
 
   renderScene() {

@@ -556,7 +556,91 @@ const ASSERT_TRAINING = {
     }
   },
 
-  note: 'Toto je momentka, nie nálepka. Štýl je zvyk — a zvyky sa dajú preučiť. 💛'
+  note: 'Toto je momentka, nie nálepka. Štýl je zvyk — a zvyky sa dajú preučiť. 💛',
+
+  /* --- Mikro-lekcia: čo sa deje v tele (amygdala) --- */
+  amygdala: {
+    title: 'Čo sa deje v tele: amygdala',
+    cards: [
+      'Keď sa cítiš napadnutý(á) — slovom, výčitkou, tlakom — časť mozgu zvaná ' +
+        'amygdala spustí poplach skôr, než stihneš rozmyslieť. Je to strážca, ' +
+        'čo nerozlišuje medzi levom a nepríjemnou správou.',
+      'Telo prepne do jedného z troch režimov: BOJ (útočím, zvýšim hlas), ÚTEK ' +
+        '(uhýbam, mením tému) alebo ZAMRZNUTIE (onemiem, súhlasím, len aby bol ' +
+        'pokoj). Preto niekedy zareaguješ inak, než by si chcel(a) — nie je to ' +
+        'slabosť, je to biológia.',
+      'Čo s tým: 1) Pomenuj to („teraz cítim, že mi tuhne telo"). 2) Jeden ' +
+        'pomalý nádych a výdych — dá to mozgu 6 sekúnd, aby sa zapla rozumná ' +
+        'časť. 3) Až potom odpovedz. Pauza nie je slabosť — je to tvoja moc.'
+    ],
+    triangleNote: 'V poplachu ľahko spadneš do roly obete alebo agresora. ' +
+      'Nádych ťa vráti do dospelej, asertívnej polohy.'
+  },
+
+  /* --- Mikro-lekcia + cvičenie: láskavosť vs. oprávnený nárok --- */
+  kindness: {
+    title: 'Láskavosť vs. oprávnený nárok',
+    intro: 'Byť láskavý neznamená vždy povedať áno. Láskavosť je dar, ktorý ' +
+      'dávaš slobodne. Oprávnený nárok je niečo, na čo máš právo — povedať nie, ' +
+      'mať súkromie, zmeniť názor, byť rešpektovaný(á). Problém nastáva, keď si ' +
+      'zamieňaš „som milý" s „nemám právo odmietnuť".',
+    /* answer: 'laskavost' | 'narok' | 'oboje' */
+    items: [
+      { text: 'Kamarát ma poprosí o pomoc so sťahovaním.',
+        answer: 'laskavost',
+        feedback: 'Dar, ktorý dávaš slobodne — a slobodne ho smieš aj nedať, keď nevládzeš.' },
+      { text: 'Chcem, aby partner rešpektoval, keď poviem nie.',
+        answer: 'narok',
+        feedback: 'Na rešpektovanie svojho „nie" máš právo — to sa nevyslúži, to sa má.' },
+      { text: 'Niekto chce vedieť môj plat hneď na prvom rande.',
+        answer: 'narok',
+        feedback: 'Súkromie je tvoj oprávnený nárok — nemusíš ho darovať nikomu.' },
+      { text: 'Susedka chce, aby som jej strážila deti každý deň zadarmo.',
+        answer: 'laskavost',
+        feedback: 'Pomoc je láskavosť, nie povinnosť — máš plné právo odmietnuť alebo dať hranicu.' },
+      { text: 'Zmenil(a) som názor a už nechcem ísť na to stretnutie.',
+        answer: 'narok',
+        feedback: 'Zmeniť názor je tvoje právo — aj bez dlhých ospravedlnení.' },
+      { text: 'Kolega chce, aby som za neho urobil(a) jeho prácu.',
+        answer: 'oboje',
+        feedback: 'Môžeš pomôcť ako dar — a rovnako máš právo povedať nie. Rozhoduje tvoja sloboda, nie jeho tlak.' }
+    ],
+    outro: 'Keď vieš, čo je dar a čo právo, prestaneš sa cítiť vinný(á) za to, ' +
+      'že sa staráš aj o seba.'
+  },
+
+  /* --- Knižnica asertívnych techník (referenčný prehľad) ---
+     sceneId → „Precvičiť" otvorí cvičnú scénu s touto technikou;
+     extra → „Precvičiť" ukáže ďalší príklad vety */
+  techniques: {
+    title: 'Knižnica asertívnych techník',
+    items: [
+      { id: 'ja_vyrok', name: 'Ja-výrok',
+        when: 'Namiesto „ty vždy…" povedz „cítim… keď… potrebujem…".',
+        example: '„Mrzí ma, keď sa plán zruší na poslednú chvíľu — potrebujem sa naň vedieť spoľahnúť."',
+        sceneId: 'vycitanie' },
+      { id: 'platna', name: 'Pokazená platňa',
+        when: 'Pokojne zopakuj svoje „nie", aj keď tlačí ďalej.',
+        example: '„Rozumiem ti, a predsa nie. … Chápem, a predsa nie."',
+        sceneId: 'hranica_doma' },
+      { id: 'pravo_nie', name: 'Právo povedať nie',
+        when: 'Nie je veta, za ktorou musí nasledovať výhovorka.',
+        example: '„Nie, to mi nevyhovuje." je celá odpoveď.',
+        sceneId: 'natlak' },
+      { id: 'hranica', name: 'Pomenovanie hranice',
+        when: 'Povedz nahlas, kde je čiara.',
+        example: '„Toto už je pre mňa za hranicou, prosím prestaň."',
+        extra: '„Rozprávať sa môžeme, ale týmto tónom nie. Skúsme znova pokojne."' },
+      { id: 'hra', name: 'Pomenovanie hry',
+        when: 'Keď cítiš pasívnu agresiu, pomenuj ju láskavo.',
+        example: '„Znie to, akoby ti niečo vadilo — povedz mi to priamo?"',
+        sceneId: 'pasivna_agresia' },
+      { id: 'pauza', name: 'Zaseknutá otázka / pauza',
+        when: 'Získaj čas.',
+        example: '„Potrebujem si to premyslieť, ozvem sa."',
+        extra: '„Dobrá otázka — nechám si ju prejsť hlavou a odpoviem ti večer."' }
+    ]
+  }
 };
 
 window.ASSERT_TRAINING = ASSERT_TRAINING;
