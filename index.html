@@ -195,6 +195,8 @@
     <!-- 3) PROFIL POUŽÍVATEĽA -->
     <section id="profile" class="section">
       <h2>Môj profil</h2>
+      <!-- Hlavička s menom podstaty (naplní JS po výbere) -->
+      <div id="profileEssence"></div>
       <div class="profile-layout">
         <div class="profile-main">
           <div class="profile-photo">
@@ -213,6 +215,14 @@
 
           <h3>Osobnostný profil</h3>
           <p id="profilePersonality">Typ: napr. „Empatický analytik"</p>
+
+          <h3>Meno podstaty</h3>
+          <!-- Po výbere mena sem JS vykreslí pruh -->
+          <div id="profileEssenceEntry">
+            <a class="vg-entry" href="#essence-name" data-scroll="#essence-name">
+              ✨ Meno tvojej podstaty <span class="vg-entry__time">(1 min)</span>
+            </a>
+          </div>
 
           <h3>Rebríček hodnôt</h3>
           <!-- Po dohraní hry sem JS vykreslí pruh s rebríčkom + Zdieľať -->
@@ -405,6 +415,22 @@
       </div>
 
       <div class="vg-result" id="apResult" hidden></div>
+    </section>
+
+    <!-- 4e3) MENO TVOJEJ PODSTATY (prídavné + podstatné meno) -->
+    <section id="essence-name" class="section">
+      <h2>✨ Meno tvojej podstaty</h2>
+      <p class="vg-intro"><!-- naplní JS z ESSENCE_NAME.intro --></p>
+
+      <div class="vg-play en-box">
+        <p class="en-invite" id="enInvite" hidden></p>
+        <p class="vg-hint">Vyber si meno, ktoré ti sadne — návrhy vychádzajú
+          z tvojich výsledkov.</p>
+        <div class="en-cards" id="enCards"><!-- naplní JS --></div>
+        <button type="button" class="btn-secondary" id="enMore">Vygenerovať ďalšie</button>
+      </div>
+
+      <div class="vg-result" id="enResult" hidden></div>
     </section>
 
     <!-- 4f) ASERTIVITA – tréning komunikácie -->

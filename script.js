@@ -36,6 +36,7 @@ const AppState = {
     archetypeSet: 'neutral',    // Archetypy: 'm' | 'z' | 'neutral' | 'none' (none → neutrálna sada)
     archetypePrefSet: 'both',   // Koho hľadám – sada na zoraďovanie: 'm' | 'z' | 'both'
     archetypePref: null,        // Koho hľadám – { poradie, prefOs1, prefOs2 } (soft doradenie, nikdy brána)
+    essenceName: null,          // Meno podstaty – { adjektivum, substantivum, cely, why, od } (mimo scoringu)
     assertStyle: null,          // Asertivita – { counts, dominant } (privátny self-insight, mimo scoringu)
     assertProgress: null,       // Asertivita – prejdené mikro-lekcie { amygdala, kindness, techniques }
     // Výzor (Krok 5) – abstraktný avatar, KÁNON hodnôt viď docs/vyzor-a-pravidla.md
@@ -651,6 +652,167 @@ const ArchetypePref = {
       AppState.userProfile.archetypePref = {
         poradie: [...saved.poradie], prefOs1: saved.prefOs1, prefOs2: saved.prefOs2
       };
+    } catch (_) { /* poškodené dáta ignorujeme */ }
+  }
+};
+
+
+/* --------------------------------------------------------------
+   MENO TVOJEJ PODSTATY – návrhy z výsledkov testov
+   --------------------------------------------------------------
+   SOFT/self-insight, mimo scoringu. Prídavné meno sa skloňuje
+   podľa gramatického rodu podstatného mena (Tichá Hviezda,
+   Hĺbavý Prameň, Verné Srdce) – rodovo neutrálne voči hráčovi.
+   essenceName sú čisté dáta (pole „od") – neskôr pôjde meno aj
+   prijať darom od iného človeka (Supabase).
+   -------------------------------------------------------------- */
+function buildEssenceNames(P, offset = 0) {
+  const E = window.ESSENCE_NAME;
+  const adjPool = [];
+  const nounPool = [];
+
+  // RT kompas → prídavné mená podľa osí + podstatné mená kvadrantu
+  if (P.rt && typeof P.rt.os1 === 'number') {
+    adjPool.push(...(P.rt.os1 >= 0 ? E.adjectives.blizkost : E.adjectives.odstup));
+    adjPool.push(...(P.rt.os2 >= 0 ? E.adjectives.stalost : E.adjectives.zmena));
+    nounPool.push(...(E.nouns[rtQuadrant(P.rt)] || []));
+  }
+
+  // Panáčik z tvarov → dominantná zložka
+  if (P.shapePersona) {
+    const top = ['cit', 'rozum', 'sex'].reduce((b, k) =>
+      (P.shapePersona[k] ?? 0) > (P.shapePersona[b] ?? 0) ? k : b, 'cit');
+    adjPool.push(...E.adjectives[top]);
+  }
+
+  // Rebríček hodnôt (Lola) → motív z hodnoty #1
+  if (Array.isArray(P.valuesRanking) && P.valuesRanking.length) {
+    const motif = E.valueNouns[P.valuesRanking[0]];
+    if (motif) nounPool.push(motif);
+  }
+
+  const enough = adjPool.length > 0 && nounPool.length > 0;
+
+  // Základné návrhy aj bez testov (jemné pozvanie ich doplniť)
+  if (!adjPool.length) {
+    adjPool.push(E.adjectives.blizkost[0], E.adjectives.zmena[0], E.adjectives.rozum[0]);
+  }
+  if (!nounPool.length) {
+    nounPool.push(E.nouns.OS[0], E.nouns.BZ[2], E.nouns.OZ[0]);
+  }
+
+  // Deterministické kombinácie (bez Math.random): diagonálne párovanie,
+  // offset stránkuje ďalšie návrhy pri „Vygenerovať ďalšie"
+  const A = adjPool.length, N = nounPool.length, total = A * N;
+  const out = [];
+  const seen = new Set();
+  for (let k = 0; out.length < Math.min(6, total) && k < total; k++) {
+    const i = (k + offset) % total;
+    const adj = adjPool[i % A];
+    const noun = nounPool[(i % A + Math.floor(i / A)) % N];
+    const adjForm = adj[noun.rod];
+    const cely = `${adjForm} ${noun.word}`;
+    if (seen.has(cely)) continue;
+    seen.add(cely);
+    out.push({
+      adjektivum: adjForm,
+      substantivum: noun.word,
+      cely,
+      why: `${adjForm} — ${adj.why}. ${noun.word} — ${noun.why}.`
+    });
+  }
+  return { suggestions: out, enough };
+}
+window.buildEssenceNames = buildEssenceNames;
+
+
+const EssenceName = {
+  KEY: 'synced_essence_v1',
+  offset: 0,
+  chosen: null,
+  current: [],
+
+  init() {
+    this.cardsEl = document.getElementById('enCards');
+    if (!this.cardsEl || !window.ESSENCE_NAME) return;
+    document.querySelector('#essence-name .vg-intro').textContent = window.ESSENCE_NAME.intro;
+
+    this.load();
+    this.renderCards();
+    if (this.chosen) { this.renderChosen(); this.renderProfile(); }
+
+    this.cardsEl.addEventListener('click', (e) => {
+      const c = e.target.closest('button[data-essence]');
+      if (c) this.choose(Number(c.dataset.essence));
+    });
+    document.getElementById('enMore').addEventListener('click', () => {
+      this.offset += 6;
+      this.renderCards();
+    });
+  },
+
+  renderCards() {
+    const { suggestions, enough } = buildEssenceNames(AppState.userProfile, this.offset);
+    this.current = suggestions;
+    const invite = document.getElementById('enInvite');
+    invite.hidden = enough;
+    if (!enough) invite.textContent = window.ESSENCE_NAME.invite;
+    this.cardsEl.innerHTML = suggestions.map((s, i) => `
+      <button type="button" class="en-card ${this.chosen?.cely === s.cely ? 'is-active' : ''}"
+        data-essence="${i}">✨ ${s.cely}</button>`).join('');
+  },
+
+  choose(i) {
+    const s = this.current[i];
+    if (!s) return;
+    this.chosen = { adjektivum: s.adjektivum, substantivum: s.substantivum,
+      cely: s.cely, why: s.why, od: 'ja' };
+    AppState.userProfile.essenceName = { ...this.chosen };
+    this.save();
+    this.renderCards();
+    this.renderChosen();
+    this.renderProfile();
+  },
+
+  renderChosen() {
+    const box = document.getElementById('enResult');
+    box.hidden = false;
+    box.innerHTML = `
+      <h3>✨ ${this.chosen.cely}</h3>
+      <p class="vg-result__intro">${this.chosen.why}</p>
+      <p class="vg-result__note">${window.ESSENCE_NAME.note}</p>`;
+  },
+
+  renderProfile() {
+    const head = document.getElementById('profileEssence');
+    if (head) {
+      head.innerHTML = `<div class="essence-header">✨ <span>${this.chosen.cely}</span></div>`;
+    }
+    const entry = document.getElementById('profileEssenceEntry');
+    if (entry) {
+      entry.innerHTML = `
+        <p class="vg-strip">Moje meno podstaty: <strong>${this.chosen.cely}</strong></p>
+        <div class="vg-strip__actions">
+          <a class="vg-again" href="#essence-name" data-scroll="#essence-name">Zmeniť meno</a>
+        </div>`;
+    }
+  },
+
+  /* localStorage – dočasný most (TODO Supabase), vzor ostatných modulov */
+  save() {
+    try { localStorage.setItem(this.KEY, JSON.stringify(this.chosen)); } catch (_) {}
+  },
+
+  load() {
+    try {
+      const raw = localStorage.getItem(this.KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      const valid = saved && typeof saved.cely === 'string'
+        && typeof saved.adjektivum === 'string' && typeof saved.substantivum === 'string';
+      if (!valid) return;   // iný/starší formát sa ticho zahodí
+      this.chosen = saved;
+      AppState.userProfile.essenceName = { ...saved };
     } catch (_) { /* poškodené dáta ignorujeme */ }
   }
 };
@@ -2817,6 +2979,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ArchetypeSet.init();          // pred RTTest – sada musí byť načítaná pred vykreslením
   ArchetypePref.init();
   RTTest.init();
+  EssenceName.init();           // po RTTest a hrách – návrhy čítajú ich uložené výsledky
   AssertTraining.init();
   VideoVerification.init();
   VideoChat.init();

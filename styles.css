@@ -859,6 +859,52 @@ input:focus, select:focus {
 }
 .match-arch--pref { color: var(--primary-dark); }
 
+/* Meno tvojej podstaty */
+.en-box { max-width: 720px; }
+.en-invite {
+  background: var(--accent);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--text-light);
+}
+.en-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 12px 0 16px;
+}
+.en-card {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 14px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.1s;
+}
+.en-card:hover { border-color: var(--primary); background: var(--accent); }
+.en-card:active { transform: scale(0.97); }
+.en-card.is-active {
+  border-color: var(--primary-dark);
+  background: var(--primary);
+}
+.essence-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  border-radius: var(--radius-lg);
+  padding: 12px 22px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary-dark);
+  margin-bottom: 16px;
+}
+
 /* Koho hľadám – zoradenie archetypov */
 .ap-box { max-width: 640px; }
 .ap-card .arch-icon { width: 28px; height: 28px; }

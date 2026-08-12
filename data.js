@@ -686,3 +686,96 @@ const ARCHETYPES = {
 };
 
 window.ARCHETYPES = ARCHETYPES;
+
+
+/* ==============================================================
+   MENO TVOJEJ PODSTATY (prídavné + podstatné meno)
+   --------------------------------------------------------------
+   Neutrálny, univerzálny rámec (zámerne bez „indiánskeho"
+   označenia). SOFT/self-insight – žiadny vplyv na matching.
+   Prídavné meno sa skloňuje podľa GRAMATICKÉHO rodu podstatného
+   mena („Tichá Hviezda", „Hĺbavý Prameň", „Verné Srdce") — tým je
+   meno prirodzene rodovo neutrálne voči hráčovi.
+   rod: m | z | s (mužský/ženský/stredný rod podstatného mena)
+   ============================================================== */
+
+const ESSENCE_NAME = {
+  intro: 'Meno tvojej podstaty je prídavné + podstatné meno — dve slová, ' +
+    'ktoré vystihujú, kým v jadre si. Nie je to prezývka, je to zrkadlo.',
+
+  /* Prídavné mená podľa dominantnej črty (tvary podľa rodu podst. mena) */
+  adjectives: {
+    odstup: [
+      { m: 'Tichý',      z: 'Tichá',      s: 'Tiché',      why: 'lebo ideš vlastnou hĺbkou' },
+      { m: 'Hĺbavý',     z: 'Hĺbavá',     s: 'Hĺbavé',     why: 'lebo sa nezastavíš na povrchu' }
+    ],
+    blizkost: [
+      { m: 'Vrúcny',     z: 'Vrúcna',     s: 'Vrúcne',     why: 'lebo ľudí hreješ blízkosťou' },
+      { m: 'Otvorený',   z: 'Otvorená',   s: 'Otvorené',   why: 'lebo máš dvere aj srdce dokorán' },
+      { m: 'Hrejivý',    z: 'Hrejivá',    s: 'Hrejivé',    why: 'lebo pri tebe je teplo' }
+    ],
+    stalost: [
+      { m: 'Pevný',      z: 'Pevná',      s: 'Pevné',      why: 'lebo sa o teba dá oprieť' },
+      { m: 'Verný',      z: 'Verná',      s: 'Verné',      why: 'lebo držíš slovo aj ľudí' },
+      { m: 'Neochvejný', z: 'Neochvejná', s: 'Neochvejné', why: 'lebo ťa vietor nezlomí' }
+    ],
+    zmena: [
+      { m: 'Slobodný',   z: 'Slobodná',   s: 'Slobodné',   why: 'lebo potrebuješ vzduch a obzor' },
+      { m: 'Neúnavný',   z: 'Neúnavná',   s: 'Neúnavné',   why: 'lebo ťa pohyb nabíja' },
+      { m: 'Bystrý',     z: 'Bystrá',     s: 'Bystré',     why: 'lebo nové chytáš za pochodu' }
+    ],
+    cit: [
+      { m: 'Láskavý',    z: 'Láskavá',    s: 'Láskavé',    why: 'lebo srdce máš v rukách' },
+      { m: 'Citlivý',    z: 'Citlivá',    s: 'Citlivé',    why: 'lebo vnímaš aj nevyslovené' }
+    ],
+    rozum: [
+      { m: 'Múdry',      z: 'Múdra',      s: 'Múdre',      why: 'lebo hľadáš jasno' },
+      { m: 'Jasný',      z: 'Jasná',      s: 'Jasné',      why: 'lebo do vecí vnášaš svetlo' }
+    ],
+    sex: [
+      { m: 'Vášnivý',    z: 'Vášnivá',    s: 'Vášnivé',    why: 'lebo horíš naplno' },
+      { m: 'Živý',       z: 'Živá',       s: 'Živé',       why: 'lebo energia je tvoj živel' }
+    ]
+  },
+
+  /* Podstatné mená podľa RT kvadrantu archetypu */
+  nouns: {
+    OS: [
+      { word: 'Hviezda', rod: 'z', why: 'lebo tvoríš v samote niečo, čo má svetlo' },
+      { word: 'Prameň',  rod: 'm', why: 'lebo z hĺbky ide čistá sila' },
+      { word: 'Plameň',  rod: 'm', why: 'lebo tiché veci vedia horieť najdlhšie' }
+    ],
+    BS: [
+      { word: 'Štít',    rod: 'm', why: 'lebo chrániš, čo miluješ' },
+      { word: 'Koreň',   rod: 'm', why: 'lebo držíš celý strom' },
+      { word: 'Dom',     rod: 'm', why: 'lebo pri tebe je domov' }
+    ],
+    BZ: [
+      { word: 'Pieseň',  rod: 'z', why: 'lebo rozozvučíš aj všedný deň' },
+      { word: 'Vietor',  rod: 'm', why: 'lebo prinášaš čerstvý vzduch' },
+      { word: 'Iskra',   rod: 'z', why: 'lebo zapaľuješ nové veci' }
+    ],
+    OZ: [
+      { word: 'Cesta',   rod: 'z', why: 'lebo smer je tvoj' },
+      { word: 'Sokol',   rod: 'm', why: 'lebo vidíš ďaleko a letíš vlastným nebom' },
+      { word: 'Rieka',   rod: 'z', why: 'lebo si voľnosť a sila zároveň' }
+    ]
+  },
+
+  /* Motív z hodnoty #1 v Rebríčku hodnôt (Lola) */
+  valueNouns: {
+    laska:   { word: 'Srdce',  rod: 's', why: 'lebo láska je tvoj prvý jazyk' },
+    rozum:   { word: 'Svetlo', rod: 's', why: 'lebo rozum ti svieti na cestu' },
+    ego:     { word: 'Koruna', rod: 'z', why: 'lebo poznáš svoju hodnotu' },
+    sex:     { word: 'Oheň',   rod: 'm', why: 'lebo telesnosť je tvoja živá sila' },
+    peniaze: { word: 'Zlato',  rod: 's', why: 'lebo istota má u teba váhu' }
+  },
+
+  invite: 'Zatiaľ vychádzam len zo základov — keď si spravíš Vzťahový kompas, ' +
+    'panáčika z tvarov či rebríček hodnôt, návrhy budú presnejšie. 💛',
+
+  note: 'Meno si môžeš kedykoľvek zmeniť — podstata sa vyvíja. Neskôr ti ho ' +
+    'bude môcť darovať aj niekto, kto ťa pozná. 💛'
+};
+
+window.ESSENCE_NAME = ESSENCE_NAME;
