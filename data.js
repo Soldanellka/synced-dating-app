@@ -656,31 +656,33 @@ window.ASSERT_TRAINING = ASSERT_TRAINING;
    Sady: m (mužská) | z (ženská) | neutral (aj pre „nechcem uvádzať").
    ============================================================== */
 
+/* img: obrázok archetypu (assets/archetypes/, 512×512); neutrálne
+   varianty používajú obrázok kvadrantu s mužským defaultom */
 const ARCHETYPES = {
   corners: {
     BS: {
       icon: 'mec',
-      m:       { name: 'Rytier',     desc: 'Verné srdce ríše. Držíš slovo aj tých, na ktorých ti záleží — pri tebe má človek pocit domova a istoty.' },
-      z:       { name: 'Kráľovná',   desc: 'Verné srdce ríše. Držíš slovo aj svojich ľudí — pri tebe má človek pocit domova a istoty.' },
-      neutral: { name: 'Ochranca',   desc: 'Verné srdce ríše. Držíš slovo aj tých, na ktorých ti záleží — pri tebe má človek pocit domova a istoty.' }
+      m:       { name: 'Rytier',     img: 'assets/archetypes/rytier.png',     desc: 'Verné srdce ríše. Držíš slovo aj tých, na ktorých ti záleží — pri tebe má človek pocit domova a istoty.' },
+      z:       { name: 'Kráľovná',   img: 'assets/archetypes/kralovna.png',   desc: 'Verné srdce ríše. Držíš slovo aj svojich ľudí — pri tebe má človek pocit domova a istoty.' },
+      neutral: { name: 'Ochranca',   img: 'assets/archetypes/rytier.png',     desc: 'Verné srdce ríše. Držíš slovo aj tých, na ktorých ti záleží — pri tebe má človek pocit domova a istoty.' }
     },
     BZ: {
       icon: 'lutna',
-      m:       { name: 'Trubadúr',   desc: 'Duša, čo spája a zapaľuje. Prinášaš ľuďom nové obzory a robíš všedné dni krajšími.' },
-      z:       { name: 'Múza',       desc: 'Duša, čo spája a zapaľuje. Prinášaš ľuďom nové obzory a robíš všedné dni krajšími.' },
-      neutral: { name: 'Trubadúr',   desc: 'Duša, čo spája a zapaľuje. Prinášaš ľuďom nové obzory a robíš všedné dni krajšími.' }
+      m:       { name: 'Trubadúr',   img: 'assets/archetypes/trubadur.png',   desc: 'Duša, čo spája a zapaľuje. Prinášaš ľuďom nové obzory a robíš všedné dni krajšími.' },
+      z:       { name: 'Múza',       img: 'assets/archetypes/muza.png',       desc: 'Duša, čo spája a zapaľuje. Prinášaš ľuďom nové obzory a robíš všedné dni krajšími.' },
+      neutral: { name: 'Trubadúr',   img: 'assets/archetypes/trubadur.png',   desc: 'Duša, čo spája a zapaľuje. Prinášaš ľuďom nové obzory a robíš všedné dni krajšími.' }
     },
     OS: {
       icon: 'hviezda',
-      m:       { name: 'Alchymista', desc: 'Majster tichého umenia. Ideš vlastnou hĺbkou, poctivo a sústredene — a to, čo vytvoríš, má váhu.' },
-      z:       { name: 'Hvezdárka',  desc: 'Majsterka tichého umenia. Ideš vlastnou hĺbkou, poctivo a sústredene — a to, čo vytvoríš, má váhu.' },
-      neutral: { name: 'Alchymista', desc: 'Tiché umenie hĺbky. Ideš vlastnou cestou, poctivo a sústredene — a to, čo vytvoríš, má váhu.' }
+      m:       { name: 'Alchymista', img: 'assets/archetypes/alchymista.png', desc: 'Majster tichého umenia. Ideš vlastnou hĺbkou, poctivo a sústredene — a to, čo vytvoríš, má váhu.' },
+      z:       { name: 'Hvezdárka',  img: 'assets/archetypes/hvezdarka.png',  desc: 'Majsterka tichého umenia. Ideš vlastnou hĺbkou, poctivo a sústredene — a to, čo vytvoríš, má váhu.' },
+      neutral: { name: 'Alchymista', img: 'assets/archetypes/alchymista.png', desc: 'Tiché umenie hĺbky. Ideš vlastnou cestou, poctivo a sústredene — a to, čo vytvoríš, má váhu.' }
     },
     OZ: {
       icon: 'luk',
-      m:       { name: 'Templár',    desc: 'Nebojácny hľadač vlastnej cesty. Nezastavíš sa pri hraniciach mapy — sloboda a odvaha sú tvoj kompas.' },
-      z:       { name: 'Amazonka',   desc: 'Nebojácna hľadačka vlastnej cesty. Nezastavíš sa pri hraniciach mapy — sloboda a odvaha sú tvoj kompas.' },
-      neutral: { name: 'Pútnik',     desc: 'Srdce na ceste. Nezastavíš sa pri hraniciach mapy — sloboda a odvaha sú tvoj kompas.' }
+      m:       { name: 'Templár',    img: 'assets/archetypes/templar.png',    desc: 'Nebojácny hľadač vlastnej cesty. Nezastavíš sa pri hraniciach mapy — sloboda a odvaha sú tvoj kompas.' },
+      z:       { name: 'Amazonka',   img: 'assets/archetypes/amazonka.png',   desc: 'Nebojácna hľadačka vlastnej cesty. Nezastavíš sa pri hraniciach mapy — sloboda a odvaha sú tvoj kompas.' },
+      neutral: { name: 'Pútnik',     img: 'assets/archetypes/templar.png',    desc: 'Srdce na ceste. Nezastavíš sa pri hraniciach mapy — sloboda a odvaha sú tvoj kompas.' }
     }
   }
 };

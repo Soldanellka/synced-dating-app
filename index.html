@@ -5,6 +5,10 @@
   <title>Synced – Zoznamka na rovnakej vlne</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Synced – hodnotová zoznamka pre ľudí, ktorí hľadajú seriózny vzťah. Kompatibilita, hodnoty a video overenie.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💛</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -32,14 +36,28 @@
 
     <!-- HERO SEKCIA -->
     <section id="hero" class="section-hero">
+      <!-- Hravé dekorácie (čisté inline SVG, žiadne cudzie obrázky) -->
+      <div class="hero-deco" aria-hidden="true">
+        <svg class="hero-deco__item hero-deco__item--wave" viewBox="0 0 120 24" fill="none">
+          <path d="M2 12 Q17 2 32 12 T62 12 T92 12 T118 12" stroke="var(--c-accent-2)" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+        <svg class="hero-deco__item hero-deco__item--star" viewBox="0 0 24 24">
+          <polygon points="12,1 14.8,8.2 22,9 16.5,13.8 18.3,21 12,17 5.7,21 7.5,13.8 2,9 9.2,8.2" fill="var(--c-accent-3)"/>
+        </svg>
+        <svg class="hero-deco__item hero-deco__item--heart" viewBox="0 0 24 24">
+          <path d="M12 21 C5 15 2 11 2 7.5 C2 4.5 4.5 2 7.5 2 C9.5 2 11.2 3.1 12 4.7 C12.8 3.1 14.5 2 16.5 2 C19.5 2 22 4.5 22 7.5 C22 11 19 15 12 21 Z" fill="var(--c-accent-1)"/>
+        </svg>
+        <svg class="hero-deco__item hero-deco__item--circle" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="26" fill="none" stroke="var(--c-primary)" stroke-width="6" opacity="0.5"/>
+        </svg>
+      </div>
       <div class="hero-text">
-        <h1>Zoznamka pre ľudí, ktorí sú na rovnakej vlne.</h1>
+        <h1>Zoznamka pre ľudí, ktorí sú <em class="hero-hl">na rovnakej vlne</em>.</h1>
         <p>Žiadne fejky, žiadne hry. Len ľudia, ktorí zdieľajú tvoje hodnoty.</p>
-        <button class="btn-primary btn-lg" data-scroll="#signup">Začni test kompatibility</button>
+        <button class="btn-primary btn-lg" data-scroll="#signup">💛 Začni test kompatibility</button>
         <p class="hero-note">Zadarmo · 5 minút · Bez záväzkov</p>
       </div>
       <div class="hero-visual" aria-hidden="true">
-        <!-- Tu môže byť ilustrácia / Canva obrázok -->
         <div class="hero-visual__card">💛<br>na rovnakej vlne</div>
       </div>
     </section>

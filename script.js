@@ -413,9 +413,21 @@ function archetypeFor(rt, set) {
   const corner = window.ARCHETYPES?.corners[rtQuadrant(rt)];
   if (!corner) return null;
   const s = (set === 'm' || set === 'z') ? set : 'neutral';
-  return { name: corner[s].name, desc: corner[s].desc, icon: corner.icon };
+  return { name: corner[s].name, desc: corner[s].desc, icon: corner.icon, img: corner[s].img };
 }
 window.archetypeFor = archetypeFor;
+
+// Kruhový avatar archetypu (obrázok v ráme); pri chýbajúcom obrázku
+// sa cez CSS ukáže pôvodný SVG erb – nič sa nerozbije
+function archetypeAvatarHTML(arch, size) {
+  if (!arch) return '';
+  return `<span class="arch-avatar arch-avatar--${size || 'md'}">
+    <img src="${arch.img || ''}" alt="${arch.name}" loading="lazy"
+      onerror="this.classList.add('is-broken')">
+    ${archetypeIconSVG(arch.icon)}
+  </span>`;
+}
+window.archetypeAvatarHTML = archetypeAvatarHTML;
 
 // Malé štylizované erby (meč, lutna, hviezda, luk) – čisté SVG v palete
 function archetypeIconSVG(icon) {
@@ -442,7 +454,8 @@ function archetypeLine(meRt, meSet, otherRt, otherGender) {
   const theirs = archetypeFor(otherRt, otherGender);
   if (!mine || !theirs) return '';
   const pron = otherGender === 'z' ? 'ona' : (otherGender === 'm' ? 'on' : 'on/ona');
-  return `<p class="match-arch">🏰 Ty ${mine.name} · ${pron} ${theirs.name}</p>`;
+  return `<p class="match-arch">${archetypeAvatarHTML(theirs, 'sm')}
+    <span>🏰 Ty ${mine.name} · ${pron} ${theirs.name}</span></p>`;
 }
 window.archetypeLine = archetypeLine;
 
@@ -524,7 +537,8 @@ const ArchetypePref = {
     const out = [];
     quads.forEach(q => sets.forEach(s => {
       const c = window.ARCHETYPES.corners[q];
-      out.push({ id: q + '_' + s, quad: q, name: c[s].name, desc: c[s].desc, icon: c.icon });
+      out.push({ id: q + '_' + s, quad: q, name: c[s].name, desc: c[s].desc,
+        icon: c.icon, img: c[s].img });
     }));
     return out;
   },
@@ -553,7 +567,7 @@ const ArchetypePref = {
       return `
         <li class="vg-card ap-card" data-id="${id}">
           <span class="vg-card__rank">${i + 1}.</span>
-          ${archetypeIconSVG(it.icon)}
+          ${archetypeAvatarHTML(it, 'md')}
           <span class="vg-card__name">${it.name}
             <span class="ap-card__desc">${it.desc}</span></span>
           <span class="vg-card__move">
@@ -1927,21 +1941,42 @@ const RTTest = {
   },
 
   // Jednoduchý SVG kompas: os1 vodorovne (Odstup ⟵ ⟶ Blízkosť),
-  // os2 zvislo (Zmena dole, Kontinuita hore), bodka = používateľ
+  // os2 zvislo (Zmena dole, Kontinuita hore), bodka = používateľ.
+  // V rohoch kvadrantov sú malé kruhové avatary archetypov (vizuál).
   compassSVG(os1, os2) {
     const cx = 110 + os1 * 80;
     const cy = 110 - os2 * 80;
+    const set = AppState.userProfile.archetypeSet;
+    const s = (set === 'm' || set === 'z') ? set : 'neutral';
+    // pozície mini-avatarov: BS vpravo hore, OS vľavo hore,
+    // BZ vpravo dole, OZ vľavo dole
+    const spots = { BS: [162, 58], OS: [58, 58], BZ: [162, 162], OZ: [58, 162] };
+    const R = 17;
+    const minis = Object.entries(spots).map(([q, [x, y]]) => {
+      const a = window.ARCHETYPES?.corners[q]?.[s];
+      if (!a || !a.img) return '';
+      return `
+        <clipPath id="rtClip${q}"><circle cx="${x}" cy="${y}" r="${R}"/></clipPath>
+        <image href="${a.img}" x="${x - R}" y="${y - R}" width="${R * 2}" height="${R * 2}"
+          clip-path="url(#rtClip${q})" preserveAspectRatio="xMidYMid slice">
+          <title>${a.name}</title>
+        </image>
+        <circle cx="${x}" cy="${y}" r="${R}" fill="none"
+          stroke="var(--primary)" stroke-width="2"/>`;
+    }).join('');
     return `
       <svg class="rt-compass" viewBox="0 0 220 220" role="img"
         aria-label="Kompas: poloha na osiach blízkosť–odstup a kontinuita–zmena">
         <rect x="10" y="10" width="200" height="200" rx="16" fill="var(--accent)"/>
         <line x1="110" y1="22" x2="110" y2="198" stroke="var(--primary)" stroke-width="2"/>
         <line x1="22" y1="110" x2="198" y2="110" stroke="var(--primary)" stroke-width="2"/>
+        ${minis}
         <text x="110" y="36" text-anchor="middle">Kontinuita</text>
         <text x="110" y="192" text-anchor="middle">Zmena</text>
         <text x="194" y="104" text-anchor="end">Blízkosť</text>
         <text x="26" y="104">Odstup</text>
-        <circle cx="${cx}" cy="${cy}" r="8" fill="var(--primary-dark)"/>
+        <circle cx="${cx}" cy="${cy}" r="8" fill="var(--primary-dark)"
+          stroke="var(--bg-light)" stroke-width="2"/>
       </svg>`;
   },
 
@@ -1956,7 +1991,7 @@ const RTTest = {
       <p class="vg-result__intro">${kut.desc}</p>
       ${arch ? `
       <div class="rt-archetype">
-        ${archetypeIconSVG(arch.icon)}
+        ${archetypeAvatarHTML(arch, 'lg')}
         <div>
           <p class="rt-archetype__name">🏰 Tvoj archetyp: <strong>${arch.name}</strong></p>
           <p class="rt-archetype__desc">${arch.desc}</p>

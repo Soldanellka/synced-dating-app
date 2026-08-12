@@ -20,18 +20,30 @@
 ------------------------------ */
 
 :root {
-  --bg: #faf9fb;
-  --bg-light: #ffffff;
-  --text: #2a2a2a;
-  --text-light: #555;
-  --primary: #e8b7d4;      /* jemná ružová */
-  --primary-dark: #d49bbd; /* tmavšia ružová */
+  /* --- Dizajnový systém: ružová + 3 harmonické akcenty --- */
+  --c-primary: #e8b7d4;    /* jemná ružová (brand) */
+  --c-primary-dark: #b25078; /* sýta ružová – texty/aktívne (WCAG AA na bielej) */
+  --c-accent-1: #ff9b7b;   /* koralová/broskyňová */
+  --c-accent-2: #7fcbbb;   /* mätová */
+  --c-accent-3: #ffd97d;   /* teplá žltá */
+  --c-bg: #fdf8fb;         /* pozadie s ružovým nádychom */
+  --c-surface: #ffffff;    /* karty a povrchy */
+  --c-text: #2a2a2a;
+  --c-muted: #5f5f66;
+
+  /* Pôvodné názvy mapované na systém (spätná kompatibilita) */
+  --bg: var(--c-bg);
+  --bg-light: var(--c-surface);
+  --text: var(--c-text);
+  --text-light: var(--c-muted);
+  --primary: var(--c-primary);
+  --primary-dark: var(--c-primary-dark);
   --accent: #f6eef3;       /* veľmi svetlá ružová (pozadia) */
-  --border: #eee;
-  --radius: 12px;
-  --radius-lg: 20px;
-  --shadow: 0 4px 12px rgba(0,0,0,0.06);
-  --shadow-hover: 0 8px 24px rgba(0,0,0,0.10);
+  --border: #f0e2ea;
+  --radius: 16px;
+  --radius-lg: 26px;
+  --shadow: 0 6px 18px rgba(178, 80, 120, 0.08);
+  --shadow-hover: 0 12px 28px rgba(178, 80, 120, 0.15);
   --max-width: 1200px;
   --space: 40px;
 }
@@ -44,10 +56,15 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-family: "Nunito", "Inter", system-ui, -apple-system, sans-serif;
   background: var(--bg);
   color: var(--text);
   line-height: 1.6;
+}
+
+/* Priateľské, sebavedomé nadpisy */
+h1, h2, h3, h4, .logo {
+  font-family: "Baloo 2", "Nunito", system-ui, sans-serif;
 }
 
 main {
@@ -126,35 +143,49 @@ img { max-width: 100%; display: block; }
 .btn-primary {
   background: var(--primary);
   color: var(--text);
-  padding: 10px 18px;
-  border-radius: var(--radius);
+  padding: 10px 20px;
+  border-radius: 999px;   /* pill */
   border: none;
   cursor: pointer;
-  font-weight: 600;
+  font-family: inherit;
+  font-weight: 700;
   font-size: 15px;
-  transition: 0.2s;
+  transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
 }
 
-.btn-primary:hover { background: var(--primary-dark); }
+.btn-primary:hover {
+  background: var(--primary-dark);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+.btn-primary:active { transform: scale(0.97); }
 
 .btn-lg {
-  padding: 14px 28px;
+  padding: 14px 30px;
   font-size: 17px;
-  border-radius: var(--radius-lg);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
 }
 
 .btn-secondary {
-  background: #e9e9ec;
+  background: var(--accent);
   color: var(--text);
-  padding: 10px 18px;
-  border-radius: var(--radius);
-  border: none;
+  padding: 10px 20px;
+  border-radius: 999px;   /* pill */
+  border: 1px solid var(--border);
   cursor: pointer;
-  font-weight: 500;
-  transition: 0.2s;
+  font-family: inherit;
+  font-weight: 600;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
 }
 
-.btn-secondary:hover { background: #dcdce0; }
+.btn-secondary:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+.btn-secondary:active { transform: scale(0.97); }
 
 /* ------------------------------
    4. HERO
@@ -166,6 +197,29 @@ img { max-width: 100%; display: block; }
   justify-content: space-between;
   gap: 40px;
   padding: 80px 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Hravé SVG dekorácie v hero (čisto vizuálne) */
+.hero-deco { position: absolute; inset: 0; pointer-events: none; }
+.hero-deco__item { position: absolute; }
+.hero-deco__item--wave   { width: 130px; left: 4%;  bottom: 12%; }
+.hero-deco__item--star   { width: 30px;  right: 8%; top: 14%;  animation: floaty 5s ease-in-out infinite; }
+.hero-deco__item--heart  { width: 26px;  left: 42%; top: 10%;  animation: floaty 6s ease-in-out infinite 1s; }
+.hero-deco__item--circle { width: 64px;  right: 30%; bottom: 8%; }
+
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Zvýraznenie sloganu */
+.hero-hl {
+  font-style: normal;
+  background: linear-gradient(transparent 62%, var(--c-accent-3) 62%);
+  border-radius: 4px;
+  padding: 0 4px;
 }
 
 .hero-text { flex: 1; }
@@ -198,7 +252,7 @@ img { max-width: 100%; display: block; }
   width: 260px;
   height: 260px;
   border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, var(--primary), var(--accent));
+  background: linear-gradient(135deg, var(--c-primary) 0%, var(--c-accent-3) 60%, var(--c-accent-1) 130%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -219,6 +273,17 @@ img { max-width: 100%; display: block; }
   font-size: 32px;
   margin-bottom: 24px;
   color: var(--primary-dark);
+}
+
+/* Hravé podčiarknutie nadpisov sekcií */
+.section > h2::after {
+  content: '';
+  display: block;
+  width: 64px;
+  height: 6px;
+  border-radius: 999px;
+  margin-top: 6px;
+  background: linear-gradient(90deg, var(--c-primary), var(--c-accent-1), var(--c-accent-3));
 }
 
 .steps {
@@ -1538,4 +1603,82 @@ input:focus, select:focus {
 @media (max-width: 420px) {
   .section-hero h1 { font-size: 28px; }
   .hero-visual__card { width: 200px; height: 200px; }
+}
+
+/* ------------------------------
+   12. FACELIFT – avatary archetypov a mikrointerakcie
+   (len vizuál, žiadna zmena logiky)
+------------------------------ */
+
+/* Kruhový avatar archetypu: jednotný rám (okraj + tieň);
+   pri chýbajúcom obrázku sa ukáže pôvodný SVG erb */
+.arch-avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.arch-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid var(--primary);
+  box-shadow: var(--shadow);
+  display: block;
+  background: var(--accent);
+}
+.arch-avatar img.is-broken { display: none; }
+.arch-avatar .arch-icon { display: none; width: 70%; height: 70%; }
+.arch-avatar img.is-broken + .arch-icon { display: block; }
+
+.arch-avatar--sm { width: 34px; height: 34px; }
+.arch-avatar--sm img { border-width: 2px; }
+.arch-avatar--md { width: 56px; height: 56px; }
+.arch-avatar--lg { width: 96px; height: 96px; }
+
+/* Archetypový riadok v karte matchu s malým avatarom */
+.match-arch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Farebné čísla krokov na landingu */
+.step:nth-child(1) .step__num { background: var(--c-primary); }
+.step:nth-child(2) .step__num { background: var(--c-accent-2); }
+.step:nth-child(3) .step__num { background: var(--c-accent-3); }
+
+/* Jemný „pop" pri výbere v hrách a testoch */
+@keyframes pop {
+  0% { transform: scale(0.94); }
+  60% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+.avatar-chip.is-active,
+.en-card.is-active,
+.at-answer.is-chosen,
+.sg-slot.is-filled,
+.vg-entry:active {
+  animation: pop 0.22s ease;
+}
+
+/* Plynulé modaly */
+.modal-overlay:not([hidden]) { animation: fadeIn 0.2s ease; }
+.modal-overlay:not([hidden]) .modal { animation: pop 0.22s ease; }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Prístupnosť: rešpektuj obmedzený pohyb */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
