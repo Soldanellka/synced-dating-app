@@ -23,7 +23,8 @@
     </button>
 
     <nav class="main-nav" id="mainNav">
-      <a href="#how-it-works">Ako to funguje</a>
+      <a href="#dashboard">Rozcestník</a>
+      <a href="#rt-test">Kompas</a>
       <a href="#matches">Matchy</a>
       <a href="#profile">Profil</a>
       <a href="#premium">Premium</a>
@@ -103,6 +104,8 @@
         <!-- KROK 1: ZÁKLADNÉ ÚDAJE -->
         <div class="onboarding-step is-active" data-step="1">
           <h3>Krok 1: Základné údaje</h3>
+          <!-- Prečo si tu? – režim appky (naplní JS) -->
+          <div class="mode-picker" id="modePickerOnboarding"></div>
           <form id="basic-info-form">
             <label>Vek
               <input type="number" name="age" min="18" max="80" required>
@@ -210,11 +213,52 @@
       </div>
     </section>
 
+    <!-- 2b) ROZCESTNÍK – čo mám spraviť ďalej -->
+    <section id="dashboard" class="section">
+      <h2>Tvoj rozcestník</h2>
+      <p class="dash-lead">Všetko na jednom mieste — pokračuj tam, kde ťa to ťahá.</p>
+      <div class="dash-grid" id="dashGrid"><!-- naplní JS --></div>
+    </section>
+
+    <!-- 3a) VZŤAHOVÝ KOMPAS (RT test) – hneď za rozcestníkom, nech je vidno -->
+    <section id="rt-test" class="section">
+      <h2>🧭 Vzťahový kompas</h2>
+      <p class="vg-intro"><!-- naplní JS z RT_TEST.intro --></p>
+
+      <div class="rt-box">
+        <div id="rtItems"><!-- 16 tvrdení naplní JS --></div>
+        <p class="rt-progress" id="rtProgress"></p>
+        <button type="button" class="btn-primary" id="rtConfirm" disabled>Vyhodnotiť</button>
+      </div>
+
+      <div class="vg-result" id="rtResult" hidden></div>
+    </section>
+
+    <!-- 3b) KOHO HĽADÁM – zoradenie archetypov (preferencia partnera) -->
+    <section id="archetype-pref" class="section">
+      <h2>🏰 Koho hľadám</h2>
+      <p class="vg-intro">Nie je to o škatuľkách – len ku komu ťa to intuitívne
+        ťahá. Skutoční ľudia vždy prekvapia. 💛</p>
+
+      <div class="vg-play ap-box">
+        <div class="arch-picker" id="apSetPicker"><!-- naplní JS --></div>
+        <p class="ap-suggest" id="apSuggestNote" hidden>🧭 Navrhli sme poradie
+          podľa tvojho kompasu – uprav si ho, ako cítiš. 💛</p>
+        <p class="vg-hint">Zoraď od „najbližšie môjmu srdcu" po „najmenej".</p>
+        <ul class="vg-cards" id="apCards"><!-- naplní JS --></ul>
+        <button type="button" class="btn-primary" id="apConfirm">Potvrdiť poradie</button>
+      </div>
+
+      <div class="vg-result" id="apResult" hidden></div>
+    </section>
+
     <!-- 3) PROFIL POUŽÍVATEĽA -->
     <section id="profile" class="section">
       <h2>Môj profil</h2>
       <!-- Hlavička s menom podstaty (naplní JS po výbere) -->
       <div id="profileEssence"></div>
+      <!-- Režim appky: zoznamovanie vs. rast (naplní JS) -->
+      <div class="mode-picker" id="modePickerProfile"></div>
       <div class="profile-layout">
         <div class="profile-main">
           <div class="profile-photo">
@@ -322,6 +366,8 @@
     <!-- 4) MATCHOVANIE -->
     <section id="matches" class="section">
       <h2>Tvoje dnešné matchy</h2>
+      <!-- Info pruh pre režim rast (naplní JS) -->
+      <div id="matchesModeNote"></div>
       <div class="matches-grid" id="matchesGrid">
         <!-- Naplní JS (Krok 3). Dovtedy statické ukážky: -->
         <article class="match-card">
@@ -403,36 +449,6 @@
       </div>
 
       <div class="vg-result" id="sgResult" hidden></div>
-    </section>
-
-    <!-- 4e) VZŤAHOVÝ KOMPAS (RT test) -->
-    <section id="rt-test" class="section">
-      <h2>🧭 Vzťahový kompas</h2>
-      <p class="vg-intro"><!-- naplní JS z RT_TEST.intro --></p>
-
-      <div class="rt-box">
-        <div id="rtItems"><!-- 16 tvrdení naplní JS --></div>
-        <p class="rt-progress" id="rtProgress"></p>
-        <button type="button" class="btn-primary" id="rtConfirm" disabled>Vyhodnotiť</button>
-      </div>
-
-      <div class="vg-result" id="rtResult" hidden></div>
-    </section>
-
-    <!-- 4e2) KOHO HĽADÁM – zoradenie archetypov (preferencia partnera) -->
-    <section id="archetype-pref" class="section">
-      <h2>🏰 Koho hľadám</h2>
-      <p class="vg-intro">Nie je to o škatuľkách – len ku komu ťa to intuitívne
-        ťahá. Skutoční ľudia vždy prekvapia. 💛</p>
-
-      <div class="vg-play ap-box">
-        <div class="arch-picker" id="apSetPicker"><!-- naplní JS --></div>
-        <p class="vg-hint">Zoraď od „najbližšie môjmu srdcu" po „najmenej".</p>
-        <ul class="vg-cards" id="apCards"><!-- naplní JS --></ul>
-        <button type="button" class="btn-primary" id="apConfirm">Potvrdiť poradie</button>
-      </div>
-
-      <div class="vg-result" id="apResult" hidden></div>
     </section>
 
     <!-- 4e3) MENO TVOJEJ PODSTATY (prídavné + podstatné meno) -->

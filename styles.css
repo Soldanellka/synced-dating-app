@@ -1637,7 +1637,40 @@ input:focus, select:focus {
 .arch-avatar--sm { width: 34px; height: 34px; }
 .arch-avatar--sm img { border-width: 2px; }
 .arch-avatar--md { width: 56px; height: 56px; }
-.arch-avatar--lg { width: 96px; height: 96px; }
+.arch-avatar--lg { width: 120px; height: 120px; }
+
+/* Neutrálna sada: kruhový rám s erbom (bez obrázka) */
+.arch-avatar--erb {
+  border-radius: 50%;
+  border: 3px solid var(--primary);
+  background: var(--accent);
+  box-shadow: var(--shadow);
+}
+.arch-avatar--erb .arch-icon { display: block; width: 62%; height: 62%; }
+
+/* Prepínač ♂/♀ pri vlastnom archetype */
+.arch-toggle { display: inline-flex; gap: 6px; margin-top: 10px; }
+.arch-toggle button {
+  border: 1px solid var(--border);
+  background: var(--bg-light);
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.arch-toggle button:hover { background: var(--accent); border-color: var(--primary); }
+.arch-toggle button.is-active {
+  background: var(--primary);
+  border-color: var(--primary-dark);
+  font-weight: 700;
+}
+
+@media (max-width: 700px) {
+  .arch-avatar--lg { width: 88px; height: 88px; }
+}
 
 /* Archetypový riadok v karte matchu s malým avatarom */
 .match-arch {
@@ -1671,6 +1704,132 @@ input:focus, select:focus {
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* ------------------------------
+   13. ROZCESTNÍK + REŽIM „Prečo si tu"
+------------------------------ */
+
+.dash-lead { margin: -12px 0 20px; color: var(--text-light); }
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.dash-tile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--c-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  text-decoration: none;
+  color: var(--text);
+  box-shadow: var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.dash-tile:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--primary);
+}
+.dash-tile__icon { font-size: 26px; flex-shrink: 0; }
+.dash-tile__body { flex: 1; display: flex; flex-direction: column; }
+.dash-tile__name { font-family: "Baloo 2", sans-serif; font-weight: 600; font-size: 17px; }
+.dash-tile__desc { font-size: 13.5px; color: var(--text-light); line-height: 1.4; }
+.dash-tile__done {
+  align-self: flex-start;
+  background: var(--c-accent-2);
+  color: #14453b;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.dash-tile__time {
+  align-self: flex-start;
+  background: var(--accent);
+  color: var(--primary-dark);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.dash-tile.is-done { border-color: var(--c-accent-2); }
+
+/* Voľba režimu (onboarding aj profil) */
+.mode-picker { margin: 0 0 18px; }
+.mode-picker__label {
+  margin: 0 0 8px;
+  font-weight: 700;
+  font-family: "Baloo 2", sans-serif;
+}
+.mode-options { display: flex; flex-wrap: wrap; gap: 12px; }
+.mode-option {
+  flex: 1 1 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  background: var(--c-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-family: inherit;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+}
+.mode-option:hover { border-color: var(--primary); background: var(--accent); }
+.mode-option.is-active {
+  border-color: var(--primary-dark);
+  background: var(--accent);
+  box-shadow: inset 3px 0 0 var(--primary-dark);
+}
+.mode-option__title { font-weight: 700; }
+.mode-option__desc { font-size: 13px; color: var(--text-light); }
+
+.mode-badge {
+  display: inline-block;
+  background: #3d3a52;
+  color: #fff;
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-weight: 700;
+  font-size: 14px;
+  margin: 0 0 12px;
+}
+.mode-note {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  background: var(--accent);
+  border: 1px dashed var(--primary);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  font-size: 14px;
+  color: var(--text-light);
+}
+
+/* Návrh poradia podľa kompasu */
+.ap-suggest {
+  background: var(--accent);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--primary-dark);
+  margin: 0 0 10px;
+}
+
+@media (max-width: 700px) {
+  .dash-grid { grid-template-columns: 1fr; }
+  .mode-option { flex: 1 1 100%; }
 }
 
 /* Prístupnosť: rešpektuj obmedzený pohyb */

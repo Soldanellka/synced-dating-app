@@ -37,6 +37,7 @@ const AppState = {
     archetypePrefSet: 'both',   // Koho hľadám – sada na zoraďovanie: 'm' | 'z' | 'both'
     archetypePref: null,        // Koho hľadám – { poradie, prefOs1, prefOs2 } (soft doradenie, nikdy brána)
     essenceName: null,          // Meno podstaty – { adjektivum, substantivum, cely, why, od } (mimo scoringu)
+    mode: 'dating',             // Prečo si tu: 'dating' | 'growth' (rast = nezobrazuje sa ostatným)
     assertStyle: null,          // Asertivita – { counts, dominant } (privátny self-insight, mimo scoringu)
     assertProgress: null,       // Asertivita – prejdené mikro-lekcie { amygdala, kindness, techniques }
     // Výzor (Krok 5) – abstraktný avatar, KÁNON hodnôt viď docs/vyzor-a-pravidla.md
@@ -417,12 +418,17 @@ function archetypeFor(rt, set) {
 }
 window.archetypeFor = archetypeFor;
 
-// Kruhový avatar archetypu (obrázok v ráme); pri chýbajúcom obrázku
-// sa cez CSS ukáže pôvodný SVG erb – nič sa nerozbije
+// Kruhový avatar archetypu (obrázok v ráme). Neutrálna sada nemá
+// obrázok → kruhový rám s neutrálnym SVG erbom; pri chýbajúcom
+// súbore obrázka fallback na erb cez CSS – nič sa nerozbije
 function archetypeAvatarHTML(arch, size) {
   if (!arch) return '';
+  if (!arch.img) {
+    return `<span class="arch-avatar arch-avatar--${size || 'md'} arch-avatar--erb"
+      role="img" aria-label="${arch.name}">${archetypeIconSVG(arch.icon)}</span>`;
+  }
   return `<span class="arch-avatar arch-avatar--${size || 'md'}">
-    <img src="${arch.img || ''}" alt="${arch.name}" loading="lazy"
+    <img src="${arch.img}" alt="${arch.name}" loading="lazy"
       onerror="this.classList.add('is-broken')">
     ${archetypeIconSVG(arch.icon)}
   </span>`;
@@ -506,6 +512,8 @@ const ArchetypePref = {
     this.load();
     this.set = this.result?.set || AppState.userProfile.archetypePrefSet || 'both';
     this.order = this.validOrder(this.result?.poradie) || this.items(this.set).map(i => i.id);
+    // Bez vlastného poradia ponúkni návrh podľa kompasu (ak je RT hotový)
+    if (!this.result) this.suggestFromRT(false);
 
     this.renderPicker();
     this.renderCards();
@@ -517,6 +525,8 @@ const ArchetypePref = {
       this.set = chip.dataset.prefset;
       AppState.userProfile.archetypePrefSet = this.set;
       this.order = this.items(this.set).map(i => i.id);
+      this.suggested = false;
+      if (!this.result) this.suggestFromRT(false);
       this.renderPicker();
       this.renderCards();
     });
@@ -560,8 +570,31 @@ const ArchetypePref = {
       </span>`;
   },
 
+  /* Návrh poradia podľa RT kompasu – LEN návrh, ručné poradie má vždy
+     prednosť. Jemná komplementarita: opačný pól na osi blízkosť/odstup
+     často dopĺňa, podobný pól na osi kontinuita/zmena upokojuje. */
+  suggestFromRT(rerender = true) {
+    const rt = AppState.userProfile.rt;
+    if (!rt || typeof rt.os1 !== 'number') return false;
+    const t1 = -rt.os1;   // doplnenie
+    const t2 = rt.os2;    // podobnosť
+    const byId = Object.fromEntries(this.items(this.set).map(i => [i.id, i]));
+    this.order = [...this.order].sort((a, b) => {
+      const d = (id) => {
+        const q = byId[id]?.quad || 'BS';
+        return Math.abs((q[0] === 'B' ? 1 : -1) - t1) + Math.abs((q[1] === 'S' ? 1 : -1) - t2);
+      };
+      return d(a) - d(b);
+    });
+    this.suggested = true;
+    if (rerender) this.renderCards();
+    return true;
+  },
+
   renderCards() {
     const byId = Object.fromEntries(this.items(this.set).map(i => [i.id, i]));
+    const hint = document.getElementById('apSuggestNote');
+    if (hint) hint.hidden = !this.suggested || !!this.result;
     this.cardsEl.innerHTML = this.order.map((id, i) => {
       const it = byId[id];
       return `
@@ -614,6 +647,7 @@ const ArchetypePref = {
     this.renderProfileStrip();
     // Jemné doradenie sa prejaví hneď (ak sú matchy vykreslené)
     if (Object.keys(AppState.userProfile.valueVector || {}).length) Matches.render();
+    if (typeof Dashboard !== 'undefined') Dashboard.render();
     document.getElementById('apResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   },
 
@@ -786,6 +820,7 @@ const EssenceName = {
     this.renderCards();
     this.renderChosen();
     this.renderProfile();
+    if (typeof Dashboard !== 'undefined') Dashboard.render();
   },
 
   renderChosen() {
@@ -832,6 +867,165 @@ const EssenceName = {
 };
 
 
+/* --------------------------------------------------------------
+   ROZCESTNÍK – „čo mám spraviť ďalej"
+   --------------------------------------------------------------
+   Len navigácia a stav (hotové ✓ / dĺžka). Nič nepočíta.
+   V režime rast idú testy pred matchmi.
+   -------------------------------------------------------------- */
+const Dashboard = {
+  tiles: [
+    { id: 'rt',      icon: '🧭', name: 'Vzťahový kompas',   target: '#rt-test',
+      desc: 'Zisti svoje vzťahové ladenie a archetyp.', time: '3 min',
+      done: () => typeof RTTest !== 'undefined' && RTTest.done, world: 'growth' },
+    { id: 'pref',    icon: '🏰', name: 'Koho hľadám',       target: '#archetype-pref',
+      desc: 'Zoraď archetypy podľa svojho srdca.', time: '2 min',
+      done: () => typeof ArchetypePref !== 'undefined' && !!ArchetypePref.result, world: 'growth' },
+    { id: 'essence', icon: '✨', name: 'Meno tvojej podstaty', target: '#essence-name',
+      desc: 'Dve slová, ktoré vystihujú tvoje jadro.', time: '1 min',
+      done: () => !!AppState.userProfile.essenceName, world: 'growth' },
+    { id: 'assert',  icon: '🛡️', name: 'Asertivita',        target: '#assert-training',
+      desc: 'Tréning: udrž hranicu bez boja.', time: '5 min',
+      done: () => typeof AssertTraining !== 'undefined' && !!AssertTraining.result, world: 'growth' },
+    { id: 'games',   icon: '🎭', name: 'Hry o tebe',         target: '#values-game',
+      desc: 'Rebríček hodnôt, kuchynský test, panáčik z tvarov.', time: '2 min',
+      done: () => !!AppState.userProfile.valuesRanking?.length
+        && !!AppState.userProfile.kitchenRanking?.length
+        && !!AppState.userProfile.shapePersona, world: 'growth' },
+    { id: 'matches', icon: '💞', name: 'Matchy',             target: '#matches',
+      desc: 'Ľudia, ktorí sú na rovnakej vlne.', time: '',
+      done: () => false, world: 'dating' },
+    { id: 'chat',    icon: '💬', name: 'Chat',               target: '#chat',
+      desc: 'Napíš tým, s ktorými to má zmysel.', time: '',
+      done: () => false, world: 'dating' }
+  ],
+
+  init() {
+    const grid = document.getElementById('dashGrid');
+    if (!grid) return;
+    this.grid = grid;
+    this.render();
+  },
+
+  render() {
+    if (!this.grid) return;
+    const growth = typeof Mode !== 'undefined' && Mode.isGrowth();
+    // Rast: testy a sebapoznanie prvé. Zoznamovanie: matchy a chat prvé.
+    const first = growth ? 'growth' : 'dating';
+    const order = [...this.tiles].sort((a, b) =>
+      (a.world === first ? 0 : 1) - (b.world === first ? 0 : 1));
+
+    this.grid.innerHTML = order.map(t => {
+      const done = (() => { try { return !!t.done(); } catch (_) { return false; } })();
+      const status = done ? '<span class="dash-tile__done">hotové ✓</span>'
+        : (t.time ? `<span class="dash-tile__time">${t.time}</span>` : '');
+      return `
+        <a class="dash-tile ${done ? 'is-done' : ''}" href="${t.target}" data-scroll="${t.target}">
+          <span class="dash-tile__icon">${t.icon}</span>
+          <span class="dash-tile__body">
+            <span class="dash-tile__name">${t.name}</span>
+            <span class="dash-tile__desc">${t.desc}</span>
+          </span>
+          ${status}
+        </a>`;
+    }).join('');
+  }
+};
+
+
+/* --------------------------------------------------------------
+   REŽIM „Prečo si tu" – zoznamovanie × rast
+   --------------------------------------------------------------
+   'growth' = som tu pre testy a rast: matchy a chat ostávajú
+   viditeľné, ale profil je označený ako nedostupný a v matchmakingu
+   sa nemá ponúkať ostatným (flag `visibleToOthers` – reálne
+   vymáhanie medzi ľuďmi príde so Supabase).
+   Nemení výpočty kompatibility ani tvrdé brány.
+   -------------------------------------------------------------- */
+const Mode = {
+  KEY: 'synced_mode_v1',
+  options: [
+    ['dating', '💞 Hľadám vzťah', 'Matchy, chat aj testy — celá appka.'],
+    ['growth', '🌙 Som tu pre testy a rast', 'Nehľadám vzťah — zoznamovanie mám vypnuté.']
+  ],
+
+  init() {
+    try {
+      const v = localStorage.getItem(this.KEY);
+      if (v === 'dating' || v === 'growth') AppState.userProfile.mode = v;
+    } catch (_) {}
+    this.renderPickers();
+    this.applyMode();
+
+    document.addEventListener('click', (e) => {
+      const chip = e.target.closest('button[data-mode]');
+      if (chip) { this.set(chip.dataset.mode); return; }
+      if (e.target.closest('[data-mode-enable-dating]')) this.set('dating');
+    });
+  },
+
+  isGrowth() { return AppState.userProfile.mode === 'growth'; },
+
+  // Flag pre budúce serverové vymáhanie (Supabase)
+  visibleToOthers() { return !this.isGrowth(); },
+
+  set(mode) {
+    if (mode !== 'dating' && mode !== 'growth') return;
+    AppState.userProfile.mode = mode;
+    try { localStorage.setItem(this.KEY, mode); } catch (_) {}
+    this.renderPickers();
+    this.applyMode();
+  },
+
+  renderPickers() {
+    const cur = AppState.userProfile.mode;
+    const html = `
+      <p class="mode-picker__label">Prečo si tu?</p>
+      <div class="mode-options">
+        ${this.options.map(([v, title, desc]) => `
+          <button type="button" class="mode-option ${v === cur ? 'is-active' : ''}" data-mode="${v}">
+            <span class="mode-option__title">${title}</span>
+            <span class="mode-option__desc">${desc}</span>
+          </button>`).join('')}
+      </div>`;
+    ['modePickerOnboarding', 'modePickerProfile'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = html;
+    });
+  },
+
+  applyMode() {
+    const growth = this.isGrowth();
+    document.body.classList.toggle('is-growth', growth);
+
+    // Badge „nedostupný/á na zoznámenie" v profile
+    const badgeHost = document.getElementById('modePickerProfile');
+    if (badgeHost) {
+      const old = document.getElementById('modeBadge');
+      if (old) old.remove();
+      if (growth) {
+        badgeHost.insertAdjacentHTML('afterbegin',
+          '<p class="mode-badge" id="modeBadge">🌙 Nedostupný/á na zoznámenie</p>');
+      }
+    }
+
+    // Info pruh nad matchmi + rýchle zapnutie zoznamovania
+    const note = document.getElementById('matchesModeNote');
+    if (note) {
+      note.innerHTML = growth ? `
+        <div class="mode-note">
+          <span>Si v režime rast – zoznamovanie máš vypnuté.
+            Môžeš ho kedykoľvek zapnúť v profile.</span>
+          <button type="button" class="btn-primary" data-mode-enable-dating>Zapnúť zoznamovanie</button>
+        </div>` : '';
+    }
+
+    // Rozcestník sa preusporiada: v režime rast idú testy pred matchy
+    if (typeof Dashboard !== 'undefined') Dashboard.render();
+  }
+};
+
+
 /* Voľba archetypovej sady v profile (pohlavie appka nezbiera) */
 const ArchetypeSet = {
   KEY: 'synced_archetypeset_v1',
@@ -839,22 +1033,30 @@ const ArchetypeSet = {
 
   init() {
     this.box = document.getElementById('archetypeSetPicker');
-    if (!this.box) return;
     try {
       const v = localStorage.getItem(this.KEY);
       if (['m', 'z', 'neutral', 'none'].includes(v)) AppState.userProfile.archetypeSet = v;
     } catch (_) {}
     this.render();
-    this.box.addEventListener('click', (e) => {
+    this.box?.addEventListener('click', (e) => {
       const chip = e.target.closest('button[data-set]');
-      if (!chip) return;
-      AppState.userProfile.archetypeSet = chip.dataset.set;
-      try { localStorage.setItem(this.KEY, chip.dataset.set); } catch (_) {}
-      this.render();
-      // Prekresli, kde sa archetyp ukazuje
-      if (RTTest.done) { RTTest.renderResult(); RTTest.renderProfileStrip(); }
-      if (Object.keys(AppState.userProfile.valueVector || {}).length) Matches.render();
+      if (chip) this.apply(chip.dataset.set);
     });
+    // Prepínač ♂/♀ pri zobrazenom archetype (RT výsledok) – ten istý stav
+    document.addEventListener('click', (e) => {
+      const t = e.target.closest('button[data-arch-toggle]');
+      if (t) this.apply(t.dataset.archToggle);
+    });
+  },
+
+  apply(set) {
+    if (!['m', 'z', 'neutral', 'none'].includes(set)) return;
+    AppState.userProfile.archetypeSet = set;
+    try { localStorage.setItem(this.KEY, set); } catch (_) {}
+    this.render();
+    // Prekresli všade, kde sa archetyp ukazuje
+    if (RTTest.done) { RTTest.renderResult(); RTTest.renderProfileStrip(); }
+    if (Object.keys(AppState.userProfile.valueVector || {}).length) Matches.render();
   },
 
   render() {
@@ -1538,6 +1740,7 @@ function createRankingGame(cfg) {
       this.save();
       this.renderResult();
       this.renderProfileStrip();
+      if (typeof Dashboard !== 'undefined') Dashboard.render();
       document.getElementById(cfg.ids.result).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     },
 
@@ -1746,6 +1949,7 @@ const ShapeGame = {
     this.save();
     this.renderResult();
     this.renderProfileStrip();
+    if (typeof Dashboard !== 'undefined') Dashboard.render();
     document.getElementById('sgResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   },
 
@@ -1937,6 +2141,11 @@ const RTTest = {
     this.renderProfileStrip();
     // Obnov matchy – pribudol opisný riadok „Vzťahový štýl" (nie skóre)
     if (typeof Matches !== 'undefined') Matches.render();
+    // Ponúkni predvyplnené poradie v „Koho hľadám" (len návrh)
+    if (typeof ArchetypePref !== 'undefined' && !ArchetypePref.result) {
+      ArchetypePref.suggestFromRT();
+    }
+    if (typeof Dashboard !== 'undefined') Dashboard.render();
     document.getElementById('rtResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   },
 
@@ -1948,21 +2157,33 @@ const RTTest = {
     const cy = 110 - os2 * 80;
     const set = AppState.userProfile.archetypeSet;
     const s = (set === 'm' || set === 'z') ? set : 'neutral';
-    // pozície mini-avatarov: BS vpravo hore, OS vľavo hore,
-    // BZ vpravo dole, OZ vľavo dole
-    const spots = { BS: [162, 58], OS: [58, 58], BZ: [162, 162], OZ: [58, 162] };
-    const R = 17;
+    const userQuad = rtQuadrant({ os1, os2 });
+    // pozície avatarov kvadrantov: BS vpravo hore, OS vľavo hore,
+    // BZ vpravo dole, OZ vľavo dole (s odsadením od osí a popiskov)
+    const spots = { BS: [165, 55], OS: [55, 55], BZ: [165, 165], OZ: [55, 165] };
+    const R = 24;
     const minis = Object.entries(spots).map(([q, [x, y]]) => {
-      const a = window.ARCHETYPES?.corners[q]?.[s];
-      if (!a || !a.img) return '';
-      return `
+      const corner = window.ARCHETYPES?.corners[q];
+      if (!corner) return '';
+      const a = corner[s];
+      const mine = q === userQuad;
+      // zvýraznenie kvadrantu používateľa: teplý prstenec okolo avatara
+      const halo = mine ? `<circle cx="${x}" cy="${y}" r="${R + 6}" fill="none"
+          stroke="var(--c-accent-3)" stroke-width="4" opacity="0.9"/>` : '';
+      // neutrálna sada nemá obrázok → erb vo svetlom kruhu
+      const media = a.img ? `
         <clipPath id="rtClip${q}"><circle cx="${x}" cy="${y}" r="${R}"/></clipPath>
         <image href="${a.img}" x="${x - R}" y="${y - R}" width="${R * 2}" height="${R * 2}"
           clip-path="url(#rtClip${q})" preserveAspectRatio="xMidYMid slice">
           <title>${a.name}</title>
-        </image>
+        </image>` : `
+        <circle cx="${x}" cy="${y}" r="${R}" fill="var(--bg-light)"/>
+        ${archetypeIconSVG(corner.icon).replace('<svg class="arch-icon"',
+          `<svg x="${x - R * 0.6}" y="${y - R * 0.6}" width="${R * 1.2}" height="${R * 1.2}"`)}`;
+      return `${halo}${media}
         <circle cx="${x}" cy="${y}" r="${R}" fill="none"
-          stroke="var(--primary)" stroke-width="2"/>`;
+          stroke="${mine ? 'var(--primary-dark)' : 'var(--primary)'}"
+          stroke-width="${mine ? 3 : 2}"/>`;
     }).join('');
     return `
       <svg class="rt-compass" viewBox="0 0 220 220" role="img"
@@ -1995,6 +2216,12 @@ const RTTest = {
         <div>
           <p class="rt-archetype__name">🏰 Tvoj archetyp: <strong>${arch.name}</strong></p>
           <p class="rt-archetype__desc">${arch.desc}</p>
+          <span class="arch-toggle" role="group" aria-label="Zobraziť archetyp ako">
+            <button type="button" data-arch-toggle="m"
+              class="${AppState.userProfile.archetypeSet === 'm' ? 'is-active' : ''}">♂ Mužský</button>
+            <button type="button" data-arch-toggle="z"
+              class="${AppState.userProfile.archetypeSet === 'z' ? 'is-active' : ''}">♀ Ženský</button>
+          </span>
         </div>
       </div>` : ''}
       ${this.compassSVG(os1, os2)}
@@ -2329,6 +2556,7 @@ const AssertTraining = {
     this.renderResult();
     this.renderProfileStrip();
 
+    if (typeof Dashboard !== 'undefined') Dashboard.render();
     this.sceneEl.innerHTML = `
       <p class="at-situation">Prešiel/prešla si všetky scény. 💛</p>
       <button type="button" class="btn-secondary" data-at-restart>Prejsť scény znova</button>`;
@@ -3008,14 +3236,17 @@ document.addEventListener('DOMContentLoaded', () => {
   Onboarding.init();
   Chat.init();
   SafetyUI.init();
+  Dashboard.init();
   ValuesGame.init();
   KitchenGame.init();
   ShapeGame.init();
   ArchetypeSet.init();          // pred RTTest – sada musí byť načítaná pred vykreslením
-  ArchetypePref.init();
   RTTest.init();
+  ArchetypePref.init();         // po RTTest – návrh poradia číta uložené RT osi
   EssenceName.init();           // po RTTest a hrách – návrhy čítajú ich uložené výsledky
   AssertTraining.init();
+  Mode.init();                  // ako posledný – prekreslí rozcestník podľa režimu
+  Dashboard.render();
   VideoVerification.init();
   VideoChat.init();
   Modal.init();
