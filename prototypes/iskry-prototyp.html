@@ -126,6 +126,7 @@
       <div class="refill">
         <button class="btn-ghost" id="daily">🌅 Denná dávka<small>+5 ✨ · raz denne</small></button>
         <button class="btn-ghost" id="invite">💌 Pozvi kamoša<small>+3 ✨ · virálne</small></button>
+        <button class="btn-ghost" id="ad">🎬 Pozri video<small>+2 ✨ · dobrovoľná reklama</small></button>
         <button class="btn admin" id="adminGrant">🛠️ Admin: pošli hráčovi<small>+10 ✨ · teraz to robíš ty</small></button>
         <button class="btn" id="buy">🛒 Kúpiť balíček<small>+20 ✨ · 2,99 € (mock)</small></button>
       </div>
@@ -198,6 +199,9 @@ function render(){
   $('xpFill').style.width = (State.xp % XP_PER_LEVEL) + '%';
   $('lvlLabel').textContent = 'Úroveň rastu ' + State.level;
 
+  // Premium = bez reklám → skry tlačidlo videa
+  const adBtn = $('ad'); if(adBtn) adBtn.style.display = State.premium ? 'none' : 'flex';
+
   // aktivity
   $('acts').innerHTML = ACTIVITIES.map(a=>{
     const can = State.premium || State.iskry >= a.cost;
@@ -242,6 +246,12 @@ document.addEventListener('click', e=>{
       grant(5, 'Denná dávka'); toast('🌅 +5 ✨ denná dávka'); break;
     case 'invite':
       grant(3, 'Pozvánka kamošovi'); toast('💌 +3 ✨ za pozvánku'); break;
+    case 'ad': {
+      const s = b.querySelector('small'); const orig = s.textContent;
+      b.disabled = true; s.textContent = '▶️ reklama beží…';
+      setTimeout(() => { grant(2, 'Odmena za reklamu'); toast('🎬 +2 ✨ za video'); b.disabled = false; s.textContent = orig; }, 1500);
+      break;
+    }
     case 'adminGrant':
       grant(10, 'Admin dobitie'); toast('🛠️ Admin poslal +10 ✨'); break;
     case 'buy':
