@@ -2915,6 +2915,10 @@ const Legal = {
     privacy: {
       title: 'Ochrana osobných údajov',
       body: `<p><em>Placeholder – tento text nahradí finálne GDPR znenie.</em></p>
+        <p><strong>Ako to je dnes:</strong> appka beží bez účtov a bez servera —
+        tvoje odpovede a výsledky zostávajú v tvojom prehliadači (localStorage)
+        a nikam sa neodosielajú. Text nižšie popisuje, ako to bude fungovať,
+        keď pribudnú účty.</p>
         <p>Spracúvame údaje, ktoré nám poskytneš (profil, odpovede z testu kompatibility, správy) na účel
         poskytovania služby a hľadania vhodných matchov. Overovacie video je citlivý údaj a spracúvame ho
         len na overenie identity.</p>

@@ -291,6 +291,53 @@ img { max-width: 100%; display: block; }
   .opts { gap: 12px; }
 }
 
+/* Súkromie a bezpečnosť – ľudské zhrnutie na landingu */
+.privacy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+.privacy-card {
+  background: var(--c-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 22px 24px;
+}
+.privacy-card h3 { margin: 0 0 12px; }
+.privacy-list { list-style: none; margin: 0 0 14px; padding: 0; }
+.privacy-list li {
+  position: relative;
+  padding-left: 28px;
+  margin-bottom: 10px;
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+.privacy-list li::before {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-weight: 700;
+}
+/* ✓ robíme = úspech (mäta), ✗ nerobíme = neutrál, ⏳ pripravujeme = dôraz */
+.privacy-yes::before { content: '✓'; color: var(--c-success-ink); }
+.privacy-no::before { content: '✗'; color: var(--c-muted); }
+.privacy-plan::before { content: '⏳'; }
+.privacy-plan { color: var(--text-light); }
+
+.privacy-principle {
+  margin: 0;
+  padding: 10px 14px;
+  background: var(--accent);
+  border-left: 4px solid var(--c-highlight);   /* rola: jemný dôraz */
+  border-radius: var(--radius);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.privacy-more { margin: 18px 0 0; font-size: 14px; }
+.privacy-more a { color: var(--primary-dark); font-weight: 600; }
+.privacy-more__note { color: var(--text-light); }
+
 /* Ulož a pokračuj – ponuka nadviazať na rozrobený test */
 .resume-card {
   display: flex;
