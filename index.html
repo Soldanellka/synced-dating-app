@@ -53,13 +53,21 @@
         </svg>
       </div>
       <div class="hero-text">
-        <h1>Zoznamka pre ľudí, ktorí sú <em class="hero-hl">na rovnakej vlne</em>.</h1>
-        <p>Žiadne fejky, žiadne hry. Len ľudia, ktorí zdieľajú tvoje hodnoty.</p>
-        <button class="btn-primary btn-lg" data-scroll="#signup">💛 Začni test kompatibility</button>
-        <p class="hero-note">Zadarmo · 5 minút · Bez záväzkov</p>
+        <h1>Zoznamka pre ľudí <em class="hero-hl">na rovnakej vlne</em>.</h1>
+        <p class="hero-sub">Hodnoty prvé. Žiadne fejky.</p>
+        <button class="btn-primary btn-lg hero-cta" data-scroll="#signup">Sprav si test · 5 min</button>
+
+        <!-- Trust pásik -->
+        <ul class="trust-strip">
+          <li>✓ 18+</li>
+          <li>✓ overení ľudia</li>
+          <li>✓ dáta v EÚ</li>
+          <li>✓ nahlásiť/blokovať kedykoľvek</li>
+        </ul>
       </div>
-      <div class="hero-visual" aria-hidden="true">
-        <div class="hero-visual__card">💛<br>na rovnakej vlne</div>
+      <div class="hero-visual">
+        <img class="hero-portrait" src="assets/archetypes/kralovna.png"
+          alt="Ilustrácia archetypu Kráľovná" width="320" height="320">
       </div>
     </section>
 
@@ -369,17 +377,18 @@
       <!-- Info pruh pre režim rast (naplní JS) -->
       <div id="matchesModeNote"></div>
       <div class="matches-grid" id="matchesGrid">
-        <!-- Naplní JS (Krok 3). Dovtedy statické ukážky: -->
+        <!-- Naplní JS (Krok 3). Dovtedy statické ukážky (bez čísel): -->
         <article class="match-card">
           <h3>Anna, 28</h3>
-          <p class="match-score">Kompatibilita: 87 %</p>
-          <p>Spoločné hodnoty: rodina, pokoj, osobný rast</p>
-          <button class="btn-primary">Otvoriť profil</button>
+          <p class="match-type">Harmonický pár</p>
+          <p class="match-meta">💛 Veľa spoločného v hodnotách — <b>rodina</b> a <b>pokoj</b> vás spájajú.</p>
+          <button class="btn-primary" data-scroll="#signup">Sprav si test</button>
         </article>
         <article class="match-card">
           <h3>Peter, 32</h3>
-          <p class="match-score">Kompatibilita: 82 %</p>
-          <button class="btn-primary">Otvoriť profil</button>
+          <p class="match-type">Spriaznené duše</p>
+          <p class="match-meta">💛 Spája vás <b>osobný rast</b>.</p>
+          <button class="btn-primary" data-scroll="#signup">Sprav si test</button>
         </article>
       </div>
     </section>
@@ -572,6 +581,11 @@
       <a href="#cookies" data-legal="cookies">Cookies</a>
     </nav>
   </footer>
+
+  <!-- Sticky CTA na mobile – skryje sa, keď používateľ začne test -->
+  <div class="sticky-cta" id="stickyCta">
+    <button class="btn-primary btn-lg" data-scroll="#signup">Sprav si test · 5 min</button>
+  </div>
 
   <!-- Univerzálne modálne okno (checkout + právne texty) -->
   <div class="modal-overlay" id="modal" hidden>

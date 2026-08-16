@@ -214,6 +214,72 @@ img { max-width: 100%; display: block; }
   50% { transform: translateY(-8px); }
 }
 
+.hero-sub {
+  font-size: 20px !important;
+  font-weight: 600;
+  color: var(--text) !important;
+}
+
+.hero-cta { margin-top: 4px; }
+
+/* Trust pásik pod CTA */
+.trust-strip {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  padding: 0;
+  margin: 18px 0 0;
+  font-size: 13px;
+  color: var(--text-light);
+}
+.trust-strip li { white-space: nowrap; }
+
+/* Ilustrácia archetypu v hero */
+.hero-portrait {
+  width: 320px;
+  max-width: 78vw;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 6px solid var(--c-surface);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Sticky CTA – len na mobile a len kým sa nezačne test */
+.sticky-cta {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 90;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: rgba(253, 248, 251, 0.95);
+  backdrop-filter: blur(6px);
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.sticky-cta .btn-primary { width: 100%; max-width: 420px; }
+.sticky-cta.is-hidden { display: none !important; }
+
+@media (max-width: 640px) {
+  .sticky-cta { display: block; }
+  /* aby posledná sekcia nebola pod sticky pruhom */
+  body:not(.cta-hidden) .app-footer { padding-bottom: 84px; }
+}
+
+/* Dotykové ciele na mobile */
+@media (max-width: 640px) {
+  .btn-primary, .btn-secondary, .opt, .avatar-chip,
+  .at-answer, .en-card, .mode-option, .chat-menu button {
+    min-height: 44px;
+  }
+  .vg-card__move button, .sg-slot { min-width: 44px; min-height: 44px; }
+  .opts { gap: 12px; }
+}
+
 /* Zvýraznenie sloganu */
 .hero-hl {
   font-style: normal;
@@ -528,7 +594,8 @@ input:focus, select:focus {
 
 @media (max-width: 480px) {
   .bar-row { grid-template-columns: 110px 1fr 30px; font-size: 13px; }
-  .likert__dot { width: 40px; height: 40px; }
+  /* likert kolieska ostávajú 44 px (dotykový cieľ), len užšie rozostupy */
+  .likert { gap: 8px; }
 }
 
 /* Avatar krok (Krok 5) – „Ja" a „Môj ideál" */

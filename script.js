@@ -1114,6 +1114,36 @@ window.calculateCompatibility = calculateCompatibility;
 
 
 /* --------------------------------------------------------------
+   KVALITATÍVNE SIGNÁLY namiesto tvrdých percent
+   --------------------------------------------------------------
+   Skóre z calculateCompatibility sa naďalej počíta a používa na
+   ZORADENIE matchov – len sa nikde nevypisuje ako číslo.
+   Filozofia: jemné signály, nie čísla (docs/vyzor-a-pravidla.md).
+   -------------------------------------------------------------- */
+
+// Veta o spoločných hodnotách (bez čísel)
+function sharedValuesLine(shared) {
+  const s = shared || [];
+  if (s.length >= 2) {
+    return `Veľa spoločného v hodnotách — <b>${s[0]}</b> a <b>${s[1]}</b> vás spájajú.`;
+  }
+  if (s.length === 1) return `Spája vás <b>${s[0]}</b>.`;
+  return 'Spoločné hodnoty ešte len objavíte — je o čom hovoriť.';
+}
+window.sharedValuesLine = sharedValuesLine;
+
+// Slovné vyjadrenie miery (0–1) pre report – žiadne percentá
+function qualLabel(v) {
+  if (typeof v !== 'number') return '—';
+  if (v >= 0.8) return 'veľmi blízko';
+  if (v >= 0.65) return 'blízko';
+  if (v >= 0.5) return 'sčasti podobné';
+  return 'odlišné — a to môže dopĺňať';
+}
+window.qualLabel = qualLabel;
+
+
+/* --------------------------------------------------------------
    3c) MATCHES – výpočet a vykreslenie do sekcie #matches
    -------------------------------------------------------------- */
 const Matches = {
@@ -1216,18 +1246,17 @@ const Matches = {
     };
   },
 
+  // r.score sa TU NEVYPISUJE – slúži len na zoradenie v render()
   cardHTML(user, r) {
-    const sharedTxt = r.shared.length ? r.shared.join(', ') : 'objavíte spolu';
     return `
       <article class="match-card">
         <div class="match-card__head">
           <h3>${user.name}, ${user.age}</h3>
-          <span class="match-badge">${r.score}%</span>
         </div>
         <p class="match-type">${r.type}</p>
         <p class="match-desc">${r.desc}</p>
         <p class="match-meta">📍 ${user.location}</p>
-        <p class="match-meta">💛 Spoločné hodnoty: ${sharedTxt}</p>
+        <p class="match-meta">💛 ${sharedValuesLine(r.shared)}</p>
         ${reframeLove(r.appearanceFit)}
         ${r.rtLine || ''}
         ${r.archLine || ''}
@@ -1563,9 +1592,10 @@ const Chat = {
       return { u, pct };
     }).sort((a, b) => (b.pct ?? 0) - (a.pct ?? 0));
 
-    this.listEl.innerHTML = rows.map(({ u, pct }) => `
+    // pct sa používa len na zoradenie – číslo sa nezobrazuje
+    this.listEl.innerHTML = rows.map(({ u }) => `
       <li data-match="${u.id}" class="${u.id === AppState.chat.activeMatchId ? 'is-active' : ''}">
-        ${u.name}${pct != null ? ` <span class="chat-list__pct">${pct}%</span>` : ''}
+        ${u.name}
       </li>`).join('');
   },
 
@@ -2851,14 +2881,16 @@ const Billing = {
                      .sort((a, b) => b.r.score - a.r.score)[0];
     Modal.open(`
       <h3 class="modal__title">📊 Report: ty & ${top.u.name}</h3>
-      <p class="report-score">${top.r.score}% · ${top.r.type}</p>
+      <p class="report-score">${top.r.type}</p>
       <p class="modal__desc">${top.r.desc}</p>
       <ul class="report-list">
-        <li>Zhoda hodnôt: <b>${Math.round(top.r.valueSim * 100)}%</b></li>
-        <li>Súlad osobností: <b>${Math.round(top.r.persComponent * 100)}%</b></li>
-        <li>Zhoda zámeru: <b>${Math.round(top.r.intent * 100)}%</b></li>
-        <li>Spoločné hodnoty: <b>${top.r.shared.join(', ') || '—'}</b></li>
+        <li>Hodnoty: <b>${qualLabel(top.r.valueSim)}</b></li>
+        <li>Naladenie a povahy: <b>${qualLabel(top.r.persComponent)}</b></li>
+        <li>Zámer: <b>${qualLabel(top.r.intent)}</b></li>
+        <li>Spoločné hodnoty: <b>${top.r.shared.join(', ') || 'objavíte spolu'}</b></li>
       </ul>
+      <p class="pay-note">Zámerne bez percent — čísla zvádzajú porovnávať,
+        my radšej ukazujeme, čo vás spája. 💛</p>
       <button class="btn-primary" data-close-modal>Zavrieť</button>`);
   }
 };
@@ -3086,7 +3118,7 @@ const Onboarding = {
       this.renderSummary();
       this.syncProfileSection();
       Matches.render();           // naplní sekciu #matches reálnymi dátami
-      Chat.renderList();          // aktualizuje zoznam konverzácií o % kompatibility
+      Chat.renderList();          // zoradí konverzácie podľa (interného) skóre
     }
     this.goToStep(AppState.currentStep + 1);
   },
@@ -3129,15 +3161,20 @@ const Onboarding = {
 
     const intentMap = { serious: 'Vážny vzťah', company: 'Spoločnosť', open: 'Otvorený možnostiam' };
 
-    // Ak používateľ prišiel cez pozvánku – ukáž % súlad s pozývateľom
+    // Ak používateľ prišiel cez pozvánku – ukáž jemný signál súladu (bez čísla)
     let compareBlock = '';
     const inviter = (typeof Invite !== 'undefined') ? Invite.inviterUser() : null;
     if (inviter) {
+      // Kvalitatívny signál namiesto percenta (skóre sa nezobrazuje)
       const r = calculateCompatibility(Matches.currentUser(), inviter);
+      const sharedTop = (r.shared || []).slice(0, 3);
       compareBlock = `
         <div class="summary-card summary-card--compare">
-          <h4>💞 Ty & ${Invite.esc(inviter.name)}: ${r.score}%</h4>
+          <h4>💞 Ty & ${Invite.esc(inviter.name)}: máte veľa spoločného 💛</h4>
           <p class="summary-sub">${r.type} – ${r.desc}</p>
+          <p class="summary-sub">${sharedTop.length
+            ? 'Spájajú vás: <b>' + sharedTop.join('</b>, <b>') + '</b>'
+            : 'Spoločné hodnoty objavíte v rozhovore.'}</p>
         </div>`;
     }
 
@@ -3211,6 +3248,49 @@ const Nav = {
 
 
 /* --------------------------------------------------------------
+   5b) STICKY CTA na mobile – kým používateľ nezačne test
+   -------------------------------------------------------------- */
+const StickyCta = {
+  init() {
+    this.el = document.getElementById('stickyCta');
+    this.signup = document.getElementById('signup');
+    if (!this.el || !this.signup) return;
+
+    // Skryje sa, keď je test v zábere, už sa rozbehol, alebo naň
+    // používateľ klikol (vtedy už pruh nemá čo pripomínať)
+    const update = () => {
+      const started = AppState.currentStep > 1
+        || Object.keys(AppState.answers).length > 0;
+      const box = this.signup.getBoundingClientRect();
+      const inView = box.top < window.innerHeight * 0.8;
+      const hide = started || inView || this.dismissed;
+      this.el.classList.toggle('is-hidden', hide);
+      document.body.classList.toggle('cta-hidden', hide);
+    };
+    this.update = update;
+
+    update();
+    // IntersectionObserver zaberie aj pri skoku cez odkaz či programovom
+    // skrolovaní (kde sa scroll event nemusí vyvolať)
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(update, { rootMargin: '0px 0px -20% 0px' }).observe(this.signup);
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    // Po dopočítaní layoutu (načítanie obrázkov mení výšku hero sekcie)
+    window.addEventListener('load', update);
+    document.addEventListener('change', update);
+    // Klik na CTA vedúce k testu pruh zavrie (aj počas plynulého skrolovania)
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('[data-scroll="#signup"]')) this.dismissed = true;
+      update();
+      setTimeout(update, 500);
+    });
+  }
+};
+
+
+/* --------------------------------------------------------------
    6) PLYNULÝ SCROLL pre data-scroll="#cieľ"
    -------------------------------------------------------------- */
 const SmoothScroll = {
@@ -3255,5 +3335,6 @@ document.addEventListener('DOMContentLoaded', () => {
   Invite.init();
   Nav.init();
   SmoothScroll.init();
+  StickyCta.init();
   console.log('[Synced] Aplikácia inicializovaná ✔');
 });
