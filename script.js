@@ -3426,6 +3426,25 @@ const StickyCta = {
 
 
 /* --------------------------------------------------------------
+   5c) PWA – registrácia service workera (app shell)
+   --------------------------------------------------------------
+   SW len zrýchľuje načítanie a umožňuje otvoriť appku offline.
+   Do appkovej logiky ani do localStorage nezasahuje.
+   -------------------------------------------------------------- */
+const PWA = {
+  init() {
+    if (!('serviceWorker' in navigator)) return;
+    // až po load, nech neuberá výkon pri prvom vykreslení
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('[Synced] Service worker registrovaný ✔', reg.scope))
+        .catch(err => console.warn('[Synced] Service worker sa nepodarilo registrovať:', err));
+    });
+  }
+};
+
+
+/* --------------------------------------------------------------
    6) PLYNULÝ SCROLL pre data-scroll="#cieľ"
    -------------------------------------------------------------- */
 const SmoothScroll = {
@@ -3473,5 +3492,6 @@ document.addEventListener('DOMContentLoaded', () => {
   TestGate.init();              // pred Taster – ochutnávka sa podľa neho skrýva
   Taster.init();
   StickyCta.init();
+  PWA.init();
   console.log('[Synced] Aplikácia inicializovaná ✔');
 });
