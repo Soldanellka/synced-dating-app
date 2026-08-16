@@ -23,9 +23,20 @@
   /* --- Dizajnový systém: ružová + 3 harmonické akcenty --- */
   --c-primary: #e8b7d4;    /* jemná ružová (brand) */
   --c-primary-dark: #b25078; /* sýta ružová – texty/aktívne (WCAG AA na bielej) */
-  --c-accent-1: #ff9b7b;   /* koralová/broskyňová */
-  --c-accent-2: #7fcbbb;   /* mätová */
-  --c-accent-3: #ffd97d;   /* teplá žltá */
+  /* --- Akcenty MAJÚ ROLU, nie sú dekorácia všade ---------------
+     Ružová = značka (primárne akcie, aktívne stavy, kľúčové prvky).
+     Akcenty sa používajú striedmo a vždy v tej istej role:      */
+  --c-accent-1: #ff9b7b;   /* koralová – sekundárne ilustračné detaily */
+  --c-accent-2: #5aab98;   /* mätová   – ÚSPECH / hotové */
+  --c-accent-3: #ffd97d;   /* žltá     – JEMNÝ DÔRAZ / tip */
+
+  /* Sémantické aliasy – v kóde používaj tieto, nie čísla */
+  --c-success: var(--c-accent-2);
+  --c-success-soft: #dff0ea;   /* podklad pre „hotové" odznaky */
+  --c-success-ink: #14453b;    /* text na mätovom podklade */
+  --c-highlight: var(--c-accent-3);
+  --c-secondary: var(--c-accent-1);
+  --c-off: #4f4a57;        /* neutrálny „vypnutý" stav (nie akcent) */
   --c-bg: #fdf8fb;         /* pozadie s ružovým nádychom */
   --c-surface: #ffffff;    /* karty a povrchy */
   --c-text: #2a2a2a;
@@ -358,10 +369,10 @@ img { max-width: 100%; display: block; }
   color: var(--text-light);
 }
 
-/* Zvýraznenie sloganu */
+/* Zvýraznenie sloganu – rola: jemný dôraz (žltá), jediné miesto v hero */
 .hero-hl {
   font-style: normal;
-  background: linear-gradient(transparent 62%, var(--c-accent-3) 62%);
+  background: linear-gradient(transparent 62%, var(--c-highlight) 62%);
   border-radius: 4px;
   padding: 0 4px;
 }
@@ -392,20 +403,7 @@ img { max-width: 100%; display: block; }
   justify-content: center;
 }
 
-.hero-visual__card {
-  width: 260px;
-  height: 260px;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, var(--c-primary) 0%, var(--c-accent-3) 60%, var(--c-accent-1) 130%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  font-weight: 600;
-  font-size: 22px;
-  color: #7a4c66;
-  box-shadow: var(--shadow);
-}
+/* (hero-visual__card nahradila ochutnávka + ilustrácia archetypu) */
 
 /* ------------------------------
    5. SEKCIE
@@ -419,7 +417,7 @@ img { max-width: 100%; display: block; }
   color: var(--primary-dark);
 }
 
-/* Hravé podčiarknutie nadpisov sekcií */
+/* Podčiarknutie nadpisov sekcií – značková ružová, nie dúha */
 .section > h2::after {
   content: '';
   display: block;
@@ -427,7 +425,7 @@ img { max-width: 100%; display: block; }
   height: 6px;
   border-radius: 999px;
   margin-top: 6px;
-  background: linear-gradient(90deg, var(--c-primary), var(--c-accent-1), var(--c-accent-3));
+  background: linear-gradient(90deg, var(--c-primary-dark), var(--c-primary));
 }
 
 .steps {
@@ -1156,10 +1154,12 @@ input:focus, select:focus {
 .at-answer:hover:not(:disabled) { border-color: var(--primary); background: var(--accent); }
 .at-answer:disabled { cursor: default; }
 .at-answer.is-chosen { border-color: var(--primary-dark); background: var(--accent); font-weight: 600; }
-.at-answer.is-assert { box-shadow: inset 4px 0 0 var(--primary-dark); }
+.at-answer.is-assert { box-shadow: inset 4px 0 0 var(--c-success); }
+/* „asertívna cesta" = tá dobrá – rovnaká mätová rola ako hotové */
 .at-badge {
   display: inline-block;
-  background: var(--primary);
+  background: var(--c-success-soft);
+  color: var(--c-success-ink);
   border-radius: 999px;
   padding: 2px 10px;
   font-size: 12px;
@@ -1202,7 +1202,7 @@ input:focus, select:focus {
 .at-tile.is-open { border-color: var(--primary-dark); background: var(--accent); }
 .at-tile__icon { font-size: 20px; }
 .at-tile__title { flex: 1; font-weight: 600; }
-.at-tile__done { color: var(--primary-dark); font-weight: 700; }
+.at-tile__done { color: var(--c-success-ink); font-weight: 700; }   /* rola: hotové */
 
 .at-extra { margin-bottom: 20px; }
 .at-extra h3 { margin-top: 0; }
@@ -1394,9 +1394,9 @@ input:focus, select:focus {
   max-width: 70%;
 }
 
-.message-them { background: #f1e4ec; }
+.message-them { background: #f0eef1; }   /* neutrál – aby chat nebol dvojfarebný */
 
-.message-me { background: #dfe8f7; align-self: flex-end; }
+.message-me { background: #f8dcea; align-self: flex-end; }   /* moje = značková ružová */
 
 .chat-ai-suggestions { margin-bottom: 16px; }
 .chat-ai-suggestions p { margin: 0 0 8px; font-weight: 600; font-size: 14px; }
@@ -1433,8 +1433,9 @@ input:focus, select:focus {
   font-weight: 700;
 }
 .verify__badge--none { background: #e9e9ec; color: #555; }
-.verify__badge--pending { background: #ffe6a7; color: #8a6d1a; }
-.verify__badge--ok { background: #bfe9c8; color: #1f6b37; }
+/* čaká = jemný dôraz (žltá), overené = úspech (mätová) */
+.verify__badge--pending { background: #fff1cf; color: #7d6212; }
+.verify__badge--ok { background: var(--c-success-soft); color: var(--c-success-ink); }
 .verify__hint { font-size: 14px; color: var(--text-light); margin: 0 0 12px; }
 .verify__consent {
   display: flex;
@@ -1824,10 +1825,8 @@ input:focus, select:focus {
   gap: 10px;
 }
 
-/* Farebné čísla krokov na landingu */
-.step:nth-child(1) .step__num { background: var(--c-primary); }
-.step:nth-child(2) .step__num { background: var(--c-accent-2); }
-.step:nth-child(3) .step__num { background: var(--c-accent-3); }
+/* Čísla krokov – jednotne značková ružová (netreba tri farby) */
+.step__num { background: var(--c-primary); }
 
 /* Jemný „pop" pri výbere v hrách a testoch */
 @keyframes pop {
@@ -1884,10 +1883,11 @@ input:focus, select:focus {
 .dash-tile__body { flex: 1; display: flex; flex-direction: column; }
 .dash-tile__name { font-family: "Baloo 2", sans-serif; font-weight: 600; font-size: 17px; }
 .dash-tile__desc { font-size: 13.5px; color: var(--text-light); line-height: 1.4; }
+/* ÚSPECH / hotové – mätová (rovnaká rola všade v appke) */
 .dash-tile__done {
   align-self: flex-start;
-  background: var(--c-accent-2);
-  color: #14453b;
+  background: var(--c-success-soft);
+  color: var(--c-success-ink);
   border-radius: 999px;
   padding: 3px 10px;
   font-size: 12px;
@@ -1904,7 +1904,7 @@ input:focus, select:focus {
   font-weight: 700;
   white-space: nowrap;
 }
-.dash-tile.is-done { border-color: var(--c-accent-2); }
+.dash-tile.is-done { border-color: var(--c-success); }
 
 /* Voľba režimu (onboarding aj profil) */
 .mode-picker { margin: 0 0 18px; }
@@ -1938,9 +1938,10 @@ input:focus, select:focus {
 .mode-option__title { font-weight: 700; }
 .mode-option__desc { font-size: 13px; color: var(--text-light); }
 
+/* „vypnuté zoznamovanie" – neutrál, nie ďalší akcent */
 .mode-badge {
   display: inline-block;
-  background: #3d3a52;
+  background: var(--c-off);
   color: #fff;
   border-radius: 999px;
   padding: 6px 16px;
@@ -1948,13 +1949,15 @@ input:focus, select:focus {
   font-size: 14px;
   margin: 0 0 12px;
 }
+/* Upozornenie „si v režime rast" – rola: jemný dôraz (žltá) */
 .mode-note {
   display: flex;
   align-items: center;
   gap: 14px;
   flex-wrap: wrap;
   background: var(--accent);
-  border: 1px dashed var(--primary);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--c-highlight);
   border-radius: var(--radius);
   padding: 12px 16px;
   margin-bottom: 18px;
@@ -1962,13 +1965,14 @@ input:focus, select:focus {
   color: var(--text-light);
 }
 
-/* Návrh poradia podľa kompasu */
+/* Návrh poradia podľa kompasu – rola: jemný dôraz / tip (žltá) */
 .ap-suggest {
   background: var(--accent);
+  border-left: 4px solid var(--c-highlight);
   border-radius: var(--radius);
   padding: 10px 14px;
   font-size: 14px;
-  color: var(--primary-dark);
+  color: var(--text);
   margin: 0 0 10px;
 }
 

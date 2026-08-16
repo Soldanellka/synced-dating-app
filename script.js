@@ -2198,8 +2198,9 @@ const RTTest = {
       const a = corner[s];
       const mine = q === userQuad;
       // zvýraznenie kvadrantu používateľa: teplý prstenec okolo avatara
+      // rola: jemný dôraz (žltá) – tvoj kvadrant
       const halo = mine ? `<circle cx="${x}" cy="${y}" r="${R + 6}" fill="none"
-          stroke="var(--c-accent-3)" stroke-width="4" opacity="0.9"/>` : '';
+          stroke="var(--c-highlight)" stroke-width="4" opacity="0.9"/>` : '';
       // neutrálna sada nemá obrázok → erb vo svetlom kruhu
       const media = a.img ? `
         <clipPath id="rtClip${q}"><circle cx="${x}" cy="${y}" r="${R}"/></clipPath>
