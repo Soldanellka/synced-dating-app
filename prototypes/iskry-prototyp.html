@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Synced – Iskry ✨ (prototyp režimu Rast)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#faf7fb; --card:#fff; --text:#2a2a2a; --muted:#6b6b73;
+    --primary:#e8b7d4; --primary-dark:#c2568f; --accent:#f6eef3;
+    --coral:#ff9a8b; --mint:#a8e6cf; --yellow:#ffd97d;
+    --radius:18px; --shadow:0 8px 24px rgba(178,74,128,.10);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Nunito",system-ui,sans-serif;background:
+    radial-gradient(1200px 500px at 80% -10%, #ffe6f2 0%, transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, #eef6ff 0%, transparent 55%), var(--bg);
+    color:var(--text);line-height:1.55;min-height:100vh}
+  h1,h2,h3{font-family:"Baloo 2",cursive;margin:0}
+  .wrap{max-width:1040px;margin:0 auto;padding:20px 18px 60px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+  .logo{font-family:"Baloo 2";font-weight:700;font-size:26px;color:var(--primary-dark)}
+  .tag{background:var(--accent);color:var(--primary-dark);font-weight:700;font-size:13px;padding:5px 12px;border-radius:999px}
+  .grid{display:grid;grid-template-columns:1.1fr 1fr;gap:20px}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
+
+  /* Avatar */
+  .avatar-card{text-align:center;position:relative;overflow:hidden}
+  .orb-wrap{position:relative;height:210px;display:flex;align-items:center;justify-content:center}
+  .orb{width:150px;height:150px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff6, transparent 60%), radial-gradient(circle at 50% 55%, var(--yellow), var(--coral) 70%, var(--primary-dark));
+    box-shadow:0 0 60px 10px rgba(255,190,120,.55);
+    transition:all .5s ease;display:flex;align-items:center;justify-content:center;font-size:54px}
+  .orb.rest{filter:grayscale(.5) brightness(.8);box-shadow:0 0 18px 2px rgba(120,120,140,.25);opacity:.75}
+  .spark{position:absolute;font-size:20px;animation:float 3s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  .state{font-weight:700;margin-top:6px}
+  .state small{display:block;font-weight:400;color:var(--muted)}
+  .meter{margin:14px auto 4px;max-width:320px}
+  .meter__bar{height:14px;background:var(--accent);border-radius:999px;overflow:hidden}
+  .meter__fill{height:100%;background:linear-gradient(90deg,var(--yellow),var(--coral));border-radius:999px;transition:width .4s}
+  .iskry-count{font-family:"Baloo 2";font-size:30px;font-weight:700;color:var(--primary-dark)}
+  .xp{margin-top:14px}
+  .xp__bar{height:10px;background:var(--accent);border-radius:999px;overflow:hidden}
+  .xp__fill{height:100%;background:linear-gradient(90deg,var(--mint),#6bc6a0);border-radius:999px;transition:width .4s}
+  .lvl{font-weight:700;color:#2f8f6b}
+
+  h2{font-size:20px;margin-bottom:4px;color:var(--primary-dark)}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 14px}
+  .act{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #f0e6ee}
+  .act:last-child{border-bottom:none}
+  .act__info{display:flex;gap:12px;align-items:center}
+  .act__emoji{font-size:26px}
+  .act__name{font-weight:700}
+  .act__cost{font-size:13px;color:var(--muted)}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-weight:700;transition:.15s}
+  .btn{background:var(--primary);color:#4a2a3a;padding:9px 16px;font-size:14px}
+  .btn:hover{background:var(--primary-dark);color:#fff}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn-ghost{background:var(--accent);color:var(--primary-dark);padding:9px 14px;font-size:14px}
+  .btn-ghost:hover{background:var(--primary)}
+  .refill{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+  @media(max-width:520px){.refill{grid-template-columns:1fr}}
+  .refill button{padding:12px;font-size:14px;display:flex;flex-direction:column;gap:2px;align-items:center;text-align:center}
+  .refill small{font-weight:400;font-size:12px;color:var(--muted)}
+  .premium{background:linear-gradient(135deg,var(--yellow),var(--coral));color:#5c3320}
+  .admin{border:2px dashed var(--primary-dark);background:#fff}
+  .ledger{max-height:150px;overflow:auto;margin-top:10px;font-size:13px}
+  .ledger div{padding:4px 0;border-bottom:1px dashed #eee;display:flex;justify-content:space-between}
+  .plus{color:#2f8f6b;font-weight:700}.minus{color:#c2568f;font-weight:700}
+  .note{font-size:13px;color:var(--muted);margin-top:16px;background:var(--accent);padding:12px 14px;border-radius:12px}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(30px);opacity:0;
+    background:#3a2a34;color:#fff;padding:12px 20px;border-radius:999px;font-weight:700;transition:.3s;z-index:50;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .pill{display:inline-block;background:var(--mint);color:#1f6b47;font-size:12px;font-weight:700;padding:2px 10px;border-radius:999px;margin-left:8px}
+  .locked{background:#fff4f8;border:1px solid var(--primary);border-radius:12px;padding:12px;color:var(--primary-dark);font-weight:600;font-size:14px;margin-top:8px;display:none}
+  .locked.show{display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">Synced ✨</div>
+    <span class="tag">Režim Rast · prototyp „Iskry"</span>
+  </header>
+
+  <div class="grid">
+    <!-- AVATAR -->
+    <section class="card avatar-card">
+      <div class="orb-wrap">
+        <div class="orb" id="orb">🙂</div>
+        <span class="spark" style="top:20px;left:60px">✨</span>
+        <span class="spark" style="bottom:30px;right:70px;animation-delay:1s">✨</span>
+        <span class="spark" style="top:40px;right:90px;animation-delay:2s">✨</span>
+      </div>
+      <div class="iskry-count"><span id="iskry">8</span> ✨</div>
+      <div class="state" id="stateLabel">Svieti a je pripravený <small>Púšťaj sa do rastu 💛</small></div>
+      <div class="meter">
+        <div class="meter__bar"><div class="meter__fill" id="meterFill" style="width:40%"></div></div>
+      </div>
+      <div class="xp">
+        <div class="lvl" id="lvlLabel">Úroveň rastu 1</div>
+        <div class="xp__bar"><div class="xp__fill" id="xpFill" style="width:0%"></div></div>
+      </div>
+      <div class="note">Iskry dávkujú <b>nové</b> aktivity – rast má mať tempo, nie grind. Čo si už získala (úroveň rastu), <b>nikdy nestratíš</b>. Keď iskry dôjdu, avatar si oddýchne a ty ho doplníš.</div>
+    </section>
+
+    <!-- AKTIVITY -->
+    <section class="card">
+      <h2>Sebarozvoj</h2>
+      <p class="sub">Každá aktivita minie iskry. Za dokončenie rastie tvoja úroveň.</p>
+      <div id="acts"></div>
+      <div class="locked" id="lockedMsg">😴 Avatar oddychuje – nemáš dosť iskier. Doplň si ich nižšie a pokračuj (o nič si neprišla).</div>
+    </section>
+  </div>
+
+  <div class="grid" style="margin-top:20px">
+    <!-- DOPLNENIE -->
+    <section class="card">
+      <h2>Doplniť iskry</h2>
+      <p class="sub">Zadarmo, virálne, alebo (neskôr) kúpou. Admin dobitie = tvoj LexArena flow.</p>
+      <div class="refill">
+        <button class="btn-ghost" id="daily">🌅 Denná dávka<small>+5 ✨ · raz denne</small></button>
+        <button class="btn-ghost" id="invite">💌 Pozvi kamoša<small>+3 ✨ · virálne</small></button>
+        <button class="btn admin" id="adminGrant">🛠️ Admin: pošli hráčovi<small>+10 ✨ · teraz to robíš ty</small></button>
+        <button class="btn" id="buy">🛒 Kúpiť balíček<small>+20 ✨ · 2,99 € (mock)</small></button>
+      </div>
+      <button class="btn premium" id="premium" style="width:100%;margin-top:10px;padding:12px">💛 Premium: neobmedzené iskry<small style="display:block;font-weight:400">9,99 €/mes (mock) – aktivity zadarmo</small></button>
+    </section>
+
+    <!-- LEDGER -->
+    <section class="card">
+      <h2>Pohyby iskier</h2>
+      <p class="sub">Presne toto sa neskôr uloží do Supabase (zostatok + transakcie).</p>
+      <div class="ledger" id="ledger"></div>
+    </section>
+  </div>
+
+  <p class="note" style="max-width:none">Prototyp – po obnovení stránky sa resetuje. Reálne: zostatok iskier + história transakcií v Supabase, kúpa cez Stripe, admin dobíjanie v admin paneli. Zoznamka je samostatný modul, ktorý sa odomkne neskôr (keď budú s.r.o. a GDPR v poriadku).</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+const State = {
+  iskry: 8,
+  max: 30,        // pre vizuál meradla
+  xp: 0,
+  level: 1,
+  premium: false,
+  dailyUsed: false,
+  ledger: []
+};
+
+const ACTIVITIES = [
+  { id:'test',   emoji:'🧭', name:'Test hodnôt',            cost:3, xp:30, done:'Spoznal(a) si svoje top hodnoty.' },
+  { id:'game',   emoji:'🎲', name:'Hra: Rebríček hodnôt',   cost:2, xp:20, done:'Zoradil(a) si, na čom ti záleží.' },
+  { id:'assert', emoji:'🗣️', name:'Tréning asertivity',     cost:4, xp:45, done:'Precvičil(a) si láskavé „nie".' },
+  { id:'arche',  emoji:'🎭', name:'Objav svoj archetyp',    cost:3, xp:30, done:'Odhalil(a) si svoj archetyp.' }
+];
+
+const $ = id => document.getElementById(id);
+const XP_PER_LEVEL = 100;
+
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1800); }
+
+function log(text, delta){
+  State.ledger.unshift({text, delta});
+  $('ledger').innerHTML = State.ledger.map(e=>
+    `<div><span>${e.text}</span><span class="${e.delta>=0?'plus':'minus'}">${e.delta>=0?'+':''}${e.delta} ✨</span></div>`
+  ).join('');
+}
+
+function minCost(){ return Math.min(...ACTIVITIES.map(a=>a.cost)); }
+
+function render(){
+  $('iskry').textContent = State.premium ? '∞' : State.iskry;
+  const pct = State.premium ? 100 : Math.max(0, Math.min(100, State.iskry/State.max*100));
+  $('meterFill').style.width = pct + '%';
+
+  const resting = !State.premium && State.iskry < minCost();
+  const orb = $('orb');
+  orb.classList.toggle('rest', resting);
+  orb.textContent = State.premium ? '🤩' : (resting ? '😴' : (State.iskry < 6 ? '🙂' : '😊'));
+  $('stateLabel').innerHTML = State.premium
+    ? 'Žiari naplno ✨ <small>Premium – hraj bez limitu</small>'
+    : (resting
+        ? 'Oddychuje 😴 <small>Doplň iskry a pokračuj – nič si nestratila</small>'
+        : 'Svieti a je pripravený <small>Púšťaj sa do rastu 💛</small>');
+  $('lockedMsg').classList.toggle('show', resting);
+
+  // XP / level
+  $('xpFill').style.width = (State.xp % XP_PER_LEVEL) + '%';
+  $('lvlLabel').textContent = 'Úroveň rastu ' + State.level;
+
+  // aktivity
+  $('acts').innerHTML = ACTIVITIES.map(a=>{
+    const can = State.premium || State.iskry >= a.cost;
+    return `<div class="act">
+      <div class="act__info"><span class="act__emoji">${a.emoji}</span>
+        <div><div class="act__name">${a.name}</div>
+        <div class="act__cost">${State.premium?'Premium · zadarmo':'−'+a.cost+' ✨'}</div></div></div>
+      <button class="btn" data-act="${a.id}" ${can?'':'disabled'}>Spustiť</button>
+    </div>`;
+  }).join('');
+}
+
+function play(a){
+  if(!State.premium){
+    if(State.iskry < a.cost){ toast('😴 Málo iskier – doplň si'); return; }
+    State.iskry -= a.cost;
+    log('Aktivita: '+a.name, -a.cost);
+  } else {
+    log('Aktivita (Premium): '+a.name, 0);
+  }
+  State.xp += a.xp;
+  // level up: každých 100 XP
+  const newLevel = 1 + Math.floor(State.xp / XP_PER_LEVEL);
+  if(newLevel > State.level){ State.level = newLevel; toast('🌟 Nová úroveň rastu '+State.level+'!'); }
+  else { toast('✅ '+a.done); }
+  render();
+}
+
+function grant(n, label){
+  State.iskry = Math.min(State.iskry + n, 999);
+  log(label, n);
+  render();
+}
+
+document.addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  if(b.dataset.act){ play(ACTIVITIES.find(a=>a.id===b.dataset.act)); return; }
+  switch(b.id){
+    case 'daily':
+      if(State.dailyUsed){ toast('Dnešnú dávku už máš 🙂'); return; }
+      State.dailyUsed = true; b.disabled = true; b.style.opacity=.5;
+      grant(5, 'Denná dávka'); toast('🌅 +5 ✨ denná dávka'); break;
+    case 'invite':
+      grant(3, 'Pozvánka kamošovi'); toast('💌 +3 ✨ za pozvánku'); break;
+    case 'adminGrant':
+      grant(10, 'Admin dobitie'); toast('🛠️ Admin poslal +10 ✨'); break;
+    case 'buy':
+      grant(20, 'Kúpa balíčka (2,99 €)'); toast('🛒 +20 ✨ (mock platba)'); break;
+    case 'premium':
+      State.premium = !State.premium;
+      b.style.filter = State.premium ? 'brightness(1.1)' : 'none';
+      b.querySelector('small').textContent = State.premium ? 'AKTÍVNE – aktivity zadarmo (klikni pre vypnutie)' : '9,99 €/mes (mock) – aktivity zadarmo';
+      log('Premium '+(State.premium?'zapnuté':'vypnuté'), 0);
+      toast(State.premium?'💛 Premium aktívne':'Premium vypnuté'); render(); break;
+  }
+});
+
+log('Štart', 8);
+render();
+</script>
+</body>
+</html>
