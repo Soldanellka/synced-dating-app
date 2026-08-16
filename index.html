@@ -23,10 +23,10 @@
     </button>
 
     <nav class="main-nav" id="mainNav">
-      <a href="#dashboard">Rozcestník</a>
-      <a href="#rt-test">Kompas</a>
-      <a href="#matches">Matchy</a>
-      <a href="#profile">Profil</a>
+      <a href="#dashboard" data-app-nav>Rozcestník</a>
+      <a href="#rt-test" data-app-nav>Kompas</a>
+      <a href="#matches" data-app-nav>Matchy</a>
+      <a href="#profile" data-app-nav>Profil</a>
       <a href="#premium">Premium</a>
       <a href="#login">Prihlásenie</a>
       <a href="#signup" class="btn-primary" data-scroll="#signup">Začni test kompatibility</a>
@@ -66,30 +66,56 @@
         </ul>
       </div>
       <div class="hero-visual">
-        <img class="hero-portrait" src="assets/archetypes/kralovna.png"
-          alt="Ilustrácia archetypu Kráľovná" width="320" height="320">
+        <!-- Ochutnávka (3 kliky) – JS ju skryje, keď je test hotový -->
+        <div class="taster" id="taster"><!-- naplní JS z TASTER --></div>
+        <img class="hero-portrait" id="heroPortrait" src="assets/archetypes/kralovna.png"
+          alt="Ilustrácia archetypu Kráľovná" width="320" height="320" hidden>
       </div>
     </section>
 
-    <!-- AKO TO FUNGUJE -->
-    <section id="how-it-works" class="section">
-      <h2>Ako Synced funguje</h2>
-      <div class="steps">
+    <!-- AKO TO FUNGUJE – kompaktný pásik pod hero -->
+    <section id="how-it-works" class="section section--tight">
+      <h2>Ako to funguje</h2>
+      <div class="steps steps--compact">
         <div class="step">
           <div class="step__num">1</div>
-          <h3>Vyplníš test kompatibility</h3>
-          <p>Hodnoty, osobnosť, vzťahové preferencie.</p>
+          <h3>Sprav si test</h3>
+          <p>5 minút, zadarmo.</p>
         </div>
         <div class="step">
           <div class="step__num">2</div>
-          <h3>Dostaneš len matchy, ktoré sa k tebe hodia</h3>
-          <p>Žiadny chaos, len kvalitné profily.</p>
+          <h3>Spoznaj svoj archetyp a hodnoty</h3>
+          <p>Vzťahový kompas a meno tvojej podstaty.</p>
         </div>
         <div class="step">
           <div class="step__num">3</div>
-          <h3>Chat + video stretnutie</h3>
-          <p>Bezpečne, s overenou identitou.</p>
+          <h3>Nájdi ľudí na rovnakej vlne</h3>
+          <p>Alebo len rasti pre seba — obe je v poriadku.</p>
         </div>
+      </div>
+    </section>
+
+    <!-- PREČO SYNCED – krátko, pre nového návštevníka -->
+    <section id="why-synced" class="section section--tight" data-before-test>
+      <h2>Prečo Synced</h2>
+      <div class="steps steps--compact">
+        <div class="step">
+          <h3>💛 Hodnoty prvé</h3>
+          <p>Najprv to, čo je pre teba dôležité — až potom všetko ostatné.</p>
+        </div>
+        <div class="step">
+          <h3>🚫 Žiadne tvrdé čísla</h3>
+          <p>Nikoho neznámkujeme percentami. Ukazujeme, čo vás spája.</p>
+        </div>
+        <div class="step">
+          <h3>🛡️ Bezpečne</h3>
+          <p>Overenie videom, nahlásiť či blokovať vieš kedykoľvek.</p>
+        </div>
+      </div>
+      <div class="why-cta">
+        <button class="btn-primary btn-lg" data-scroll="#signup">Sprav si test · 5 min</button>
+        <p class="locked-note" id="lockedNote">🔒 Po teste sa odomknú matchy, chat,
+          vzťahový kompas, hry a ďalšie nástroje.</p>
       </div>
     </section>
 

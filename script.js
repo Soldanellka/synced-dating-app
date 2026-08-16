@@ -3115,6 +3115,7 @@ const Onboarding = {
     // Po Kroku 5 (avatar) spočítame profil a vykreslíme zhrnutie
     if (AppState.currentStep === 5) {
       Scoring.computeProfile();
+      if (typeof TestGate !== 'undefined') TestGate.markDone();   // odomkne appku
       this.renderSummary();
       this.syncProfileSection();
       Matches.render();           // naplní sekciu #matches reálnymi dátami
@@ -3248,6 +3249,139 @@ const Nav = {
 
 
 /* --------------------------------------------------------------
+   5a1) OCHUTNÁVKA – 3 kliky v hero → náznak „sveta" archetypu
+   --------------------------------------------------------------
+   Len ochutnávka: NEUKLADÁ sa ako RT výsledok a nepredvyplňuje
+   archetyp. Bez percent, bez pohlavia. Skryje sa, keď je celý
+   test hotový.
+   -------------------------------------------------------------- */
+const Taster = {
+  idx: 0,
+  answers: {},
+
+  init() {
+    this.el = document.getElementById('taster');
+    this.D = window.TASTER;
+    if (!this.el || !this.D) return;
+
+    this.el.addEventListener('click', (e) => {
+      const opt = e.target.closest('button[data-taster-opt]');
+      if (opt) { this.choose(opt.dataset.tasterOpt); return; }
+      if (e.target.closest('[data-taster-restart]')) this.restart();
+    });
+
+    this.render();
+  },
+
+  choose(value) {
+    const q = this.D.questions[this.idx];
+    this.answers[q.options[0].axis] = value;
+    this.idx++;
+    this.render();
+  },
+
+  restart() {
+    this.idx = 0;
+    this.answers = {};
+    this.render();
+  },
+
+  worldKey() {
+    return `${this.answers.a || 'blizkost'}+${this.answers.b || 'kontinuita'}`;
+  },
+
+  render() {
+    // Hotový test → ochutnávka netreba
+    if (typeof TestGate !== 'undefined' && TestGate.isDone()) {
+      this.el.hidden = true;
+      const portrait = document.getElementById('heroPortrait');
+      if (portrait) portrait.hidden = false;
+      return;
+    }
+    this.el.hidden = false;
+
+    if (this.idx < this.D.questions.length) {
+      const q = this.D.questions[this.idx];
+      this.el.innerHTML = `
+        <p class="taster__progress">Ochutnávka · ${this.idx + 1}/${this.D.questions.length}</p>
+        <p class="taster__q">${q.text}</p>
+        <div class="taster__opts">
+          ${q.options.map(o => `
+            <button type="button" class="taster__opt"
+              data-taster-opt="${o.value}">${o.label}</button>`).join('')}
+        </div>`;
+      return;
+    }
+
+    // Mikro-výsledok: svet + dochuť + JEDINÉ CTA
+    const w = this.D.worlds[this.worldKey()];
+    const flavor = this.D.flavor[this.answers.c] || '';
+    this.el.innerHTML = `
+      <p class="taster__progress">Tvoja ochutnávka</p>
+      <div class="taster__imgs">
+        ${w.imgs.map((src, i) => `
+          <img src="${src}" alt="${w.alts[i]}" loading="lazy" width="96" height="96">`).join('')}
+      </div>
+      <p class="taster__world">Blízky ti je <strong>${w.name}</strong></p>
+      <p class="taster__line">${w.line} ${flavor}</p>
+      <button class="btn-primary btn-lg taster__cta" data-scroll="#signup">${this.D.cta}</button>
+      <p class="taster__note">${this.D.note}
+        <button type="button" class="taster__again" data-taster-restart>Skúsiť znova</button>
+      </p>`;
+  }
+};
+
+
+/* --------------------------------------------------------------
+   5a2) TEST GATE – nezahltiť návštevníka pred testom
+   --------------------------------------------------------------
+   Kým nie je hotový test kompatibility, ťažké sekcie appky sa
+   nezobrazujú (landing je krátky a vedie k jednému cieľu).
+   Po dokončení testu sa appka odomkne celá.
+   -------------------------------------------------------------- */
+const TestGate = {
+  KEY: 'synced_testdone_v1',
+  // Sekcie, ktoré dávajú zmysel až s výsledkom testu
+  heavy: ['dashboard', 'rt-test', 'archetype-pref', 'profile', 'matches',
+    'values-game', 'kitchen-game', 'shape-game', 'essence-name',
+    'assert-training', 'chat', 'video'],
+
+  init() {
+    try { this.done = localStorage.getItem(this.KEY) === '1'; } catch (_) { this.done = false; }
+    // Ak profil už v tomto sedení existuje, ber test ako hotový
+    if (AppState.userProfile.personality?.type) this.done = true;
+    this.apply();
+  },
+
+  isDone() { return !!this.done; },
+
+  markDone() {
+    this.done = true;
+    try { localStorage.setItem(this.KEY, '1'); } catch (_) {}
+    this.apply();
+    if (typeof Taster !== 'undefined') Taster.render();
+  },
+
+  apply() {
+    const done = this.isDone();
+    document.body.classList.toggle('is-locked', !done);
+    this.heavy.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.hidden = !done;
+    });
+    // Sekcie určené len pre návštevníka pred testom
+    document.querySelectorAll('[data-before-test]').forEach(el => { el.hidden = done; });
+    // Odkazy do appky nemajú kam viesť, kým je zamknutá
+    document.querySelectorAll('[data-app-nav]').forEach(el => { el.hidden = !done; });
+
+    // Nenápadná informácia, že sa toho po teste odomkne viac
+    const note = document.getElementById('lockedNote');
+    if (note) note.hidden = done;
+  }
+};
+
+
+/* --------------------------------------------------------------
    5b) STICKY CTA na mobile – kým používateľ nezačne test
    -------------------------------------------------------------- */
 const StickyCta = {
@@ -3335,6 +3469,8 @@ document.addEventListener('DOMContentLoaded', () => {
   Invite.init();
   Nav.init();
   SmoothScroll.init();
+  TestGate.init();              // pred Taster – ochutnávka sa podľa neho skrýva
+  Taster.init();
   StickyCta.init();
   console.log('[Synced] Aplikácia inicializovaná ✔');
 });

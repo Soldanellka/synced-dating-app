@@ -693,6 +693,76 @@ window.ARCHETYPES = ARCHETYPES;
 
 
 /* ==============================================================
+   OCHUTNÁVKA (mini-tok v hero: 3 kliky → náznak „sveta")
+   --------------------------------------------------------------
+   Iba ochutnávka: NEUKLADÁ sa ako RT výsledok a nepredvyplňuje
+   archetyp. Žiadne percentá, žiadne pohlavie – „svet" sa pomenúva
+   dvojicou archetypov neutrálne.
+   ============================================================== */
+
+const TASTER = {
+  questions: [
+    { id: 't1', text: 'Po náročnom dni ťa dobije…',
+      options: [
+        { label: 'Byť s blízkymi', axis: 'a', value: 'blizkost' },
+        { label: 'Chvíľa pre seba', axis: 'a', value: 'odstup' }
+      ] },
+    { id: 't2', text: 'Viac ťa láka…',
+      options: [
+        { label: 'Istota a pokoj', axis: 'b', value: 'kontinuita' },
+        { label: 'Nové a nečakané', axis: 'b', value: 'zmena' }
+      ] },
+    { id: 't3', text: 'Čo ťa vo vzťahu drží?',
+      options: [
+        { label: 'Oprieť sa o seba navzájom', axis: 'c', value: 'opora' },
+        { label: 'Spolu rásť', axis: 'c', value: 'rast' }
+      ] }
+  ],
+
+  /* Svet podľa Q1+Q2 (Q3 je len dochuť do vety) */
+  worlds: {
+    'blizkost+kontinuita': {
+      name: 'svet Rytiera a Kráľovnej',
+      line: 'Domov, teplo a istota — miesto, kde sa dá na niekoho spoľahnúť.',
+      imgs: ['assets/archetypes/rytier.png', 'assets/archetypes/kralovna.png'],
+      alts: ['Archetyp Rytier', 'Archetyp Kráľovná']
+    },
+    'blizkost+zmena': {
+      name: 'svet Trubadúra a Múzy',
+      line: 'Spájanie a inšpirácia — všedné dni sa pri tebe menia na zážitok.',
+      imgs: ['assets/archetypes/trubadur.png', 'assets/archetypes/muza.png'],
+      alts: ['Archetyp Trubadúr', 'Archetyp Múza']
+    },
+    'odstup+kontinuita': {
+      name: 'svet Alchymistu a Hvezdárky',
+      line: 'Tichá hĺbka — poctivá práca v pokoji, ktorá má váhu.',
+      imgs: ['assets/archetypes/alchymista.png', 'assets/archetypes/hvezdarka.png'],
+      alts: ['Archetyp Alchymista', 'Archetyp Hvezdárka']
+    },
+    'odstup+zmena': {
+      name: 'svet Templára a Amazonky',
+      line: 'Sloboda a hľadanie — cesta, ktorá sa nekončí pri hraniciach mapy.',
+      imgs: ['assets/archetypes/templar.png', 'assets/archetypes/amazonka.png'],
+      alts: ['Archetyp Templár', 'Archetyp Amazonka']
+    }
+  },
+
+  /* Dochuť podľa Q3 */
+  flavor: {
+    opora: 'A držíš sa toho, o čo sa dá oprieť.',
+    rast:  'A ťahá ťa to tam, kde sa rastie spolu.'
+  },
+
+  cta: 'Sprav si celý test (5 min) — odhalíš svoj skutočný archetyp, ' +
+    'vzťahový kompas aj meno svojej podstaty.',
+
+  note: 'Toto bola len ochutnávka — tri kliky nikoho nevystihnú. 💛'
+};
+
+window.TASTER = TASTER;
+
+
+/* ==============================================================
    MENO TVOJEJ PODSTATY (prídavné + podstatné meno)
    --------------------------------------------------------------
    Neutrálny, univerzálny rámec (zámerne bez „indiánskeho"
