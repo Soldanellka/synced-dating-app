@@ -3103,8 +3103,19 @@ const Onboarding = {
     });
 
     const pct = (n / AppState.totalSteps) * 100;
-    if (this.bar) this.bar.style.width = pct + '%';
+    if (this.bar) {
+      this.bar.style.width = pct + '%';
+      this.bar.parentElement?.setAttribute('role', 'progressbar');
+      this.bar.parentElement?.setAttribute('aria-valuenow', String(n));
+      this.bar.parentElement?.setAttribute('aria-valuemin', '1');
+      this.bar.parentElement?.setAttribute('aria-valuemax', String(AppState.totalSteps));
+      this.bar.parentElement?.setAttribute('aria-label', `Krok ${n} z ${AppState.totalSteps}`);
+    }
     if (this.currentEl) this.currentEl.textContent = n;
+    const pctEl = document.getElementById('stepPct');
+    if (pctEl) pctEl.textContent = `· ${Math.round(pct)} %`;
+    // Ulož rozrobený stav aj pri prechode kroku
+    if (typeof TestProgress !== 'undefined') TestProgress.save();
 
     if (scroll) {
       document.getElementById('signup').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -3117,6 +3128,7 @@ const Onboarding = {
     if (AppState.currentStep === 5) {
       Scoring.computeProfile();
       if (typeof TestGate !== 'undefined') TestGate.markDone();   // odomkne appku
+      if (typeof TestProgress !== 'undefined') TestProgress.clear();  // rozrobený stav už netreba
       this.renderSummary();
       this.syncProfileSection();
       Matches.render();           // naplní sekciu #matches reálnymi dátami
@@ -3359,6 +3371,8 @@ const TestGate = {
   markDone() {
     this.done = true;
     try { localStorage.setItem(this.KEY, '1'); } catch (_) {}
+    // Rozrobený stav už netreba – ostáva len príznak „test hotový"
+    if (typeof TestProgress !== 'undefined') TestProgress.clear();
     this.apply();
     if (typeof Taster !== 'undefined') Taster.render();
   },
@@ -3421,6 +3435,176 @@ const StickyCta = {
       update();
       setTimeout(update, 500);
     });
+  }
+};
+
+
+/* --------------------------------------------------------------
+   5a3) ULOŽ A POKRAČUJ – rozrobený test kompatibility
+   --------------------------------------------------------------
+   Ukladá LEN rozpracovaný stav (odpovede, základné údaje, výzor
+   a číslo kroku) pod vlastný kľúč. Hotový výsledok má svoj kľúč
+   (TestGate) a po dokončení sa rozrobený stav maže.
+   Nemení scoring, otázky ani poradie krokov.
+   -------------------------------------------------------------- */
+const TestProgress = {
+  KEY: 'synced_test_progress_v1',
+  restoring: false,
+  ready: false,     // kým modul nebeží, nesmieme prepísať uložený stav
+
+  init() {
+    this.card = document.getElementById('resumeCard');
+    this.ready = true;
+    // Hotový test → rozrobený stav je zbytočný (a nesmie kolidovať)
+    if (typeof TestGate !== 'undefined' && TestGate.isDone()) { this.clear(); return; }
+
+    // Priebežné ukladanie: odpoveď aj prechod kroku
+    const root = document.getElementById('onboarding');
+    if (root) {
+      root.addEventListener('change', () => this.save());
+      root.addEventListener('click', (e) => {
+        if (e.target.closest('[data-nav], [data-avatar-field]')) setTimeout(() => this.save(), 0);
+      });
+    }
+
+    this.renderCard();
+
+    this.card?.addEventListener('click', (e) => {
+      if (e.target.closest('[data-resume]')) this.resume();
+      if (e.target.closest('[data-resume-reset]')) this.reset();
+    });
+  },
+
+  data() {
+    try { return JSON.parse(localStorage.getItem(this.KEY) || 'null'); } catch (_) { return null; }
+  },
+
+  // Má zmysel ponúkať pokračovanie? (aspoň niečo vyplnené a test nie je hotový)
+  hasProgress() {
+    if (typeof TestGate !== 'undefined' && TestGate.isDone()) return false;
+    const d = this.data();
+    if (!d) return false;
+    const answered = Object.keys(d.answers || {}).length;
+    return (d.step > 1) || answered > 0;
+  },
+
+  save() {
+    // Onboarding.init() skáče na krok 1 ešte pred nami – vtedy neukladáme,
+    // inak by sa rozrobený stav prepísal prázdnym
+    if (!this.ready || this.restoring) return;
+    if (typeof TestGate !== 'undefined' && TestGate.isDone()) return;
+    const P = AppState.userProfile;
+    const form = document.getElementById('basic-info-form');
+    const basics = form ? {
+      age: form.querySelector('[name="age"]')?.value || '',
+      location: form.querySelector('[name="location"]')?.value || '',
+      gender: form.querySelector('[name="gender"]')?.value || '',
+      intent: form.querySelector('[name="intent"]')?.value || ''
+    } : null;
+    try {
+      localStorage.setItem(this.KEY, JSON.stringify({
+        step: AppState.currentStep,
+        answers: AppState.answers,
+        basics,
+        appearance: P.appearance || {},
+        ideal: P.ideal || {}
+      }));
+    } catch (_) {}
+    this.renderCard();
+  },
+
+  clear() {
+    try { localStorage.removeItem(this.KEY); } catch (_) {}
+    this.renderCard();
+  },
+
+  reset() {
+    // Vyčisti rozpracované odpovede aj výzor v tomto sedení
+    AppState.answers = {};
+    document.querySelectorAll('#onboarding input[type="radio"], #onboarding input[type="checkbox"]')
+      .forEach(i => { i.checked = false; i.disabled = false; i.closest('.opt')?.classList.remove('is-disabled'); });
+    const form = document.getElementById('basic-info-form');
+    form?.reset();
+    AppState.userProfile.appearance = {};
+    AppState.userProfile.ideal = {
+      heightBand: 'nezalezi', silhouette: 'nezalezi', hair: 'nezalezi', style: 'nezalezi'
+    };
+    if (typeof Avatar !== 'undefined' && Avatar.fields) {
+      const selfBox = document.querySelector('[data-avatar="self"]');
+      const idealBox = document.querySelector('[data-avatar="ideal"]');
+      if (selfBox) selfBox.innerHTML = Avatar.panelHTML('appearance', false);
+      if (idealBox) idealBox.innerHTML = Avatar.panelHTML('ideal', true);
+    }
+    if (typeof Onboarding !== 'undefined') Onboarding.goToStep(1, false);
+    this.clear();   // až po goToStep, ktoré ukladá
+    this.renderCard();
+  },
+
+  // Vráti používateľa presne tam, kde skončil, s predvyplnenými odpoveďami
+  resume() {
+    const d = this.data();
+    if (!d) return;
+    this.restoring = true;
+
+    if (d.basics) {
+      const form = document.getElementById('basic-info-form');
+      Object.entries(d.basics).forEach(([k, v]) => {
+        const el = form?.querySelector(`[name="${k}"]`);
+        if (el && v) el.value = v;
+      });
+    }
+
+    // Odpovede: radia aj viacnásobný výber (vrátane limitu v skupine)
+    AppState.answers = { ...(d.answers || {}) };
+    Object.entries(d.answers || {}).forEach(([qid, val]) => {
+      const values = Array.isArray(val) ? val : [val];
+      values.forEach(v => {
+        const input = document.querySelector(`#onboarding input[name="${qid}"][value="${CSS.escape(String(v))}"]`);
+        if (input) input.checked = true;
+      });
+      const group = document.querySelector(`[data-multi="${qid}"]`);
+      if (group && Array.isArray(val)) {
+        const max = Number(group.dataset.max || 99);
+        const atMax = val.length >= max;
+        group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+          cb.disabled = atMax && !cb.checked;
+          cb.closest('.opt')?.classList.toggle('is-disabled', cb.disabled);
+        });
+      }
+    });
+
+    // Výzor (Krok 5)
+    if (d.appearance) AppState.userProfile.appearance = { ...d.appearance };
+    if (d.ideal) AppState.userProfile.ideal = { ...d.ideal };
+    if (typeof Avatar !== 'undefined' && Avatar.fields) {
+      const selfBox = document.querySelector('[data-avatar="self"]');
+      const idealBox = document.querySelector('[data-avatar="ideal"]');
+      if (selfBox) selfBox.innerHTML = Avatar.panelHTML('appearance', false);
+      if (idealBox) idealBox.innerHTML = Avatar.panelHTML('ideal', true);
+    }
+
+    this.restoring = false;
+    Onboarding.goToStep(d.step || 1);
+    this.renderCard();
+  },
+
+  renderCard() {
+    if (!this.card) return;
+    if (!this.hasProgress()) { this.card.innerHTML = ''; return; }
+    const d = this.data();
+    const total = AppState.totalSteps || 6;
+    const step = Math.min(d.step || 1, total);
+    this.card.innerHTML = `
+      <div class="resume-card">
+        <div>
+          <p class="resume-card__title">Máš rozrobený test</p>
+          <p class="resume-card__sub">Odpovede sú uložené — môžeš plynulo nadviazať.</p>
+        </div>
+        <div class="resume-card__actions">
+          <button type="button" class="btn-primary" data-resume>Pokračovať v teste (${step}/${total})</button>
+          <button type="button" class="btn-secondary" data-resume-reset>Začať odznova</button>
+        </div>
+      </div>`;
   }
 };
 
@@ -3491,6 +3675,7 @@ document.addEventListener('DOMContentLoaded', () => {
   SmoothScroll.init();
   TestGate.init();              // pred Taster – ochutnávka sa podľa neho skrýva
   Taster.init();
+  TestProgress.init();          // po Onboarding – ponuka „Pokračovať v teste"
   StickyCta.init();
   PWA.init();
   console.log('[Synced] Aplikácia inicializovaná ✔');

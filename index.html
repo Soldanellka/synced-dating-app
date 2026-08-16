@@ -133,6 +133,9 @@
     <section id="signup" class="section">
       <h2>Test kompatibility</h2>
 
+      <!-- Ponuka pokračovať v rozrobenom teste (naplní JS) -->
+      <div id="resumeCard"></div>
+
       <div class="onboarding" id="onboarding">
 
         <!-- Progres -->
@@ -142,7 +145,10 @@
           </div>
           <p class="onboarding-counter">
             Krok <span id="stepCurrent">1</span> z <span id="stepTotal">6</span>
+            <span class="onboarding-counter__pct" id="stepPct"></span>
           </p>
+          <p class="onboarding-save-note">💾 Môžeš kedykoľvek odísť — tvoje
+            odpovede sa ukladajú.</p>
         </div>
 
         <!-- KROK 1: ZÁKLADNÉ ÚDAJE -->

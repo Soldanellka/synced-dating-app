@@ -291,6 +291,44 @@ img { max-width: 100%; display: block; }
   .opts { gap: 12px; }
 }
 
+/* Ulož a pokračuj – ponuka nadviazať na rozrobený test */
+.resume-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: var(--c-surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--c-highlight);   /* rola: jemný dôraz */
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+.resume-card__title {
+  margin: 0;
+  font-family: "Baloo 2", sans-serif;
+  font-weight: 600;
+  font-size: 17px;
+}
+.resume-card__sub { margin: 2px 0 0; font-size: 13.5px; color: var(--text-light); }
+.resume-card__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* Progres testu – čitateľný aj na mobile */
+.onboarding-counter__pct { color: var(--text-light); }
+.onboarding-save-note {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--text-light);
+}
+
+@media (max-width: 640px) {
+  .resume-card { flex-direction: column; align-items: stretch; }
+  .resume-card__actions .btn-primary,
+  .resume-card__actions .btn-secondary { flex: 1; }
+}
+
 /* Ochutnávka v hero */
 .taster {
   width: 340px;
