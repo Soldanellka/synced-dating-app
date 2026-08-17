@@ -338,6 +338,52 @@ img { max-width: 100%; display: block; }
 .privacy-more a { color: var(--primary-dark); font-weight: 600; }
 .privacy-more__note { color: var(--text-light); }
 
+/* Pripravujeme – karty vízie (jasne odlíšené od hotových funkcií) */
+.upcoming-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.upcoming-card {
+  background: var(--c-surface);
+  border: 1px dashed var(--primary);   /* prerušovaný rám = ešte to nie je */
+  border-radius: var(--radius);
+  padding: 18px;
+}
+.upcoming-card h3 { margin: 10px 0 6px; font-size: 18px; }
+.upcoming-card p { margin: 0 0 8px; font-size: 14px; color: var(--text-light); }
+.upcoming-note {
+  margin: 0 !important;
+  font-size: 13px !important;
+  font-style: italic;
+}
+.upcoming-badge {
+  display: inline-block;
+  background: var(--c-highlight);      /* rola: jemný dôraz, nie „hotové" */
+  color: #5c4708;
+  border-radius: 999px;
+  padding: 3px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.upcoming-badge--vision { background: var(--accent); color: var(--primary-dark); }
+
+.upcoming-cta { margin-top: 20px; }
+.upcoming-answer {
+  margin: 12px 0 0;
+  max-width: 640px;
+  background: var(--accent);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--text-light);
+}
+
+@media (max-width: 700px) {
+  .upcoming-grid { grid-template-columns: 1fr; }
+}
+
 /* Ulož a pokračuj – ponuka nadviazať na rozrobený test */
 .resume-card {
   display: flex;

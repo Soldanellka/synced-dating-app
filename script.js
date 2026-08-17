@@ -3359,7 +3359,7 @@ const Taster = {
 const TestGate = {
   KEY: 'synced_testdone_v1',
   // Sekcie, ktoré dávajú zmysel až s výsledkom testu
-  heavy: ['dashboard', 'rt-test', 'archetype-pref', 'profile', 'matches',
+  heavy: ['dashboard', 'upcoming', 'rt-test', 'archetype-pref', 'profile', 'matches',
     'values-game', 'kitchen-game', 'shape-game', 'essence-name',
     'assert-training', 'chat', 'video'],
 
@@ -3614,6 +3614,27 @@ const TestProgress = {
 
 
 /* --------------------------------------------------------------
+   5a4) PRIPRAVUJEME – úprimná odpoveď na „daj mi vedieť"
+   --------------------------------------------------------------
+   Žiadny e-mail sa nikam neposiela ani neukladá (nemáme backend),
+   takže nič také ani nepredstierame – tlačidlo len odkryje
+   pravdivé vysvetlenie.
+   -------------------------------------------------------------- */
+const Upcoming = {
+  init() {
+    const btn = document.getElementById('upcomingNotify');
+    const answer = document.getElementById('upcomingAnswer');
+    if (!btn || !answer) return;
+    btn.addEventListener('click', () => {
+      answer.hidden = false;
+      btn.disabled = true;
+      btn.textContent = '💛 Vďaka za záujem';
+    });
+  }
+};
+
+
+/* --------------------------------------------------------------
    5c) PWA – registrácia service workera (app shell)
    --------------------------------------------------------------
    SW len zrýchľuje načítanie a umožňuje otvoriť appku offline.
@@ -3679,6 +3700,7 @@ document.addEventListener('DOMContentLoaded', () => {
   SmoothScroll.init();
   TestGate.init();              // pred Taster – ochutnávka sa podľa neho skrýva
   Taster.init();
+  Upcoming.init();
   TestProgress.init();          // po Onboarding – ponuka „Pokračovať v teste"
   StickyCta.init();
   PWA.init();
