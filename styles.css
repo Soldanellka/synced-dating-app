@@ -384,6 +384,47 @@ img { max-width: 100%; display: block; }
   .upcoming-grid { grid-template-columns: 1fr; }
 }
 
+/* Záľuby a hudba – chips + voľný text */
+.interests-note { font-size: 13.5px; color: var(--text-light); margin: 0 0 12px; }
+.interests-label {
+  margin: 14px 0 6px;
+  font-weight: 700;
+  font-family: "Baloo 2", sans-serif;
+}
+.interests-chips { margin-bottom: 10px; }
+.interests-add { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.interests-add input {
+  flex: 1 1 200px;
+  min-width: 0;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 14px;
+}
+.interests-artists { display: block; font-size: 14px; margin-top: 10px; }
+.interests-artists input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 6px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+/* Iskra v karte matchu – spoločné body (nikdy %) */
+.match-interests {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--primary-dark);
+  background: var(--accent);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+}
+
 /* Ulož a pokračuj – ponuka nadviazať na rozrobený test */
 .resume-card {
   display: flex;

@@ -153,6 +153,8 @@ const SAMPLE_USERS = [
     smokes: false,
     appearance: { heightBand: 'stredna', silhouette: 'drobna', hair: 'tmave', style: 'prirodzeny' },
     gender: 'z', rt: { os1: 0.6, os2: 0.5 },
+    hobbies: ['čítanie', 'varenie', 'príroda/záhrada', 'zvieratá'],
+    musicGenres: ['folk', 'klasika', 'indie'], musicArtists: 'Norah Jones, Sigur Rós',
     valueVector: { 'rodina':5, 'kariéra':3, 'pokoj':5, 'spiritualita':3, 'osobný rast':4, 'sloboda':2, 'dobrodružstvo':2 },
     personality: { openness:3.5, conscientiousness:4, extraversion:3, agreeableness:4.5, stability:4 }
   },
@@ -163,6 +165,8 @@ const SAMPLE_USERS = [
     smokes: false,
     appearance: { heightBand: 'vyssia', silhouette: 'atleticka', hair: 'tmave', style: 'upraveny' },
     gender: 'm', rt: { os1: 0.1, os2: -0.4 },
+    hobbies: ['cestovanie', 'behanie', 'jazyky', 'kaviarne'],
+    musicGenres: ['indie', 'rock', 'filmová hudba'], musicArtists: 'The National, Hans Zimmer',
     valueVector: { 'rodina':3, 'kariéra':5, 'pokoj':2, 'spiritualita':2, 'osobný rast':5, 'sloboda':4, 'dobrodružstvo':4 },
     personality: { openness:4, conscientiousness:4.5, extraversion:4, agreeableness:3, stability:3.5 }
   },
@@ -173,6 +177,8 @@ const SAMPLE_USERS = [
     smokes: true,
     appearance: { heightBand: 'stredna', silhouette: 'drobna', hair: 'svetle', style: 'sportovy' },
     gender: 'z', rt: { os1: -0.5, os2: -0.7 },
+    hobbies: ['cestovanie', 'fotografovanie', 'tanec', 'koncerty', 'turistika'],
+    musicGenres: ['elektronická', 'latino', 'techno/house'], musicArtists: 'Rüfüs Du Sol, Bad Bunny',
     valueVector: { 'rodina':2, 'kariéra':3, 'pokoj':2, 'spiritualita':3, 'osobný rast':4, 'sloboda':5, 'dobrodružstvo':5 },
     personality: { openness:5, conscientiousness:2.5, extraversion:4.5, agreeableness:3.5, stability:3 }
   },
@@ -183,6 +189,8 @@ const SAMPLE_USERS = [
     smokes: false,
     appearance: { heightBand: 'vyssia', silhouette: 'silna', hair: 'tmave', style: 'prirodzeny' },
     gender: 'm', rt: { os1: 0.3, os2: 0.6 },
+    hobbies: ['šport/fitness', 'cestovanie', 'technológie', 'jazyky'],
+    musicGenres: ['rock', 'elektronická', 'indie'], musicArtists: 'Foals, Bonobo',
     valueVector: { 'rodina':4, 'kariéra':2, 'pokoj':5, 'spiritualita':5, 'osobný rast':4, 'sloboda':3, 'dobrodružstvo':2 },
     personality: { openness:4, conscientiousness:3.5, extraversion:2.5, agreeableness:4.5, stability:4.5 }
   },
@@ -193,6 +201,8 @@ const SAMPLE_USERS = [
     smokes: false,
     appearance: { heightBand: 'nizsia', silhouette: 'plna', hair: 'svetle', style: 'upraveny' },
     gender: 'z', rt: { os1: 0.7, os2: 0.4 },
+    hobbies: ['varenie', 'čítanie', 'dobrovoľníctvo', 'zvieratá', 'joga'],
+    musicGenres: ['klasika', 'folk', 'R&B/soul'], musicArtists: 'Adele, Ludovico Einaudi',
     valueVector: { 'rodina':5, 'kariéra':2, 'pokoj':4, 'spiritualita':4, 'osobný rast':3, 'sloboda':2, 'dobrodružstvo':3 },
     personality: { openness:3, conscientiousness:4, extraversion:3.5, agreeableness:5, stability:4 }
   },
@@ -203,6 +213,8 @@ const SAMPLE_USERS = [
     smokes: true,
     appearance: { heightBand: 'vyssia', silhouette: 'atleticka', hair: 'tmave', style: 'sportovy' },
     gender: 'm', rt: { os1: -0.6, os2: -0.2 },
+    hobbies: ['šport/fitness', 'bicykel', 'koncerty', 'technológie'],
+    musicGenres: ['techno/house', 'hip-hop/rap', 'rock'], musicArtists: 'Fred again.., Kendrick Lamar',
     valueVector: { 'rodina':2, 'kariéra':5, 'pokoj':3, 'spiritualita':1, 'osobný rast':4, 'sloboda':5, 'dobrodružstvo':4 },
     personality: { openness:3.5, conscientiousness:4, extraversion:4, agreeableness:2.5, stability:3.5 }
   }
@@ -760,6 +772,34 @@ const TASTER = {
 };
 
 window.TASTER = TASTER;
+
+
+/* ==============================================================
+   ZÁĽUBY A HUDBA – spoločné body do rozhovoru
+   --------------------------------------------------------------
+   SOFT signál: nikdy brána, nikdy percento, nemení poradie matchov
+   ani calculateCompatibility. Slúži len na to, aby bolo o čom
+   začať rozprávať.
+   TODO: hudbu neskôr napojiť na Spotify (žánre + interpreti),
+   spoločné body počítať na serveri (Supabase) medzi reálnymi účtami.
+   ============================================================== */
+
+const HOBBY_TAGS = [
+  'turistika', 'čítanie', 'varenie', 'cestovanie', 'šport/fitness', 'tanec',
+  'joga', 'hry (deskové/PC)', 'umenie/kreslenie', 'fotografovanie',
+  'hudba (hranie)', 'príroda/záhrada', 'zvieratá', 'filmy/seriály',
+  'dobrovoľníctvo', 'meditácia', 'jazyky', 'technológie', 'behanie',
+  'bicykel', 'plávanie', 'písanie', 'kaviarne', 'koncerty'
+];
+
+const MUSIC_GENRES = [
+  'pop', 'rock', 'klasika', 'jazz', 'hip-hop/rap', 'elektronická', 'folk',
+  'metal', 'R&B/soul', 'country', 'latino', 'filmová hudba', 'indie',
+  'punk', 'techno/house', 'ľudová', 'blues', 'reggae'
+];
+
+window.HOBBY_TAGS = HOBBY_TAGS;
+window.MUSIC_GENRES = MUSIC_GENRES;
 
 
 /* ==============================================================

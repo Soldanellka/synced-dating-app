@@ -38,6 +38,9 @@ const AppState = {
     archetypePref: null,        // Koho hľadám – { poradie, prefOs1, prefOs2 } (soft doradenie, nikdy brána)
     essenceName: null,          // Meno podstaty – { adjektivum, substantivum, cely, why, od } (mimo scoringu)
     mode: 'dating',             // Prečo si tu: 'dating' | 'growth' (rast = nezobrazuje sa ostatným)
+    hobbies: [],                // Záľuby – soft signál do rozhovoru (nikdy filter)
+    musicGenres: [],            // Hudobné žánre – soft signál
+    musicArtists: '',           // Obľúbení interpreti (voľný text, nepovinné)
     assertStyle: null,          // Asertivita – { counts, dominant } (privátny self-insight, mimo scoringu)
     assertProgress: null,       // Asertivita – prejdené mikro-lekcie { amygdala, kindness, techniques }
     // Výzor (Krok 5) – abstraktný avatar, KÁNON hodnôt viď docs/vyzor-a-pravidla.md
@@ -887,6 +890,10 @@ const Dashboard = {
     { id: 'assert',  icon: '🛡️', name: 'Asertivita',        target: '#assert-training',
       desc: 'Tréning: udrž hranicu bez boja.', time: '5 min',
       done: () => typeof AssertTraining !== 'undefined' && !!AssertTraining.result, world: 'growth' },
+    { id: 'interests', icon: '🎧', name: 'Záľuby a hudba',   target: '#profile',
+      desc: 'Čo ťa baví a čo počúvaš — spoločné body do rozhovoru.', time: '2 min',
+      done: () => !!AppState.userProfile.hobbies?.length
+        || !!AppState.userProfile.musicGenres?.length, world: 'growth' },
     { id: 'games',   icon: '🎭', name: 'Hry o tebe',         target: '#values-game',
       desc: 'Rebríček hodnôt, kuchynský test, panáčik z tvarov.', time: '2 min',
       done: () => !!AppState.userProfile.valuesRanking?.length
@@ -1121,6 +1128,22 @@ window.calculateCompatibility = calculateCompatibility;
    Filozofia: jemné signály, nie čísla (docs/vyzor-a-pravidla.md).
    -------------------------------------------------------------- */
 
+/* Spoločné záľuby a žánre – „iskra" do rozhovoru.
+   Nikdy nič nefiltruje, nemení poradie ani skóre; keď nie je nič
+   spoločné, riadok sa jednoducho nezobrazí (nikdy nepíšeme
+   „nič spoločné"). */
+function sharedInterestsLine(me, other) {
+  const inter = (a, b) => (a || []).filter(x => (b || []).includes(x));
+  const hob = inter(me?.hobbies, other?.hobbies);
+  const mus = inter(me?.musicGenres, other?.musicGenres);
+  if (!hob.length && !mus.length) return '';
+  const parts = [];
+  if (hob.length) parts.push(hob.slice(0, 3).join(', '));
+  if (mus.length) parts.push('hudba: ' + mus.slice(0, 3).join(', '));
+  return `<p class="match-interests">✨ Spoločné: ${parts.join(' · ')}</p>`;
+}
+window.sharedInterestsLine = sharedInterestsLine;
+
 // Veta o spoločných hodnotách (bez čísel)
 function sharedValuesLine(shared) {
   const s = shared || [];
@@ -1173,6 +1196,7 @@ const Matches = {
         const result = calculateCompatibility(me, u);
         result.appearanceFit = appearanceFit(me.ideal, u.appearance);
         result.rtLine = rtStyleLine(me.rt, u.rt);   // opisný riadok, nie skóre
+        result.interestsLine = sharedInterestsLine(me, u);   // iskra, nie skóre
         result.archLine = archetypeLine(me.rt, me.archetypeSet, u.rt, u.gender);
         result.archPrefScore = archPrefScore(me.archetypePref, u.rt);
         result.archPrefLine = archPrefLine(me.archetypePref, u.rt, u.gender);
@@ -1241,6 +1265,8 @@ const Matches = {
       appearance: P.appearance || {},
       ideal: P.ideal || { heightBand: 'nezalezi', silhouette: 'nezalezi', hair: 'nezalezi', style: 'nezalezi' },
       rt: P.rt || null,
+      hobbies: P.hobbies || [],
+      musicGenres: P.musicGenres || [],
       archetypeSet: P.archetypeSet || 'neutral',
       archetypePref: P.archetypePref || null
     };
@@ -1261,6 +1287,7 @@ const Matches = {
         ${r.rtLine || ''}
         ${r.archLine || ''}
         ${r.archPrefLine || ''}
+        ${r.interestsLine || ''}
         <p class="match-bio">„${user.bio}"</p>
         <button class="btn-primary" data-scroll="#chat">Napíš správu</button>
       </article>`;
@@ -3614,6 +3641,125 @@ const TestProgress = {
 
 
 /* --------------------------------------------------------------
+   5a5) ZÁĽUBY A HUDBA – spoločné body do rozhovoru
+   --------------------------------------------------------------
+   Čisto obohacujúce: NIKDY brána, NIKDY percento, nemení poradie
+   matchov ani calculateCompatibility. Len ukáže, o čom sa dá začať.
+   TODO: hudbu neskôr napojiť na Spotify, prienik počítať na serveri
+   (Supabase) medzi reálnymi účtami – preto sú dáta čisté polia.
+   -------------------------------------------------------------- */
+const Interests = {
+  KEY: 'synced_interests_v1',
+
+  init() {
+    this.box = document.getElementById('interestsBox');
+    if (!this.box) return;
+    this.load();
+    this.render();
+    // Dashboard sa vykresľuje skôr – po načítaní záujmov ho obnov,
+    // nech dlaždica ukáže správny stav
+    if (typeof Dashboard !== 'undefined') Dashboard.render();
+
+    this.box.addEventListener('click', (e) => {
+      const chip = e.target.closest('button[data-interest]');
+      if (chip) { this.toggle(chip.dataset.interestKind, chip.dataset.interest); return; }
+      if (e.target.closest('[data-hobby-add]')) this.addCustom();
+    });
+    this.box.addEventListener('keydown', (e) => {
+      if (e.target.id === 'hobbyCustom' && e.key === 'Enter') { e.preventDefault(); this.addCustom(); }
+    });
+    this.box.addEventListener('input', (e) => {
+      if (e.target.id === 'musicArtists') {
+        AppState.userProfile.musicArtists = e.target.value;
+        this.save();
+      }
+    });
+  },
+
+  toggle(kind, value) {
+    const key = kind === 'music' ? 'musicGenres' : 'hobbies';
+    const list = AppState.userProfile[key] || [];
+    const i = list.indexOf(value);
+    if (i >= 0) list.splice(i, 1); else list.push(value);
+    AppState.userProfile[key] = list;
+    this.save();
+    this.render();
+    if (Object.keys(AppState.userProfile.valueVector || {}).length) Matches.render();
+  },
+
+  // Vlastný tag – uloží sa ako ďalšia záľuba
+  addCustom() {
+    const input = document.getElementById('hobbyCustom');
+    const val = (input?.value || '').trim();
+    if (!val) return;
+    const list = AppState.userProfile.hobbies || [];
+    if (!list.some(h => h.toLowerCase() === val.toLowerCase())) list.push(val);
+    AppState.userProfile.hobbies = list;
+    input.value = '';
+    this.save();
+    this.render();
+    document.getElementById('hobbyCustom')?.focus();
+    if (Object.keys(AppState.userProfile.valueVector || {}).length) Matches.render();
+  },
+
+  chips(kind, options) {
+    const key = kind === 'music' ? 'musicGenres' : 'hobbies';
+    const chosen = AppState.userProfile[key] || [];
+    // vlastné tagy (mimo ponuky) sa zobrazia tiež, na konci
+    const extra = kind === 'hobby' ? chosen.filter(c => !options.includes(c)) : [];
+    return [...options, ...extra].map(o => `
+      <button type="button" class="avatar-chip ${chosen.includes(o) ? 'is-active' : ''}"
+        data-interest-kind="${kind}" data-interest="${o.replace(/"/g, '&quot;')}"
+        aria-pressed="${chosen.includes(o)}">${o}</button>`).join('');
+  },
+
+  render() {
+    const P = AppState.userProfile;
+    this.box.innerHTML = `
+      <p class="interests-note">Nepáruje ťa to podľa vkusu – len pomôže nájsť,
+        o čom sa dá začať rozprávať. 💛 <em>(nepovinné)</em></p>
+
+      <p class="interests-label">Čo ťa baví?</p>
+      <div class="avatar-chips interests-chips">${this.chips('hobby', window.HOBBY_TAGS || [])}</div>
+      <div class="interests-add">
+        <input type="text" id="hobbyCustom" placeholder="+ pridať vlastné" maxlength="30">
+        <button type="button" class="btn-secondary" data-hobby-add>Pridať</button>
+      </div>
+
+      <p class="interests-label">Hudba</p>
+      <div class="avatar-chips interests-chips">${this.chips('music', window.MUSIC_GENRES || [])}</div>
+      <label class="interests-artists">Obľúbení interpreti (nepovinné)
+        <input type="text" id="musicArtists" maxlength="120"
+          value="${(P.musicArtists || '').replace(/"/g, '&quot;')}"
+          placeholder="Napr. Sigur Rós, Adele">
+      </label>`;
+  },
+
+  save() {
+    const P = AppState.userProfile;
+    try {
+      localStorage.setItem(this.KEY, JSON.stringify({
+        hobbies: P.hobbies || [], musicGenres: P.musicGenres || [],
+        musicArtists: P.musicArtists || ''
+      }));
+    } catch (_) {}
+    if (typeof Dashboard !== 'undefined') Dashboard.render();
+  },
+
+  load() {
+    try {
+      const raw = localStorage.getItem(this.KEY);
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      if (Array.isArray(d.hobbies)) AppState.userProfile.hobbies = d.hobbies;
+      if (Array.isArray(d.musicGenres)) AppState.userProfile.musicGenres = d.musicGenres;
+      if (typeof d.musicArtists === 'string') AppState.userProfile.musicArtists = d.musicArtists;
+    } catch (_) { /* poškodené dáta ignorujeme */ }
+  }
+};
+
+
+/* --------------------------------------------------------------
    5a4) PRIPRAVUJEME – úprimná odpoveď na „daj mi vedieť"
    --------------------------------------------------------------
    Žiadny e-mail sa nikam neposiela ani neukladá (nemáme backend),
@@ -3700,6 +3846,7 @@ document.addEventListener('DOMContentLoaded', () => {
   SmoothScroll.init();
   TestGate.init();              // pred Taster – ochutnávka sa podľa neho skrýva
   Taster.init();
+  Interests.init();
   Upcoming.init();
   TestProgress.init();          // po Onboarding – ponuka „Pokračovať v teste"
   StickyCta.init();
