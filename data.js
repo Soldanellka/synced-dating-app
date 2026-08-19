@@ -621,6 +621,51 @@ const ASSERT_TRAINING = {
       'že sa staráš aj o seba.'
   },
 
+  /* --- 10 asertívnych práv (vlastné formulácie) ---
+     Rámec recipročnosti je zámerne NAD zoznamom: bez neho sa
+     z práv stáva zbraň. Ku každému právu ide veta, ktorá
+     pripomenie, že to isté právo má aj druhý. */
+  rights: {
+    title: '10 asertívnych práv',
+    frame: 'Moje práva sú aj tvoje práva. Každé právo, ktoré si nárokujem pre ' +
+      'seba, má rovnako aj druhý. Asertivita nie je zbraň — je to rešpekt ' +
+      'k obom stranám.',
+    items: [
+      { right: 'Mám právo povedať nie bez pocitu viny.',
+        why: 'Nie je odmietnutie človeka, len jeho žiadosti.',
+        mutual: 'A rovnako smie povedať nie mne — bez toho, aby som ho presviedčal(a) ďalej.' },
+      { right: 'Mám právo zmeniť názor.',
+        why: 'Nový pohľad nie je zrada starého; je to známka, že rastieš.',
+        mutual: 'A druhý ho smie zmeniť tiež — nebudem mu to vyčítať ako nespoľahlivosť.' },
+      { right: 'Mám právo urobiť chybu a niesť za ňu zodpovednosť.',
+        why: 'Chyba je cena za to, že vôbec konáš. Dôležité je, čo s ňou urobíš.',
+        mutual: 'A druhý má právo pomýliť sa bez toho, aby som mu to pripomínal(a) navždy.' },
+      { right: 'Mám právo povedať „nerozumiem" alebo „neviem".',
+        why: 'Predstierať istotu je drahšie než sa spýtať.',
+        mutual: 'A druhý smie nevedieť — nebudem z toho robiť dôkaz o jeho hodnote.' },
+      { right: 'Mám právo požiadať o to, čo chcem.',
+        why: 'Nevyslovená potreba sa nesplní. Prosba nie je nátlak.',
+        mutual: 'A druhý má plné právo odmietnuť — inak by to nebola prosba, ale tlak.' },
+      { right: 'Mám právo na svoje pocity a na to vyjadriť ich.',
+        why: 'Pocit nie je na diskusiu. To, čo s ním urobíš, už áno.',
+        mutual: 'A druhý má právo cítiť niečo iné než ja — aj vtedy, keď mi to nesedí.' },
+      { right: 'Mám právo rozhodovať o svojich veciach.',
+        why: 'Tvoj čas, telo a hranice patria tebe.',
+        mutual: 'A do vecí druhého mi nič nie je, kým sa ma priamo netýkajú.' },
+      { right: 'Mám právo byť vypočutý a braný vážne.',
+        why: 'Aj keď so mnou druhý nesúhlasí, moja vec má zaznieť celá.',
+        mutual: 'A ja dlžím to isté jemu — vypočuť ho bez skákania do reči.' },
+      { right: 'Mám právo nebyť závislý od súhlasu druhých.',
+        why: 'Byť obľúbený je pekné. Byť sebou je nutné.',
+        mutual: 'A druhý nemusí robiť veci preto, aby sa zapáčil mne.' },
+      { right: 'Mám právo povedať „potrebujem si to premyslieť".',
+        why: 'Čas na rozmyslenie je súčasť slobodného rozhodnutia, nie vyhýbanie.',
+        mutual: 'A keď si čas pýta druhý, dám mu ho — nebudem tlačiť na odpoveď hneď.' }
+    ],
+    note: 'Keď si niektoré právo nárokuješ len pre seba, prestáva to byť ' +
+      'asertivita a začína to byť presadzovanie sa cez druhého. 💛'
+  },
+
   /* --- Knižnica asertívnych techník (referenčný prehľad) ---
      sceneId → „Precvičiť" otvorí cvičnú scénu s touto technikou;
      extra → „Precvičiť" ukáže ďalší príklad vety */

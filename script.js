@@ -890,6 +890,10 @@ const Dashboard = {
     { id: 'assert',  icon: '🛡️', name: 'Asertivita',        target: '#assert-training',
       desc: 'Tréning: udrž hranicu bez boja.', time: '5 min',
       done: () => typeof AssertTraining !== 'undefined' && !!AssertTraining.result, world: 'growth' },
+    { id: 'feedback', icon: '🪞', name: 'Spätná väzba',      target: '#feedback-training',
+      desc: 'Joharyho okno, polievanie kvetov a ja-výroky.', time: '6 min',
+      done: () => typeof FeedbackTraining !== 'undefined'
+        && Object.values(FeedbackTraining.progress || {}).filter(Boolean).length >= 4, world: 'growth' },
     { id: 'interests', icon: '🎧', name: 'Záľuby a hudba',   target: '#profile',
       desc: 'Čo ťa baví a čo počúvaš — spoločné body do rozhovoru.', time: '2 min',
       done: () => !!AppState.userProfile.hobbies?.length
@@ -2342,7 +2346,7 @@ const AssertTraining = {
   counts: { pasivny: 0, agresivny: 0, pasivne_agresivny: 0, asertivny: 0 },
   result: null,     // { counts, dominant } – uložený výsledok (aj po refreshi)
   // Mikro-lekcie a knižnica (bez vplyvu na scoring)
-  progress: { amygdala: false, kindness: false, techniques: false },
+  progress: { amygdala: false, kindness: false, rights: false, techniques: false },
   extraView: null,  // 'amygdala' | 'kindness' | 'tech' | null
   amyIdx: 0,
   kindIdx: 0,
@@ -2404,9 +2408,10 @@ const AssertTraining = {
     const tiles = [
       ['amygdala', '🧠', this.D.amygdala.title],
       ['kindness', '💛', this.D.kindness.title],
+      ['rights', '⚖️', this.D.rights.title],
       ['tech', '📚', this.D.techniques.title]
     ];
-    const doneKey = { amygdala: 'amygdala', kindness: 'kindness', tech: 'techniques' };
+    const doneKey = { amygdala: 'amygdala', kindness: 'kindness', rights: 'rights', tech: 'techniques' };
     document.getElementById('atTiles').innerHTML = tiles.map(([view, icon, title]) => `
       <button type="button" class="at-tile ${this.extraView === view ? 'is-open' : ''}"
         data-at-view="${view}">
@@ -2428,6 +2433,7 @@ const AssertTraining = {
     box.hidden = false;
     if (view === 'amygdala') { this.amyIdx = 0; this.renderAmygdala(); }
     if (view === 'kindness') { this.kindIdx = 0; this.kindAnswered = false; this.renderKindness(); }
+    if (view === 'rights') { this.renderRights(); this.markDone('rights'); }
     if (view === 'tech') {
       this.renderTechniques();
       this.markDone('techniques');   // referenčný prehľad = otvorené → prejdené
@@ -2448,7 +2454,7 @@ const AssertTraining = {
       const raw = localStorage.getItem(this.PROG_KEY);
       if (!raw) return;
       const saved = JSON.parse(raw);
-      ['amygdala', 'kindness', 'techniques'].forEach(k => {
+      ['amygdala', 'kindness', 'rights', 'techniques'].forEach(k => {
         if (saved[k] === true) this.progress[k] = true;
       });
       AppState.userProfile.assertProgress = { ...this.progress };
@@ -2519,6 +2525,23 @@ const AssertTraining = {
   kindNext() {
     this.kindIdx++;
     this.renderKindness();
+  },
+
+  /* --- 10 asertívnych práv (rámec recipročnosti je NAD zoznamom) --- */
+  renderRights() {
+    const R = this.D.rights;
+    document.getElementById('atExtra').innerHTML = `
+      <h3>⚖️ ${R.title}</h3>
+      <p class="at-rights-frame">🤝 ${R.frame}</p>
+      <ol class="at-rights">
+        ${R.items.map(it => `
+          <li>
+            <p class="at-rights__right">${it.right}</p>
+            <p class="at-rights__why">${it.why}</p>
+            <p class="at-rights__mutual">↔ ${it.mutual}</p>
+          </li>`).join('')}
+      </ol>
+      <p class="vg-result__note">${R.note}</p>`;
   },
 
   /* --- Knižnica techník --- */
@@ -3388,7 +3411,7 @@ const TestGate = {
   // Sekcie, ktoré dávajú zmysel až s výsledkom testu
   heavy: ['dashboard', 'upcoming', 'rt-test', 'archetype-pref', 'profile', 'matches',
     'values-game', 'kitchen-game', 'shape-game', 'essence-name',
-    'assert-training', 'chat', 'video'],
+    'assert-training', 'feedback-training', 'chat', 'video'],
 
   init() {
     try { this.done = localStorage.getItem(this.KEY) === '1'; } catch (_) { this.done = false; }
@@ -3641,6 +3664,283 @@ const TestProgress = {
 
 
 /* --------------------------------------------------------------
+   3m) SPÄTNÁ VÄZBA – ako ju dávať a prijímať
+   --------------------------------------------------------------
+   Vzdelávací modul (vzor AssertTraining: dlaždice + listovacie
+   karty + cvičenia). SOFT/self-insight – žiadny vplyv na matching,
+   brány ani skóre. Diskusné časti prídu so Supabase.
+   -------------------------------------------------------------- */
+const FeedbackTraining = {
+  KEY: 'synced_feedbackprogress_v1',
+  view: null,
+  johariIdx: 0,
+  perspIdx: 0,
+  flowerIdx: 0,
+  flowerAnswered: false,
+  yiIdx: 0,
+  yiAnswered: false,
+  progress: { johari: false, perspective: false, rules: false, flowers: false, youToI: false },
+
+  init() {
+    this.D = window.FEEDBACK_TRAINING;
+    this.tilesEl = document.getElementById('fbTiles');
+    this.panel = document.getElementById('fbPanel');
+    if (!this.D || !this.tilesEl || !this.panel) return;
+
+    document.getElementById('fbIntro').innerHTML = this.D.intro;
+    this.load();
+    this.renderTiles();
+
+    this.tilesEl.addEventListener('click', (e) => {
+      const t = e.target.closest('button[data-fb-view]');
+      if (t) this.toggle(t.dataset.fbView);
+    });
+
+    this.panel.addEventListener('click', (e) => {
+      const nav = e.target.closest('[data-fb-nav]');
+      if (nav) { this.step(nav.dataset.fbNav); return; }
+      const flower = e.target.closest('button[data-flower-opt]');
+      if (flower && !this.flowerAnswered) { this.flowerChoose(Number(flower.dataset.flowerOpt)); return; }
+      if (e.target.closest('[data-flower-next]')) { this.flowerIdx++; this.flowerAnswered = false; this.renderFlowers(); return; }
+      const yi = e.target.closest('button[data-yi-opt]');
+      if (yi && !this.yiAnswered) { this.yiChoose(Number(yi.dataset.yiOpt)); return; }
+      if (e.target.closest('[data-yi-next]')) { this.yiIdx++; this.yiAnswered = false; this.renderYouToI(); }
+    });
+  },
+
+  tiles: [
+    ['johari', '🪟', 'Joharyho okno'],
+    ['perspective', '🫱', 'Osobný uhol pohľadu'],
+    ['rules', '📋', 'Pravidlá dávania a prijímania'],
+    ['flowers', '🌷', 'Polievam kvety, nie burinu'],
+    ['youToI', '🔁', 'Ty-výrok → Ja-výrok'],
+    ['reflection', '💭', 'Krátke zamyslenie']
+  ],
+
+  renderTiles() {
+    this.tilesEl.innerHTML = this.tiles.map(([id, icon, name]) => `
+      <button type="button" class="at-tile ${this.view === id ? 'is-open' : ''}" data-fb-view="${id}">
+        <span class="at-tile__icon">${icon}</span>
+        <span class="at-tile__title">${name}</span>
+        ${this.progress[id] ? '<span class="at-tile__done">✓</span>' : ''}
+      </button>`).join('');
+  },
+
+  toggle(view) {
+    if (this.view === view) { this.view = null; this.panel.hidden = true; this.renderTiles(); return; }
+    this.view = view;
+    this.panel.hidden = false;
+    if (view === 'johari') { this.johariIdx = 0; this.renderJohari(); }
+    if (view === 'perspective') { this.perspIdx = 0; this.renderPerspective(); }
+    if (view === 'rules') { this.renderRules(); this.done('rules'); }
+    if (view === 'flowers') { this.flowerIdx = 0; this.flowerAnswered = false; this.renderFlowers(); }
+    if (view === 'youToI') { this.yiIdx = 0; this.yiAnswered = false; this.renderYouToI(); }
+    if (view === 'reflection') this.renderReflection();
+    this.renderTiles();
+  },
+
+  step(dir) {
+    if (this.view === 'johari') { this.johariIdx += dir === 'next' ? 1 : -1; this.renderJohari(); }
+    if (this.view === 'perspective') { this.perspIdx += dir === 'next' ? 1 : -1; this.renderPerspective(); }
+  },
+
+  done(key) {
+    if (this.progress[key]) return;
+    this.progress[key] = true;
+    AppState.userProfile.feedbackProgress = { ...this.progress };
+    try { localStorage.setItem(this.KEY, JSON.stringify(this.progress)); } catch (_) {}
+    this.renderTiles();
+    if (typeof Dashboard !== 'undefined') Dashboard.render();
+  },
+
+  load() {
+    try {
+      const raw = localStorage.getItem(this.KEY);
+      if (!raw) return;
+      const s = JSON.parse(raw);
+      Object.keys(this.progress).forEach(k => { if (s[k] === true) this.progress[k] = true; });
+      AppState.userProfile.feedbackProgress = { ...this.progress };
+    } catch (_) { /* poškodené dáta ignorujeme */ }
+  },
+
+  /* --- Joharyho okno: diagram 2×2 + karty --- */
+  johariSVG(highlight) {
+    const q = [
+      { id: 'arena',  x: 6,   y: 6,   label: 'Otvorená',    sub: 'viem ja + vedia druhí' },
+      { id: 'blind',  x: 153, y: 6,   label: 'Slepé miesto', sub: 'vidia druhí, ja nie' },
+      { id: 'facade', x: 6,   y: 108, label: 'Skrytá',       sub: 'viem ja, skrývam' },
+      { id: 'unknown',x: 153, y: 108, label: 'Neznáma',      sub: 'zatiaľ nevie nikto' }
+    ];
+    return `
+      <svg class="fb-johari" viewBox="0 0 300 210" role="img"
+        aria-label="Joharyho okno – štyri oblasti">
+        ${q.map(c => `
+          <rect x="${c.x}" y="${c.y}" width="141" height="96" rx="10"
+            fill="${highlight === c.id ? 'var(--c-highlight)' : 'var(--accent)'}"
+            stroke="var(--primary)" stroke-width="2"/>
+          <text x="${c.x + 70}" y="${c.y + 42}" text-anchor="middle"
+            class="fb-johari__label">${c.label}</text>
+          <text x="${c.x + 70}" y="${c.y + 62}" text-anchor="middle"
+            class="fb-johari__sub">${c.sub}</text>`).join('')}
+        <text x="150" y="205" text-anchor="middle" class="fb-johari__axis">
+          ↑ spätná väzba zmenšuje slepé miesto · ↓ zdieľanie zmenšuje fasádu
+        </text>
+      </svg>`;
+  },
+
+  renderJohari() {
+    const J = this.D.johari;
+    const n = J.cards.length;
+    this.johariIdx = Math.max(0, Math.min(this.johariIdx, n - 1));
+    const last = this.johariIdx === n - 1;
+    if (last) this.done('johari');
+    const hi = ['arena', 'facade', 'arena'][this.johariIdx];
+    this.panel.innerHTML = `
+      <h3>🪟 ${J.title}</h3>
+      ${this.johariSVG(hi)}
+      <p class="at-progress">Karta ${this.johariIdx + 1}/${n}</p>
+      <p class="fb-card">${J.cards[this.johariIdx]}</p>
+      <div class="at-extra-nav">
+        <button type="button" class="btn-secondary" data-fb-nav="prev"
+          ${this.johariIdx === 0 ? 'disabled' : ''}>Späť</button>
+        ${last ? '' : '<button type="button" class="btn-primary" data-fb-nav="next">Ďalej</button>'}
+      </div>`;
+  },
+
+  renderPerspective() {
+    const P = this.D.perspective;
+    const n = P.cards.length;
+    this.perspIdx = Math.max(0, Math.min(this.perspIdx, n - 1));
+    const last = this.perspIdx === n - 1;
+    if (last) this.done('perspective');
+    this.panel.innerHTML = `
+      <h3>🫱 ${P.title}</h3>
+      <p class="at-progress">Karta ${this.perspIdx + 1}/${n}</p>
+      <p class="fb-card">${P.cards[this.perspIdx]}</p>
+      <div class="at-extra-nav">
+        <button type="button" class="btn-secondary" data-fb-nav="prev"
+          ${this.perspIdx === 0 ? 'disabled' : ''}>Späť</button>
+        ${last ? '' : '<button type="button" class="btn-primary" data-fb-nav="next">Ďalej</button>'}
+      </div>`;
+  },
+
+  renderRules() {
+    const R = this.D.rules;
+    const col = (c) => `
+      <div class="fb-rules__col">
+        <h4>${c.title}</h4>
+        <ul class="fb-rules__list">
+          ${c.items.map(([t, d]) => `<li><strong>${t}</strong><span>${d}</span></li>`).join('')}
+        </ul>
+      </div>`;
+    this.panel.innerHTML = `
+      <h3>📋 ${R.title}</h3>
+      <div class="fb-rules">${col(R.giving)}${col(R.receiving)}</div>`;
+  },
+
+  /* --- Polievam kvety --- */
+  renderFlowers() {
+    const F = this.D.flowers;
+    if (this.flowerIdx >= F.scenes.length) {
+      this.done('flowers');
+      this.panel.innerHTML = `
+        <h3>🌷 ${F.title}</h3>
+        <p class="vg-result__note">${F.note}</p>`;
+      return;
+    }
+    const s = F.scenes[this.flowerIdx];
+    this.panel.innerHTML = `
+      <h3>🌷 ${F.title}</h3>
+      ${this.flowerIdx === 0 ? `<p class="fb-card">${F.intro}</p>` : ''}
+      <p class="at-progress">Scéna ${this.flowerIdx + 1}/${F.scenes.length}</p>
+      <p class="at-situation">${s.text}</p>
+      <p class="fb-question">Čo sa mu/jej naozaj podarilo?</p>
+      <div class="at-answers">
+        ${s.options.map((o, i) => `
+          <button type="button" class="at-answer" data-flower-opt="${i}">${o.text}</button>`).join('')}
+      </div>
+      <div class="at-feedback" id="fbFlowerFeedback" hidden></div>`;
+  },
+
+  flowerChoose(i) {
+    const F = this.D.flowers;
+    const s = F.scenes[this.flowerIdx];
+    const o = s.options[i];
+    this.flowerAnswered = true;
+    document.querySelectorAll('#fbPanel .at-answer').forEach((b, k) => {
+      b.disabled = true;
+      b.classList.toggle('is-chosen', k === i);
+      if (s.options[k].ok) b.classList.add('is-assert');
+    });
+    const msg = o.ok ? F.feedbackOk : (o.weak ? F.feedbackWeak : F.feedbackNo);
+    const box = document.getElementById('fbFlowerFeedback');
+    box.hidden = false;
+    box.innerHTML = `
+      <p>${msg}</p>
+      <p class="fb-model"><strong>Takto by to mohlo znieť:</strong> ${s.model}</p>
+      <button type="button" class="btn-primary" data-flower-next>
+        ${this.flowerIdx === F.scenes.length - 1 ? 'Dokončiť' : 'Ďalšia scéna'}</button>`;
+  },
+
+  /* --- Ty-výrok → Ja-výrok --- */
+  renderYouToI() {
+    const Y = this.D.youToI;
+    if (this.yiIdx >= Y.items.length) {
+      this.done('youToI');
+      this.panel.innerHTML = `
+        <h3>🔁 ${Y.title}</h3>
+        <p class="vg-result__note">Prešiel/prešla si všetkých ${Y.items.length} viet. 💛
+          Techniku nájdeš aj v knižnici v module Asertivita.</p>`;
+      return;
+    }
+    const it = Y.items[this.yiIdx];
+    this.panel.innerHTML = `
+      <h3>🔁 ${Y.title}</h3>
+      ${this.yiIdx === 0 ? `<p class="fb-card">${Y.intro}</p>` : ''}
+      <p class="at-progress">Veta ${this.yiIdx + 1}/${Y.items.length}</p>
+      <p class="at-situation">${it.you}</p>
+      <p class="fb-question">Ktorá verzia je ja-výrok?</p>
+      <div class="at-answers">
+        ${it.options.map((o, i) => `
+          <button type="button" class="at-answer" data-yi-opt="${i}">${o.text}</button>`).join('')}
+      </div>
+      <div class="at-feedback" id="fbYiFeedback" hidden></div>`;
+  },
+
+  yiChoose(i) {
+    const Y = this.D.youToI;
+    const it = Y.items[this.yiIdx];
+    const o = it.options[i];
+    this.yiAnswered = true;
+    document.querySelectorAll('#fbPanel .at-answer').forEach((b, k) => {
+      b.disabled = true;
+      b.classList.toggle('is-chosen', k === i);
+      if (it.options[k].ok) b.classList.add('is-assert');
+    });
+    // druhá možnosť je vždy ty-výrok v prezlečení, tretia ustúpenie
+    const msg = o.ok ? Y.feedbackOk : (i === 1 ? Y.feedbackDisguised : Y.feedbackPassive);
+    const box = document.getElementById('fbYiFeedback');
+    box.hidden = false;
+    box.innerHTML = `
+      <p>${msg}</p>
+      <button type="button" class="btn-primary" data-yi-next>
+        ${this.yiIdx === Y.items.length - 1 ? 'Dokončiť' : 'Ďalšia veta'}</button>`;
+  },
+
+  renderReflection() {
+    const R = this.D.reflection;
+    this.panel.innerHTML = `
+      <h3>💭 ${R.title}</h3>
+      <p class="fb-card">${R.intro}</p>
+      <ul class="fb-reflection">
+        ${R.questions.map(q => `<li>${q}</li>`).join('')}
+      </ul>
+      <p class="vg-result__note">${R.note}</p>`;
+  }
+};
+
+
+/* --------------------------------------------------------------
    5a5) ZÁĽUBY A HUDBA – spoločné body do rozhovoru
    --------------------------------------------------------------
    Čisto obohacujúce: NIKDY brána, NIKDY percento, nemení poradie
@@ -3834,6 +4134,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ArchetypePref.init();         // po RTTest – návrh poradia číta uložené RT osi
   EssenceName.init();           // po RTTest a hrách – návrhy čítajú ich uložené výsledky
   AssertTraining.init();
+  FeedbackTraining.init();
   Mode.init();                  // ako posledný – prekreslí rozcestník podľa režimu
   Dashboard.render();
   VideoVerification.init();
