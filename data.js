@@ -803,6 +803,217 @@ window.MUSIC_GENRES = MUSIC_GENRES;
 
 
 /* ==============================================================
+   SPÄTNÁ VÄZBA – ako ju dávať a prijímať
+   --------------------------------------------------------------
+   Vzdelávací modul (SOFT/self-insight): žiadny vplyv na matching,
+   brány ani skóre. Model Joharyho okna je verejne známy koncept,
+   všetky formulácie tu sú vlastné. Diskusné a komunitné časti sú
+   mimo rozsahu (prídu so Supabase).
+   ============================================================== */
+
+const FEEDBACK_TRAINING = {
+  intro: 'Spätná väzba je jedna z mála vecí, ktorá ti ukáže to, čo o sebe ' +
+    'sám(a) nevidíš — a jedna z mála, ktorú vieš druhému dať ako dar. ' +
+    'Nejde o hodnotenie človeka. Ide o to, aby sme si rozumeli.',
+
+  /* --- 1) Joharyho okno --- */
+  johari: {
+    title: 'Prečo spätná väzba — Joharyho okno',
+    quadrants: [
+      { id: 'arena',  name: 'Otvorená (aréna)', short: 'viem ja + vedia druhí' },
+      { id: 'blind',  name: 'Slepé miesto',     short: 'vidia druhí, ja nie' },
+      { id: 'facade', name: 'Skrytá (fasáda)',  short: 'viem ja, skrývam' },
+      { id: 'unknown',name: 'Neznáma',          short: 'zatiaľ nevie nikto' }
+    ],
+    cards: [
+      'Predstav si seba ako okno so štyrmi tabuľkami. V <strong>otvorenej</strong> ' +
+        'je to, čo o sebe vieš ty aj ľudia okolo. V <strong>slepom mieste</strong> ' +
+        'to, čo vidia oni, ale ty nie — tvoj tón hlasu pri únave, spôsob, akým ' +
+        'skáčeš do reči, alebo to, ako veľmi vieš upokojiť miestnosť.',
+      'V <strong>skrytej</strong> je to, čo o sebe vieš, ale zatiaľ si nechávaš ' +
+        'pre seba. A v <strong>neznámej</strong> to, čo zatiaľ nevie nikto — ' +
+        'odhalí to až čas, nová situácia alebo človek, s ktorým sa ukáže niečo, ' +
+        'o čom si nemal(a) tušenia.',
+      'A tu je celá pointa: <strong>spätná väzba zmenšuje slepé miesto</strong> ' +
+        'a <strong>úprimné zdieľanie zmenšuje fasádu</strong>. Obe zväčšujú ' +
+        'otvorenú oblasť — a práve v nej sa dejú blízke vzťahy. Čím väčšia ' +
+        'aréna, tým menej domýšľania na oboch stranách. 💛'
+    ]
+  },
+
+  /* --- 2) Osobný uhol pohľadu --- */
+  perspective: {
+    title: 'Osobný uhol pohľadu',
+    cards: [
+      'Predtým, než niekomu niečo povieš, skús jednu otázku: ' +
+        '<strong>„Ako by som sa to chcel(a) dozvedieť o sebe ja?"</strong> ' +
+        'Nie či to je pravda — to už väčšinou vieš. Ale akými slovami, kedy ' +
+        'a pred kým by ti to bolo znesiteľné počuť.',
+      'Platí to najmä pri citlivom — pri tom, čím by si sa sám(a) nechválil(a). ' +
+        'Čím nepríjemnejšia téma, tým viac záleží na forme. Empatia nie je ' +
+        'zmäkčovanie pravdy; je to filter, cez ktorý pravda prejde tak, aby ju ' +
+        'druhý uniesol a mohol s ňou niečo robiť.'
+    ]
+  },
+
+  /* --- 3) Pravidlá podávania a prijímania --- */
+  rules: {
+    title: 'Pravidlá podávania a prijímania',
+    giving: {
+      title: 'Keď dávaš',
+      items: [
+        ['Konkrétne', 'Nie „si super", ale „páčilo sa mi, ako si vysvetlil tú vec pokojne, keď boli všetci nervózni."'],
+        ['O správaní, nie o osobe', '„Prišiel si neskôr" namiesto „si nespoľahlivý". Správanie sa dá zmeniť, nálepka ostane.'],
+        ['Včas', 'Kým si to obaja pamätáte. Po pol roku už je to len výčitka.'],
+        ['Ja-výrokom', 'Hovor za seba: „mne to prišlo…", nie „všetci si mysleli…".'],
+        ['So súhlasom', 'Spýtaj sa, či o ňu druhý stojí. Nevyžiadaná spätná väzba býva počutá ako útok.'],
+        ['Nielen kritika', 'Keď hovoríš len vtedy, keď je zle, naučíš druhého báť sa tvojho hlasu.']
+      ]
+    },
+    receiving: {
+      title: 'Keď prijímaš',
+      items: [
+        ['Počúvaj, nebráň sa', 'Prvý impulz býva vysvetľovať. Skús ho vydržať a nechať vetu dopovedať.'],
+        ['Pýtaj sa na spresnenie', '„Môžeš mi dať príklad?" spraví z hmly niečo, s čím sa dá pracovať.'],
+        ['Poďakuj', 'Povedať niekomu pravdu stojí odvahu. Aj keď s ňou nesúhlasíš, ten človek riskoval.'],
+        ['Vyber si, čo si vezmeš', 'Spätná väzba je pohľad, nie rozsudok. Nemusíš prijať všetko — rozhoduješ ty.']
+      ]
+    }
+  },
+
+  /* --- 4) Polievam kvety, nie burinu --- */
+  flowers: {
+    title: 'Polievam kvety, nie burinu',
+    intro: 'Rastie to, čo zalievaš. Pozitívna spätná väzba nie je chvála bez ' +
+      'dôvodu — je to <strong>hľadanie a pomenovanie toho, čo sa naozaj podarilo</strong>. ' +
+      'A často to treba chvíľu hľadať, lebo oko ide samo po tom, čo nesedí.',
+    scenes: [
+      {
+        text: 'Kamarát ti prvý raz varil. Cesnak pripálil, omáčka bola presolená ' +
+          'a s večerou meškal hodinu. Keď si prišla, mal prestretý stôl so sviečkou, ' +
+          'ospravedlnil sa bez výhovoriek a spýtal sa, či ti chutí — a keď si ' +
+          'povedala, že je to slané, hneď doniesol vodu a smial sa na sebe.',
+        options: [
+          { text: 'Priznal chybu bez výhovoriek a vedel sa na sebe zasmiať.', ok: true },
+          { text: 'Nič — jedlo bolo pokazené a meškal.', ok: false },
+          { text: 'Aspoň to skúsil, to stačí.', ok: false, weak: true }
+        ],
+        model: '„Páčilo sa mi, že si sa neschovával za výhovorky, keď to nevyšlo — ' +
+          'a že si sa hneď spýtal, či mi chutí. Pri tebe sa dá pokojne povedať pravda."'
+      },
+      {
+        text: 'Kolegyňa viedla poradu prvýkrát. Prezentáciu čítala z papiera, ' +
+          'dvakrát stratila niť a skončila o dvadsať minút neskôr. Keď sa však ' +
+          'niekto opýtal nepríjemnú otázku, nezamotala sa — priznala, že odpoveď ' +
+          'nevie, zapísala si ju a do večera ju poslala celému tímu.',
+        options: [
+          { text: 'Povedala „neviem", zapísala si to a odpoveď naozaj dodala.', ok: true },
+          { text: 'Nič zvláštne, porada bola slabá.', ok: false },
+          { text: 'Bola aspoň milá.', ok: false, weak: true }
+        ],
+        model: '„Ocenil som, ako si zvládla tú ťažkú otázku — povedala si rovno, ' +
+          'že to nevieš, a do večera si to zistila. To dáva ľuďom istotu, že ' +
+          'sa na tvoje slovo dá spoľahnúť."'
+      },
+      {
+        text: 'Brat ti pomáhal so sťahovaním. Prišiel neskoro, dve krabice zabalil ' +
+          'tak, že sa cestou vysypali, a polovicu času presedel na telefóne. ' +
+          'Keď ste ale zistili, že skriňa neprejde dverami, ostal tam s tebou ' +
+          'do noci, rozobral ju a nepovedal jediné krivé slovo.',
+        options: [
+          { text: 'Keď prišla naozajstná krízovka, ostal a vydržal až do konca.', ok: true },
+          { text: 'Nič — viac zavadzal, než pomohol.', ok: false },
+          { text: 'Prišiel, aj keď sa mu nechcelo.', ok: false, weak: true }
+        ],
+        model: '„Najviac mi pomohlo, že si pri tej skrini ostal do noci a ani raz ' +
+          'si nezavzdychal. V momente, keď to bolo naozaj ťažké, si tam bol."'
+      }
+    ],
+    feedbackOk: 'Presne tak — to je ten kvet. Keď ho pomenuješ konkrétne, druhý ' +
+      'vie, čo má robiť znova.',
+    feedbackWeak: 'Blízko. Lenže „aspoň to skúsil" je útecha, nie spätná väzba — ' +
+      'druhý sa z nej nedozvie, čo konkrétne mu vyšlo.',
+    feedbackNo: 'Skús sa pozrieť ešte raz. Aj v nepodarenom dni sa väčšinou nájde ' +
+      'niečo, čo ten človek zvládol — a práve to má zmysel pomenovať.',
+    note: 'Nejde o to prehliadať, čo nefunguje. Ide o to, aby to dobré nezostalo ' +
+      'nepovedané. 💛'
+  },
+
+  /* --- 5) Ty-výrok → Ja-výrok --- */
+  youToI: {
+    title: 'Ty-výrok → Ja-výrok',
+    intro: 'Ty-výrok obviňuje a druhý sa začne brániť. Ja-výrok hovorí, čo sa ' +
+      'stalo, čo to so mnou robí a čo potrebujem — a s tým sa už dá pracovať. ' +
+      'Je to tá istá technika ako v module Asertivita.',
+    items: [
+      {
+        you: '„Nikdy ma nepočúvaš."',
+        options: [
+          { text: '„Cítim sa nevypočutá, keď si pri rozhovore pozeráš do telefónu — potrebujem chvíľu, keď sme naozaj obaja tu."', ok: true },
+          { text: '„Cítim, že si bezohľadný, keď ma nepočúvaš."', ok: false },
+          { text: '„Nevadí, veď to nie je dôležité."', ok: false }
+        ]
+      },
+      {
+        you: '„Zase meškáš."',
+        options: [
+          { text: '„Mrzí ma, keď čakám bez správy — potrebujem vedieť, na čom som."', ok: true },
+          { text: '„Ty proste nevieš prísť načas."', ok: false },
+          { text: '„To nič, počkám, ja mám času dosť."', ok: false }
+        ]
+      },
+      {
+        you: '„Vždy všetko rozhoduješ za mňa."',
+        options: [
+          { text: '„Bolo mi nepríjemné, že sa o víkende rozhodlo bezo mňa — chcem sa na takých veciach podieľať."', ok: true },
+          { text: '„Cítim, že si dominantný a nerešpektuješ ma."', ok: false },
+          { text: '„Rob si, ako myslíš, mne je to jedno."', ok: false }
+        ]
+      },
+      {
+        you: '„Vôbec ti na mne nezáleží."',
+        options: [
+          { text: '„Chýba mi tvoja pozornosť posledné týždne — potrebujem cítiť, že sme priorita."', ok: true },
+          { text: '„Keby ti na mne záležalo, vedel by si to sám."', ok: false },
+          { text: '„Asi som len prehnane citlivá."', ok: false }
+        ]
+      },
+      {
+        you: '„Ty ma vždy zhodíš pred ľuďmi."',
+        options: [
+          { text: '„Bolo mi trápne, keď si tú historku rozprával pred ostatnými — potrebujem, aby veci medzi nami zostali medzi nami."', ok: true },
+          { text: '„Ty nemáš žiadny takt."', ok: false },
+          { text: '„Veď si robil len srandu, nechaj tak."', ok: false }
+        ]
+      }
+    ],
+    feedbackOk: 'Áno — fakt + pocit + potreba, bez obviňovania. Toto sa ťažko ' +
+      'zhadzuje zo stola.',
+    feedbackDisguised: 'Pozor, toto je ty-výrok v prezlečení: začína sa „cítim", ' +
+      'ale pokračuje hodnotením druhého. Skús povedať, čo sa stalo a čo potrebuješ.',
+    feedbackPassive: 'Toto je ustúpenie, nie ja-výrok — tvoja potreba v ňom ' +
+      'nezaznie a druhý sa nedozvie nič.'
+  },
+
+  /* --- 6) Krátka sebareflexia (bez skóre, len na zamyslenie) --- */
+  reflection: {
+    title: 'Krátke zamyslenie',
+    intro: 'Žiadny test, žiadne skóre — len tri otázky pre teba. Nikam sa ' +
+      'neukladajú ani neposielajú.',
+    questions: [
+      'Čo o sebe zvyknem skrývať — a pred kým najviac?',
+      'Čo mi ľudia o mne hovoria, čo sám(a) nevidím?',
+      'Komu by som mal(a) povedať niečo pekné, čo som zatiaľ nechal(a) nevypovedané?'
+    ],
+    note: 'Ak si na niektorú odpovedal(a) rýchlo, je to dobrá stopa. Ak na inú ' +
+      'nie, aj to je odpoveď. 💛'
+  }
+};
+
+window.FEEDBACK_TRAINING = FEEDBACK_TRAINING;
+
+
+/* ==============================================================
    MENO TVOJEJ PODSTATY (prídavné + podstatné meno)
    --------------------------------------------------------------
    Neutrálny, univerzálny rámec (zámerne bez „indiánskeho"
