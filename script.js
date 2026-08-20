@@ -417,7 +417,10 @@ function archetypeFor(rt, set) {
   const corner = window.ARCHETYPES?.corners[rtQuadrant(rt)];
   if (!corner) return null;
   const s = (set === 'm' || set === 'z') ? set : 'neutral';
-  return { name: corner[s].name, desc: corner[s].desc, icon: corner.icon, img: corner[s].img };
+  // story a growthEdge sú veci o SEBE – používajú sa len vo vlastnom
+  // výsledku, nikdy v karte matchu ani v „Koho hľadám"
+  return { name: corner[s].name, desc: corner[s].desc, icon: corner.icon, img: corner[s].img,
+    story: corner[s].story || '', growthEdge: corner.growthEdge || '' };
 }
 window.archetypeFor = archetypeFor;
 
@@ -1057,6 +1060,17 @@ const ArchetypeSet = {
     document.addEventListener('click', (e) => {
       const t = e.target.closest('button[data-arch-toggle]');
       if (t) this.apply(t.dataset.archToggle);
+
+      // Rastová hrana sa NIKDY neotvára sama – len na vyžiadanie
+      const g = e.target.closest('[data-growth-toggle]');
+      if (g) {
+        const body = document.getElementById('archGrowth');
+        if (!body) return;
+        body.hidden = !body.hidden;
+        g.textContent = body.hidden
+          ? '🌱 Chceš vidieť aj svoju rastovú hranu?'
+          : '🌱 Skryť rastovú hranu';
+      }
     });
   },
 
@@ -2278,6 +2292,17 @@ const RTTest = {
         <div>
           <p class="rt-archetype__name">🏰 Tvoj archetyp: <strong>${arch.name}</strong></p>
           <p class="rt-archetype__desc">${arch.desc}</p>
+          ${arch.story ? `<p class="arch-story">${arch.story}</p>` : ''}
+          ${arch.growthEdge ? `
+          <div class="arch-growth">
+            <button type="button" class="btn-secondary arch-growth__btn" data-growth-toggle>
+              🌱 Chceš vidieť aj svoju rastovú hranu?
+            </button>
+            <div class="arch-growth__body" id="archGrowth" hidden>
+              <p class="arch-growth__text">${arch.growthEdge}</p>
+              <p class="arch-growth__note">${window.ARCHETYPES?.complementNote || ''}</p>
+            </div>
+          </div>` : ''}
           <span class="arch-toggle" role="group" aria-label="Zobraziť archetyp ako">
             <button type="button" data-arch-toggle="m"
               class="${AppState.userProfile.archetypeSet === 'm' ? 'is-active' : ''}">♂ Mužský</button>

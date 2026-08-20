@@ -2051,6 +2051,33 @@ input:focus, select:focus {
 }
 .arch-avatar--erb .arch-icon { display: block; width: 62%; height: 62%; }
 
+/* Príbeh archetypu – oslava, vždy viditeľná */
+.arch-story {
+  margin: 10px 0 0;
+  font-size: 15px;
+  line-height: 1.65;
+  border-left: 3px solid var(--c-primary);
+  padding-left: 14px;
+}
+
+/* Rastová hrana – dobrovoľná, nikdy sa neotvorí sama */
+.arch-growth { margin-top: 12px; }
+.arch-growth__btn { font-size: 14px; }
+.arch-growth__body {
+  margin-top: 10px;
+  background: var(--bg-light);
+  border-left: 4px solid var(--c-highlight);   /* rola: jemný dôraz, nie výčitka */
+  border-radius: var(--radius);
+  padding: 12px 16px;
+}
+.arch-growth__text { margin: 0; font-size: 14.5px; line-height: 1.6; }
+.arch-growth__note {
+  margin: 10px 0 0;
+  font-size: 13.5px;
+  color: var(--text-light);
+  font-style: italic;
+}
+
 /* Prepínač ♂/♀ pri vlastnom archetype */
 .arch-toggle { display: inline-flex; gap: 6px; margin-top: 10px; }
 .arch-toggle button {
@@ -2073,6 +2100,16 @@ input:focus, select:focus {
 
 @media (max-width: 700px) {
   .arch-avatar--lg { width: 88px; height: 88px; }
+  /* na mobile nech má príbeh celú šírku, nie úzky stĺpec vedľa avatara */
+  .rt-archetype { flex-direction: column; align-items: center; text-align: center; }
+  .arch-story {
+    border-left: 0;
+    border-top: 3px solid var(--c-primary);
+    padding: 12px 0 0;
+    text-align: left;
+  }
+  .arch-growth__body { text-align: left; }
+  .arch-growth__btn { width: 100%; }
 }
 
 /* Archetypový riadok v karte matchu s malým avatarom */

@@ -721,29 +721,50 @@ const ARCHETYPES = {
   corners: {
     BS: {
       icon: 'mec',
-      m:       { name: 'Rytier',     img: 'assets/archetypes/rytier.png',     desc: 'Verné srdce ríše. Držíš slovo aj tých, na ktorých ti záleží — pri tebe má človek pocit domova a istoty.' },
-      z:       { name: 'Kráľovná',   img: 'assets/archetypes/kralovna.png',   desc: 'Verné srdce ríše. Držíš slovo aj svojich ľudí — pri tebe má človek pocit domova a istoty.' },
-      neutral: { name: 'Ochranca',   img: null,                               desc: 'Verné srdce ríše. Držíš slovo aj tých, na ktorých ti záleží — pri tebe má človek pocit domova a istoty.' }
+      growthEdge: 'Harmónia je tvoj dar — no niekedy pre pokoj prehltneš, čo ťa trápi, a nazbiera sa to. Keď sa naučíš povedať svoje láskavo a včas, skôr než pretečie, tvoje vzťahy budú ešte pevnejšie. Presne na to je tréning asertivity — je pre teba ako stvorený. 🌱',
+      m:       { name: 'Rytier',     img: 'assets/archetypes/rytier.png',     desc: 'Verné srdce ríše. Držíš slovo aj tých, na ktorých ti záleží — pri tebe má človek pocit domova a istoty.',
+        story: 'Keď dáš slovo, platí. Pri zmenách dôsledne zvažuješ dôsledky každého rozhodnutia — nevrháš sa do nich bezhlavo. Ľudia vedia, že sa o teba môžu oprieť, keď sa všetko rúca. Tvoja stálosť nie je nuda; je to hrad, do ktorého sa dá vojsť, keď je vonku búrka.' },
+      z:       { name: 'Kráľovná',   img: 'assets/archetypes/kralovna.png',   desc: 'Verné srdce ríše. Držíš slovo aj svojich ľudí — pri tebe má človek pocit domova a istoty.',
+        story: 'Nosíš v sebe teplo, ktoré drží ľudí pokope. Možno si povieš, že priveľa dávaš alebo sa ťažko lúčiš so starým — ale práve tvoja vernosť je to, na čom vzťahy stoja. Kde si ty, tam je domov. A domov je to najvzácnejšie, čo vieš dať.' },
+      neutral: { name: 'Ochranca',   img: null,                               desc: 'Verné srdce ríše. Držíš slovo aj tých, na ktorých ti záleží — pri tebe má človek pocit domova a istoty.',
+        story: 'Keď dáš slovo, platí. Pri zmenách dôsledne zvažuješ dôsledky každého rozhodnutia — nevrháš sa do nich bezhlavo. Ľudia vedia, že sa o teba môžu oprieť, keď sa všetko rúca. Tvoja stálosť nie je nuda; je to hrad, do ktorého sa dá vojsť, keď je vonku búrka.' }
     },
     BZ: {
       icon: 'lutna',
-      m:       { name: 'Trubadúr',   img: 'assets/archetypes/trubadur.png',   desc: 'Duša, čo spája a zapaľuje. Prinášaš ľuďom nové obzory a robíš všedné dni krajšími.' },
-      z:       { name: 'Múza',       img: 'assets/archetypes/muza.png',       desc: 'Duša, čo spája a zapaľuje. Prinášaš ľuďom nové obzory a robíš všedné dni krajšími.' },
-      neutral: { name: 'Trubadúr',   img: null,                               desc: 'Duša, čo spája a zapaľuje. Prinášaš ľuďom nové obzory a robíš všedné dni krajšími.' }
+      growthEdge: 'Cítiš veci naplno — a preto ťa kritika vie zasiahnuť viac, než dáš najavo. Keď si spomenieš, že tvoja hodnota nestojí na cudzom súde, tvoja iskra bude ešte slobodnejšia. A z mnohých nápadov si vyber ten jeden a dotiahni ho — svetu ho treba celý. 🌱',
+      m:       { name: 'Trubadúr',   img: 'assets/archetypes/trubadur.png',   desc: 'Duša, čo spája a zapaľuje. Prinášaš ľuďom nové obzory a robíš všedné dni krajšími.',
+        story: 'Vieš rozospievať aj obyčajný deň a spojiť ľudí, čo by sa inak minuli. Si ako slnko — všade; dokážeš byť na rôznych miestach v rovnakom čase. A pri takom množstve nápadov nie je ľahké všetko stihnúť — a keď to stihneš, tak iba ty. A ak aj nie, tvoj šarm odzbrojí každého a tvoja iskra rozhýbe to, čo zamrzlo. Si ten, kto pripomenie, že život má znieť.' },
+      z:       { name: 'Múza',       img: 'assets/archetypes/muza.png',       desc: 'Duša, čo spája a zapaľuje. Prinášaš ľuďom nové obzory a robíš všedné dni krajšími.',
+        story: 'Vidíš krásu tam, kde ju iní prehliadnu, a vieš ňou nakaziť. Dokážeš sa slobodne hýbať aj v oblakoch — a možno ani netušíš, že z tých oblakov nosíš to, čo ostatných posunie. Tvoja čarovná premenlivosť je prameň, z ktorého vzniká nové.' },
+      neutral: { name: 'Trubadúr',   img: null,                               desc: 'Duša, čo spája a zapaľuje. Prinášaš ľuďom nové obzory a robíš všedné dni krajšími.',
+        story: 'Vieš rozospievať aj obyčajný deň a spojiť ľudí, čo by sa inak minuli. Si ako slnko — všade; dokážeš byť na rôznych miestach v rovnakom čase. A pri takom množstve nápadov nie je ľahké všetko stihnúť — a keď to stihneš, tak iba ty. A ak aj nie, tvoj šarm odzbrojí každého a tvoja iskra rozhýbe to, čo zamrzlo. Si ten, kto pripomenie, že život má znieť.' }
     },
     OS: {
       icon: 'hviezda',
-      m:       { name: 'Alchymista', img: 'assets/archetypes/alchymista.png', desc: 'Majster tichého umenia. Ideš vlastnou hĺbkou, poctivo a sústredene — a to, čo vytvoríš, má váhu.' },
-      z:       { name: 'Hvezdárka',  img: 'assets/archetypes/hvezdarka.png',  desc: 'Majsterka tichého umenia. Ideš vlastnou hĺbkou, poctivo a sústredene — a to, čo vytvoríš, má váhu.' },
-      neutral: { name: 'Alchymista', img: null,                               desc: 'Tiché umenie hĺbky. Ideš vlastnou cestou, poctivo a sústredene — a to, čo vytvoríš, má váhu.' }
+      growthEdge: 'Tvoja rozvaha je poklad — a niekedy druhí nevidia, čo sa v tichu deje, a zdáš sa im vzdialenejší. Keď z času na čas nahlas povieš, čo si všímaš, dáš ľuďom kúsok toho svetla, čo v sebe nosíš. 🌱',
+      m:       { name: 'Alchymista', img: 'assets/archetypes/alchymista.png', desc: 'Majster tichého umenia. Ideš vlastnou hĺbkou, poctivo a sústredene — a to, čo vytvoríš, má váhu.',
+        story: 'Ty vieš, čo šaman: že na dobrý elixír treba správnu chvíľu. Bylinka je v máji ešte jed, v auguste už liek — a ty počkáš. Nenecháš sa zmiasť emóciami; ty vieš, kedy je ten správny čas. Svojou precíznosťou vytvoríš hodnotu postavenú na kvalite — a to je majstrovstvo.' },
+      z:       { name: 'Hvezdárka',  img: 'assets/archetypes/hvezdarka.png',  desc: 'Majsterka tichého umenia. Ideš vlastnou hĺbkou, poctivo a sústredene — a to, čo vytvoríš, má váhu.',
+        story: 'V tichu čítaš to, čo iní v zhone prehliadnu. Vieš hľadať múdro v hĺbke duše, a tak vidíš vzory, čo unikajú rýchlym očiam. Nepotrebuješ byť stredom pozornosti; tvoja hĺbka svieti aj potme. Svet, čo sa ženie, potrebuje niekoho, kto sa zastaví a pozrie hore.' },
+      neutral: { name: 'Alchymista', img: null,                               desc: 'Tiché umenie hĺbky. Ideš vlastnou cestou, poctivo a sústredene — a to, čo vytvoríš, má váhu.',
+        story: 'Ty vieš, čo šaman: že na dobrý elixír treba správnu chvíľu. Bylinka je v máji ešte jed, v auguste už liek — a ty počkáš. Nenecháš sa zmiasť emóciami; ty vieš, kedy je ten správny čas. Svojou precíznosťou vytvoríš hodnotu postavenú na kvalite — a to je majstrovstvo.' }
     },
     OZ: {
       icon: 'luk',
-      m:       { name: 'Templár',    img: 'assets/archetypes/templar.png',    desc: 'Nebojácny hľadač vlastnej cesty. Nezastavíš sa pri hraniciach mapy — sloboda a odvaha sú tvoj kompas.' },
-      z:       { name: 'Amazonka',   img: 'assets/archetypes/amazonka.png',   desc: 'Nebojácna hľadačka vlastnej cesty. Nezastavíš sa pri hraniciach mapy — sloboda a odvaha sú tvoj kompas.' },
-      neutral: { name: 'Pútnik',     img: null,                               desc: 'Srdce na ceste. Nezastavíš sa pri hraniciach mapy — sloboda a odvaha sú tvoj kompas.' }
+      growthEdge: 'Tvoja istota ťa ženie dopredu — a niekedy tak rýchlo, že tichší ľudia okolo teba nestihnú povedať svoje. Keď občas pribrzdíš a vypočuješ aj toho, kto nekričí, tvoje vedenie získa ešte väčšiu silu — lebo za tebou pôjdu radi. 🌱',
+      m:       { name: 'Templár',    img: 'assets/archetypes/templar.png',    desc: 'Nebojácny hľadač vlastnej cesty. Nezastavíš sa pri hraniciach mapy — sloboda a odvaha sú tvoj kompas.',
+        story: 'Nezastavíš sa pri hranici mapy — tam, kde iní cúvnu, ty ideš ďalej. Keď to situácia vyžaduje, vieš, že práve risk ti pomohol objaviť cesty, o ktorých ostatní ani nesnívali. Tvoja túžba po slobode je odvaha ísť prvý.' },
+      z:       { name: 'Amazonka',   img: 'assets/archetypes/amazonka.png',   desc: 'Nebojácna hľadačka vlastnej cesty. Nezastavíš sa pri hraniciach mapy — sloboda a odvaha sú tvoj kompas.',
+        story: 'Slobodu nosíš v sebe a nedáš si ju vziať. Nezdržiavaš sa zbytočne na jednom mieste — a aj vďaka tomu sa nedáš zlomiť a ideš, kam ťa srdce volá. Tvoja nezávislosť je sila, čo inšpiruje aj tých, čo sa báli pohnúť.' },
+      neutral: { name: 'Pútnik',     img: null,                               desc: 'Srdce na ceste. Nezastavíš sa pri hraniciach mapy — sloboda a odvaha sú tvoj kompas.',
+        story: 'Nezastavíš sa pri hranici mapy — tam, kde iní cúvnu, ty ideš ďalej. Keď to situácia vyžaduje, vieš, že práve risk ti pomohol objaviť cesty, o ktorých ostatní ani nesnívali. Tvoja túžba po slobode je odvaha ísť prvý.' }
     }
-  }
+  },
+
+  /* Záverečná veta o dopĺňaní – zobrazuje sa pod rastovou hranou */
+  complementNote: 'Žiadny typ nie je lepší ani horší — každý je kúsok celku. ' +
+    'Preto sa oplatí pochopiť aj tú druhú stranu: lovec potrebuje šamana ' +
+    'a šaman lovca. 💛'
 };
 
 window.ARCHETYPES = ARCHETYPES;
