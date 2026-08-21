@@ -476,6 +476,14 @@
             </a>
           </div>
 
+          <h3>Komunikačné polohy</h3>
+          <!-- Po dokončení egogramu sem JS vykreslí pruh -->
+          <div id="profileEgogram">
+            <a class="vg-entry" href="#egogram" data-scroll="#egogram">
+              🎭 Egogram <span class="vg-entry__time">(5 min)</span>
+            </a>
+          </div>
+
           <h3>Asertivita</h3>
           <!-- Po prejdení tréningu sem JS vykreslí tendenciu (privátna) -->
           <div id="profileAssert">
@@ -639,6 +647,20 @@
       <div class="vg-play at-scene-box" id="atScene"><!-- cvičné scény naplní JS --></div>
 
       <div class="vg-result" id="atResult" hidden></div>
+    </section>
+
+    <!-- 4f2) EGOGRAM – ako vediem komunikáciu -->
+    <section id="egogram" class="section">
+      <h2>🎭 Egogram — ako vediem komunikáciu</h2>
+      <p class="vg-intro" id="egIntro"><!-- naplní JS z EGOGRAM.intro --></p>
+
+      <div class="rt-box">
+        <div id="egItems"><!-- 24 tvrdení naplní JS --></div>
+        <p class="rt-progress" id="egProgress"></p>
+        <button type="button" class="btn-primary" id="egConfirm" disabled>Vyhodnotiť</button>
+      </div>
+
+      <div class="vg-result" id="egResult" hidden></div>
     </section>
 
     <!-- 4g) SPÄTNÁ VÄZBA – ako ju dávať a prijímať -->

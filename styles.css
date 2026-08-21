@@ -2275,6 +2275,62 @@ input:focus, select:focus {
   .mode-option { flex: 1 1 100%; }
 }
 
+/* ------------------------------
+   14. EGOGRAM – komunikačné polohy
+------------------------------ */
+
+.eg-mix { display: flex; flex-direction: column; gap: 18px; margin: 16px 0 24px; }
+
+.eg-pole {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.eg-pole .bar-row { margin-bottom: 6px; }
+.eg-pole__tag {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--primary-dark);
+}
+.eg-pole__desc { margin: 0; font-size: 14px; color: var(--text-light); line-height: 1.55; }
+
+/* Každá poloha má vlastný odtieň značkovej ružovej – nie hodnotenie */
+.eg-fill--KR { background: var(--primary-dark); }
+.eg-fill--SR { background: #c96f95; }
+.eg-fill--DO { background: #d98cae; }
+.eg-fill--SD { background: #e8a8c6; }
+.eg-fill--PD { background: #efbdd5; }
+.eg-fill--RD { background: #d67ea3; }
+
+.eg-complements {
+  background: var(--accent);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin-bottom: 16px;
+}
+.eg-complements h4 { margin: 0 0 8px; }
+.eg-complements ul { margin: 0; padding-left: 20px; }
+.eg-complements li { margin-bottom: 6px; font-size: 14px; }
+.eg-complements__note {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--text-light);
+}
+
+/* Na mobile je 110 px na názov polohy málo – názov ide nad pruh */
+@media (max-width: 560px) {
+  .eg-pole .bar-row {
+    grid-template-columns: 1fr 44px;
+    grid-template-areas: 'label label' 'bar val';
+    gap: 4px 8px;
+  }
+  .eg-pole .bar-row__label { grid-area: label; font-weight: 600; }
+  .eg-pole .bar { grid-area: bar; }
+  .eg-pole .bar-row__val { grid-area: val; }
+}
+
 /* Prístupnosť: rešpektuj obmedzený pohyb */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

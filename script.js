@@ -893,6 +893,9 @@ const Dashboard = {
     { id: 'assert',  icon: '🛡️', name: 'Asertivita',        target: '#assert-training',
       desc: 'Tréning: udrž hranicu bez boja.', time: '5 min',
       done: () => typeof AssertTraining !== 'undefined' && !!AssertTraining.result, world: 'growth' },
+    { id: 'egogram', icon: '🎭', name: 'Egogram: ako vediem komunikáciu', target: '#egogram',
+      desc: 'Šesť polôh, z ktorých hovoríš — a čo nimi v druhom prebúdzaš.', time: '5 min',
+      done: () => typeof Egogram !== 'undefined' && Egogram.done, world: 'growth' },
     { id: 'feedback', icon: '🪞', name: 'Spätná väzba',      target: '#feedback-training',
       desc: 'Joharyho okno, polievanie kvetov a ja-výroky.', time: '6 min',
       done: () => typeof FeedbackTraining !== 'undefined'
@@ -3436,7 +3439,7 @@ const TestGate = {
   // Sekcie, ktoré dávajú zmysel až s výsledkom testu
   heavy: ['dashboard', 'upcoming', 'rt-test', 'archetype-pref', 'profile', 'matches',
     'values-game', 'kitchen-game', 'shape-game', 'essence-name',
-    'assert-training', 'feedback-training', 'chat', 'video'],
+    'assert-training', 'egogram', 'feedback-training', 'chat', 'video'],
 
   init() {
     try { this.done = localStorage.getItem(this.KEY) === '1'; } catch (_) { this.done = false; }
@@ -3684,6 +3687,155 @@ const TestProgress = {
           <button type="button" class="btn-secondary" data-resume-reset>Začať odznova</button>
         </div>
       </div>`;
+  }
+};
+
+
+/* --------------------------------------------------------------
+   3l2) EGOGRAM – ako vediem komunikáciu
+   --------------------------------------------------------------
+   Sebapoznanie, nie diagnóza. Percentá sú SEBAOPIS (koľko je vo
+   mne ktorej polohy), nikdy nie zhoda s niekým. Nepoužíva sa
+   v scoringu ani v kartách matchov.
+   -------------------------------------------------------------- */
+const Egogram = {
+  KEY: 'synced_egogram_v1',
+  answers: {},
+  scores: null,
+  done: false,
+
+  init() {
+    this.D = window.EGOGRAM;
+    this.itemsEl = document.getElementById('egItems');
+    if (!this.D || !this.itemsEl) return;
+
+    document.getElementById('egIntro').textContent = this.D.intro;
+    this.renderItems();
+    this.load();
+
+    this.itemsEl.addEventListener('change', (e) => {
+      if (!e.target.name) return;
+      this.answers[e.target.name] = Number(e.target.value);
+      this.updateProgress();
+      this.save();
+    });
+    document.getElementById('egConfirm').addEventListener('click', () => this.confirm());
+
+    this.restoreChecked();
+    this.updateProgress();
+    if (this.done) { this.renderResult(); this.renderProfileStrip(); }
+  },
+
+  renderItems() {
+    const L = this.D.scaleLabels;
+    this.itemsEl.innerHTML = this.D.items.map((it, i) => `
+      <div class="rt-item">
+        <p class="question__text">${i + 1}. ${it.text}</p>
+        <div class="likert" role="radiogroup" aria-label="${it.text}">
+          ${[0, 1, 2, 3, 4].map(n => `
+            <label class="likert__opt" title="${L[n]}">
+              <input type="radio" name="${it.id}" value="${n}">
+              <span class="likert__dot">${n}</span>
+            </label>`).join('')}
+        </div>
+        <div class="likert__ends"><span>${L[0]}</span><span>${L[4]}</span></div>
+      </div>`).join('');
+  },
+
+  restoreChecked() {
+    Object.entries(this.answers).forEach(([id, v]) => {
+      const el = this.itemsEl.querySelector(`input[name="${id}"][value="${v}"]`);
+      if (el) el.checked = true;
+    });
+  },
+
+  updateProgress() {
+    const total = this.D.items.length;
+    const n = Object.keys(this.answers).length;
+    document.getElementById('egProgress').textContent = `Zodpovedané ${n}/${total}`;
+    document.getElementById('egConfirm').disabled = n < total;
+  },
+
+  // Skóre polohy = súčet jej 4 otázok (0–16)
+  compute() {
+    const s = { KR: 0, SR: 0, DO: 0, SD: 0, PD: 0, RD: 0 };
+    this.D.items.forEach(it => { s[it.pole] += Number(this.answers[it.id] || 0); });
+    return s;
+  },
+
+  confirm() {
+    this.scores = this.compute();
+    this.done = true;
+    AppState.userProfile.egogram = { ...this.scores };
+    this.save();
+    this.renderResult();
+    this.renderProfileStrip();
+    if (typeof Dashboard !== 'undefined') Dashboard.render();
+    document.getElementById('egResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  },
+
+  // zoradené len pre prehľadnosť výpisu – nie ako rebríček „lepších"
+  ranked() {
+    return Object.entries(this.scores)
+      .map(([k, v]) => ({ k, v, pct: Math.round(v / 16 * 100), ...this.D.poles[k] }))
+      .sort((a, b) => b.v - a.v);
+  },
+
+  renderResult() {
+    const C = this.D.complements;
+    const box = document.getElementById('egResult');
+    box.hidden = false;
+    box.innerHTML = `
+      <h3>Tvoj mix komunikačných polôh</h3>
+      <p class="vg-result__intro">${this.D.resultIntro}</p>
+      <div class="eg-mix">
+        ${this.ranked().map(p => `
+          <div class="eg-pole">
+            <div class="bar-row">
+              <span class="bar-row__label">${p.icon} ${p.name}</span>
+              <span class="bar"><span class="bar__fill eg-fill--${p.k}" style="width:${p.pct}%"></span></span>
+              <span class="bar-row__val">${p.pct} %</span>
+            </div>
+            <p class="eg-pole__tag">„${p.tag}"</p>
+            <p class="eg-pole__desc">${p.desc}</p>
+          </div>`).join('')}
+      </div>
+      <div class="eg-complements">
+        <h4>${C.title}</h4>
+        <ul>${C.items.map(i => `<li>${i}</li>`).join('')}</ul>
+        <p class="eg-complements__note">${C.note}</p>
+      </div>
+      <p class="vg-result__note">${this.D.outro}</p>`;
+  },
+
+  renderProfileStrip() {
+    const box = document.getElementById('profileEgogram');
+    if (!box || !this.scores) return;
+    const txt = this.ranked().map(p => `${p.name} ${p.pct} %`).join(' · ');
+    box.innerHTML = `
+      <p class="vg-strip">Moje polohy: <strong>${txt}</strong></p>
+      <div class="vg-strip__actions">
+        <a class="vg-again" href="#egogram" data-scroll="#egogram">Vyplniť znova</a>
+      </div>`;
+  },
+
+  save() {
+    try {
+      localStorage.setItem(this.KEY, JSON.stringify({
+        answers: this.answers, scores: this.scores, done: this.done
+      }));
+    } catch (_) {}
+  },
+
+  load() {
+    try {
+      const raw = localStorage.getItem(this.KEY);
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      if (d.answers && typeof d.answers === 'object') this.answers = d.answers;
+      if (d.scores) { this.scores = d.scores; AppState.userProfile.egogram = { ...d.scores }; }
+      this.done = !!d.done && !!d.scores;
+    } catch (_) { /* poškodené dáta ignorujeme */ }
   }
 };
 
@@ -4160,6 +4312,7 @@ document.addEventListener('DOMContentLoaded', () => {
   EssenceName.init();           // po RTTest a hrách – návrhy čítajú ich uložené výsledky
   AssertTraining.init();
   FeedbackTraining.init();
+  Egogram.init();
   Mode.init();                  // ako posledný – prekreslí rozcestník podľa režimu
   Dashboard.render();
   VideoVerification.init();

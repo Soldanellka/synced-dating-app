@@ -1080,6 +1080,111 @@ window.FEEDBACK_TRAINING = FEEDBACK_TRAINING;
 
 
 /* ==============================================================
+   EGOGRAM – ako vediem komunikáciu (transakčná analýza)
+   --------------------------------------------------------------
+   Sebapoznanie, NIE diagnóza ani škatuľka. Otázky sú vlastné.
+   SOFT: žiadny vplyv na matching, brány ani skóre; egogram sa
+   nepoužíva v kartách matchov.
+   Škála 0–4, každá poloha má 4 otázky (skóre 0–16). Percentá sú
+   tu povolené ako SEBAOPIS, nikdy ako zhoda s niekým.
+   TODO: neskôr do Supabase (spolu s ostatnými self-insight dátami).
+   ============================================================== */
+
+const EGOGRAM = {
+  intro: 'Toto nie je test, v ktorom môžeš prepadnúť — všetky odpovede sú ' +
+    'správne. Ukáže ti, ako vedieš komunikáciu ty: ktoré polohy v tebe žijú ' +
+    'a čo nimi prirodzene vyvolávaš v druhých. Nie sú to škatuľky — poloha sa ' +
+    'mení podľa človeka aj chvíle. A každá je dar.',
+
+  scaleLabels: ['skoro nikdy', 'zriedka', 'občas', 'často', 'veľmi často'],
+
+  poles: {
+    KR: { name: 'Kritický Rodič', tag: 'strážca latky', icon: '📏',
+      desc: 'Vidíš, čo nesedí, a vieš to pomenovať. Dávaš jasno, poriadok a ' +
+        'chrániš, čo je dôležité. Keď komunikuješ z tejto polohy, v druhom ' +
+        'prirodzene prebúdzaš Dieťa — buď sa prispôsobí, alebo sa vzoprie. ' +
+        'Keď to vieš, môžeš si vybrať, kedy je latka namieste a kedy radšej ' +
+        'siahneš po inej polohe.' },
+    SR: { name: 'Starostlivý Rodič', tag: 'opora', icon: '🤲',
+      desc: 'Keď niekto potrebuje pomoc, prirodzene sa oňho postaráš. Dávaš ' +
+        'teplo, bezpečie a pocit, že v tom človek nie je sám. Táto poloha ' +
+        'v druhom prebúdza jeho hravé, prirodzené Dieťa — cíti sa pri tebe ' +
+        'v bezpečí. Len pozor, aby si sa nestaral aj tam, kde to druhý nechce.' },
+    DO: { name: 'Dospelý', tag: 'pokojný rozvažovač', icon: '⚖️',
+      desc: 'Skôr než zareaguješ, zvážiš fakty a možnosti — vecne, tu a teraz. ' +
+        'Táto poloha pozýva druhého do jeho Dospelého — a rozhovor „dospelý ' +
+        's dospelým" je ten, kde sa najlepšie hľadá riešenie. Je to pevná pôda, ' +
+        'na ktorú sa oplatí vrátiť, keď emócie stúpnu.' },
+    SD: { name: 'Slobodné Dieťa', tag: 'iskra a hravosť', icon: '✨',
+      desc: 'Dopraješ si spontánnosť, radosť, tvorivosť. Smeješ sa nahlas, ' +
+        'tešíš sa, hráš sa. Táto poloha nakazí druhých ľahkosťou a rozohreje ' +
+        'aj chladnú atmosféru. Dovoľ si ju aj vtedy, keď „treba byť vážny".' },
+    PD: { name: 'Prispôsobené Dieťa', tag: 'citlivé na súlad', icon: '🕊️',
+      desc: 'Vnímaš, čo druhí čakajú, a vieš sa naladiť; pre pokoj vieš ustúpiť. ' +
+        'Prispôsobenie je dar, keď je vedomé — a informácia, keď ustúpiš aj tam, ' +
+        'kde si nechcel(a). Keď to zbadáš, môžeš povedať svoje — a tu ti pomôže ' +
+        'asertivita.' },
+    RD: { name: 'Rebelujúce Dieťa', tag: 'zdravý vzdor', icon: '🔥',
+      desc: 'Keď je niečo nefér alebo ťa niekto tlačí, ozve sa v tebe „nie, ' +
+        'takto nie". Vzdor nie je zlozvyk — je to energia, ktorá stráži tvoje ' +
+        'hranice; prirodzene sa ozve najmä oproti Kritickému Rodičovi. Keď ju ' +
+        'vieš podať pokojne (nie výbuchom), stáva sa z nej pevnosť, nie hádka.' }
+  },
+
+  /* Poradie je zámerne premiešané – nie zoskupené po polohách */
+  items: [
+    { id: 'eg01', pole: 'KR', text: 'Keď niekto poruší dohodu, dám mu to najavo.' },
+    { id: 'eg02', pole: 'SR', text: 'Keď vidím, že to niekto potrebuje, prirodzene mu pomôžem.' },
+    { id: 'eg03', pole: 'DO', text: 'Skôr než sa rozhodnem, v pokoji zvážim fakty.' },
+    { id: 'eg04', pole: 'SD', text: 'Doprajem si spontánnosť — smejem sa a teším sa nahlas.' },
+    { id: 'eg05', pole: 'PD', text: 'Prispôsobím sa, aj keď mi to celkom nesedí, len aby bol pokoj.' },
+    { id: 'eg06', pole: 'RD', text: 'Keď ma niekto tlačí, vzoprem sa.' },
+
+    { id: 'eg07', pole: 'KR', text: 'Mám jasno v tom, čo je správne a čo nie.' },
+    { id: 'eg08', pole: 'SR', text: 'Rád(a) podržím a povzbudím druhých.' },
+    { id: 'eg09', pole: 'DO', text: 'Aj v napätí sa snažím ostať vecný(á).' },
+    { id: 'eg10', pole: 'SD', text: 'Rád(a) skúšam nové veci len tak, pre radosť.' },
+    { id: 'eg11', pole: 'PD', text: 'Záleží mi, čo si o mne druhí pomyslia.' },
+    { id: 'eg12', pole: 'RD', text: 'Nemám rád(a), keď mi niekto rozkazuje.' },
+
+    { id: 'eg13', pole: 'KR', text: 'Všimnem si chybu skôr než to, čo sa podarilo.' },
+    { id: 'eg14', pole: 'SR', text: 'Záleží mi, aby sa ľudia okolo mňa cítili dobre.' },
+    { id: 'eg15', pole: 'DO', text: 'Pýtam sa otázky, aby som veciam lepšie rozumel(a).' },
+    { id: 'eg16', pole: 'SD', text: 'Dám na intuíciu a nápady, čo mi prídu.' },
+    { id: 'eg17', pole: 'PD', text: 'Ťažko poviem „nie", keď to niekto odo mňa čaká.' },
+    { id: 'eg18', pole: 'RD', text: 'Keď je niečo nefér, dám to najavo.' },
+
+    { id: 'eg19', pole: 'KR', text: 'Očakávam od ľudí, že veci spravia poriadne.' },
+    { id: 'eg20', pole: 'SR', text: 'Niekedy dávam viac, než mi zostáva pre seba.' },
+    { id: 'eg21', pole: 'DO', text: 'Oddelím, čo sa naozaj stalo, od toho, čo si domýšľam.' },
+    { id: 'eg22', pole: 'SD', text: 'Viem sa zahrať a nebrať všetko smrteľne vážne.' },
+    { id: 'eg23', pole: 'PD', text: 'Radšej ustúpim, než by som vyvolal(a) napätie.' },
+    { id: 'eg24', pole: 'RD', text: 'Idem si po svojom, aj keď to ostatní vidia inak.' }
+  ],
+
+  resultIntro: 'Takto to v tebe žije práve teraz. Nie je tu nič „málo" ani ' +
+    '„priveľa" — každá poloha je dar a každá sa hodí na inú chvíľu.',
+
+  /* Doplnkové ladenie – podané ako pochopenie, nie ako súd */
+  complements: {
+    title: 'Čo v druhom prirodzene prebúdzaš',
+    items: [
+      'Starostlivý Rodič ↔ hravé (Slobodné) Dieťa — keď dávaš teplo a bezpečie, druhý sa uvoľní a rozohrá.',
+      'Dospelý ↔ Dospelý — vecný tón pozýva druhého na tú istú pôdu; tam sa hľadá riešenie najlepšie.',
+      'Kritický Rodič → prebúdza poslušné (Prispôsobené) alebo rebelujúce Dieťa — buď sa druhý stiahne, alebo sa vzoprie.'
+    ],
+    note: 'Nie je to zákon, len tendencia — ale keď ju poznáš, máš na výber, ' +
+      'z ktorej polohy prehovoríš.'
+  },
+
+  outro: 'Iných zmeniť neviem a seba nemusím — len v komunikácii využijem svoj ' +
+    'potenciál, aby som dosiahol(la) harmóniu. 💛'
+};
+
+window.EGOGRAM = EGOGRAM;
+
+
+/* ==============================================================
    MENO TVOJEJ PODSTATY (prídavné + podstatné meno)
    --------------------------------------------------------------
    Neutrálny, univerzálny rámec (zámerne bez „indiánskeho"
