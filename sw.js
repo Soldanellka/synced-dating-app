@@ -2,9 +2,14 @@
    SYNCED – service worker (app shell)
    --------------------------------------------------------------
    Stratégia:
-   - statické assety (CSS/JS/ikony/obrázky) → cache-first
-   - navigácia (HTML) → network-first s fallbackom na cache,
-     aby sa appka po nasadení vždy aktualizovala
+   - KÓD APPKY (html/js/css/json) → network-first s fallbackom
+     na cache. Musí to tak byť: navigácia je network-first, takže
+     po nasadení príde nová index.html — a keby JS/CSS chodili
+     cache-first, nová stránka by bežala na starom kóde (novú
+     sekciu by vykresľoval starý script.js, ktorý o nej nevie,
+     a ostala by prázdna).
+   - MÉDIÁ (obrázky, ikony, fonty) → cache-first; sú veľké
+     a menia sa zriedka
    - localStorage a appková logika ostávajú nedotknuté; SW
      nezasahuje do ukladania dát ani do volaní mimo vlastný pôvod
 
@@ -14,7 +19,7 @@
 
 'use strict';
 
-const CACHE_VERSION = 'synced-v8';
+const CACHE_VERSION = 'synced-v9';
 const OFFLINE_URL = './index.html';
 
 /* App shell – to, čo appka potrebuje na otvorenie */
@@ -89,7 +94,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Statické assety → cache-first, na pozadí doplň cache
+  // Kód appky musí ísť v páre s HTML → network-first
+  const isAppCode = /\.(?:js|mjs|css|json|html)$/i.test(url.pathname);
+
+  if (isAppCode) {
+    event.respondWith((async () => {
+      try {
+        const fresh = await fetch(req);
+        if (fresh && fresh.ok && fresh.type === 'basic') {
+          const cache = await caches.open(CACHE_VERSION);
+          cache.put(req, fresh.clone());
+        }
+        return fresh;
+      } catch (_) {
+        // offline → posledná známa verzia
+        const cached = await caches.match(req);
+        return cached || Response.error();
+      }
+    })());
+    return;
+  }
+
+  // Médiá (obrázky, ikony, fonty) → cache-first
   event.respondWith((async () => {
     const cached = await caches.match(req);
     if (cached) return cached;

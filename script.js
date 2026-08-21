@@ -3707,9 +3707,13 @@ const Egogram = {
   init() {
     this.D = window.EGOGRAM;
     this.itemsEl = document.getElementById('egItems');
-    if (!this.D || !this.itemsEl) return;
+    this.progressEl = document.getElementById('egProgress');
+    this.confirmEl = document.getElementById('egConfirm');
+    // bez ktoréhokoľvek z týchto prvkov nemá modul čo robiť
+    if (!this.D || !this.itemsEl || !this.progressEl || !this.confirmEl) return;
 
-    document.getElementById('egIntro').textContent = this.D.intro;
+    const introEl = document.getElementById('egIntro');
+    if (introEl) introEl.textContent = this.D.intro;
     this.renderItems();
     this.load();
 
@@ -3719,7 +3723,7 @@ const Egogram = {
       this.updateProgress();
       this.save();
     });
-    document.getElementById('egConfirm').addEventListener('click', () => this.confirm());
+    this.confirmEl.addEventListener('click', () => this.confirm());
 
     this.restoreChecked();
     this.updateProgress();
@@ -3752,8 +3756,8 @@ const Egogram = {
   updateProgress() {
     const total = this.D.items.length;
     const n = Object.keys(this.answers).length;
-    document.getElementById('egProgress').textContent = `Zodpovedané ${n}/${total}`;
-    document.getElementById('egConfirm').disabled = n < total;
+    this.progressEl.textContent = `Zodpovedané ${n}/${total}`;
+    this.confirmEl.disabled = n < total;
   },
 
   // Skóre polohy = súčet jej 4 otázok (0–16)
@@ -3864,7 +3868,8 @@ const FeedbackTraining = {
     this.panel = document.getElementById('fbPanel');
     if (!this.D || !this.tilesEl || !this.panel) return;
 
-    document.getElementById('fbIntro').innerHTML = this.D.intro;
+    const introEl = document.getElementById('fbIntro');
+    if (introEl) introEl.innerHTML = this.D.intro;
     this.load();
     this.renderTiles();
 
@@ -4296,39 +4301,53 @@ const SmoothScroll = {
    7) ŠTART
    -------------------------------------------------------------- */
 document.addEventListener('DOMContentLoaded', () => {
-  Safety.load();                // pred Chat/Matches – rešpektuje uložené bloky
-  Questions.init();
-  Avatar.init();
-  Onboarding.init();
-  Chat.init();
-  SafetyUI.init();
-  Dashboard.init();
-  ValuesGame.init();
-  KitchenGame.init();
-  ShapeGame.init();
-  ArchetypeSet.init();          // pred RTTest – sada musí byť načítaná pred vykreslením
-  RTTest.init();
-  ArchetypePref.init();         // po RTTest – návrh poradia číta uložené RT osi
-  EssenceName.init();           // po RTTest a hrách – návrhy čítajú ich uložené výsledky
-  AssertTraining.init();
-  FeedbackTraining.init();
-  Egogram.init();
-  Mode.init();                  // ako posledný – prekreslí rozcestník podľa režimu
-  Dashboard.render();
-  VideoVerification.init();
-  VideoChat.init();
-  Modal.init();
-  Billing.init();
-  Legal.init();
-  Invite.init();
-  Nav.init();
-  SmoothScroll.init();
-  TestGate.init();              // pred Taster – ochutnávka sa podľa neho skrýva
-  Taster.init();
-  Interests.init();
-  Upcoming.init();
-  TestProgress.init();          // po Onboarding – ponuka „Pokračovať v teste"
-  StickyCta.init();
-  PWA.init();
-  console.log('[Synced] Aplikácia inicializovaná ✔');
+  /* Poradie je dôležité (komentáre nižšie), ale žiadny modul nesmie
+     zhodiť zvyšok radu – preto ide každý cez try/catch a chyba sa
+     pomenuje v konzole. Vďaka tomu sa appka vykreslí aj vtedy, keď
+     jeden modul zlyhá. */
+  const steps = [
+    ['Safety',           () => Safety.load()],   // pred Chat/Matches – rešpektuje uložené bloky
+    ['Questions',        () => Questions.init()],
+    ['Avatar',           () => Avatar.init()],
+    ['Onboarding',       () => Onboarding.init()],
+    ['Chat',             () => Chat.init()],
+    ['SafetyUI',         () => SafetyUI.init()],
+    ['Dashboard',        () => Dashboard.init()],
+    ['ValuesGame',       () => ValuesGame.init()],
+    ['KitchenGame',      () => KitchenGame.init()],
+    ['ShapeGame',        () => ShapeGame.init()],
+    ['ArchetypeSet',     () => ArchetypeSet.init()],   // pred RTTest – sada musí byť načítaná pred vykreslením
+    ['RTTest',           () => RTTest.init()],
+    ['ArchetypePref',    () => ArchetypePref.init()],  // po RTTest – návrh poradia číta uložené RT osi
+    ['EssenceName',      () => EssenceName.init()],    // po RTTest a hrách – návrhy čítajú ich výsledky
+    ['AssertTraining',   () => AssertTraining.init()],
+    ['FeedbackTraining', () => FeedbackTraining.init()],
+    ['Egogram',          () => Egogram.init()],
+    ['Mode',             () => Mode.init()],           // prekreslí rozcestník podľa režimu
+    ['Dashboard.render', () => Dashboard.render()],
+    ['VideoVerification',() => VideoVerification.init()],
+    ['VideoChat',        () => VideoChat.init()],
+    ['Modal',            () => Modal.init()],
+    ['Billing',          () => Billing.init()],
+    ['Legal',            () => Legal.init()],
+    ['Invite',           () => Invite.init()],
+    ['Nav',              () => Nav.init()],
+    ['SmoothScroll',     () => SmoothScroll.init()],
+    ['TestGate',         () => TestGate.init()],       // pred Taster – ochutnávka sa podľa neho skrýva
+    ['Taster',           () => Taster.init()],
+    ['Interests',        () => Interests.init()],
+    ['Upcoming',         () => Upcoming.init()],
+    ['TestProgress',     () => TestProgress.init()],   // po Onboarding – ponuka „Pokračovať v teste"
+    ['StickyCta',        () => StickyCta.init()],
+    ['PWA',              () => PWA.init()]
+  ];
+
+  const failed = [];
+  steps.forEach(([name, fn]) => {
+    try { fn(); } catch (e) { failed.push(name); console.error('[Synced] init zlyhal:', name, e); }
+  });
+
+  console.log(failed.length
+    ? `[Synced] Aplikácia inicializovaná s výhradami ⚠ (zlyhalo: ${failed.join(', ')})`
+    : '[Synced] Aplikácia inicializovaná ✔');
 });
