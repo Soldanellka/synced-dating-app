@@ -896,6 +896,9 @@ const Dashboard = {
     { id: 'egogram', icon: '🎭', name: 'Egogram: ako vediem komunikáciu', target: '#egogram',
       desc: 'Šesť polôh, z ktorých hovoríš — a čo nimi v druhom prebúdzaš.', time: '5 min',
       done: () => typeof Egogram !== 'undefined' && Egogram.done, world: 'self' },
+    { id: 'twobags', icon: '🎒', name: 'Dva batohy',         target: '#two-bags',
+      desc: 'Tri okamihy, ktoré zvonku vyzerali inak než znútra.', time: '3 min',
+      done: () => typeof TwoBags !== 'undefined' && TwoBags.done, world: 'others' },
     { id: 'feedback', icon: '🪞', name: 'Spätná väzba',      target: '#feedback-training',
       desc: 'Joharyho okno, polievanie kvetov a ja-výroky.', time: '6 min',
       done: () => typeof FeedbackTraining !== 'undefined'
@@ -3469,7 +3472,7 @@ const TestGate = {
   // Sekcie, ktoré dávajú zmysel až s výsledkom testu
   heavy: ['dashboard', 'upcoming', 'rt-test', 'archetype-pref', 'profile', 'matches',
     'values-game', 'kitchen-game', 'shape-game', 'essence-name',
-    'assert-training', 'egogram', 'feedback-training', 'chat', 'video'],
+    'assert-training', 'egogram', 'feedback-training', 'two-bags', 'chat', 'video'],
 
   init() {
     try { this.done = localStorage.getItem(this.KEY) === '1'; } catch (_) { this.done = false; }
@@ -3870,6 +3873,144 @@ const Egogram = {
       if (d.scores) { this.scores = d.scores; AppState.userProfile.egogram = { ...d.scores }; }
       this.done = !!d.done && !!d.scores;
     } catch (_) { /* poškodené dáta ignorujeme */ }
+  }
+};
+
+
+/* --------------------------------------------------------------
+   3l3) DVA BATOHY – objavný zážitok o pochopení druhých
+   --------------------------------------------------------------
+   Objav, nie prednáška: pointa nie je nikde vyslovená vopred,
+   vynára sa až zo scénok. Výber odpovede sa NEHODNOTÍ – žiadna
+   nie je „správna"; tretia, otvorená možnosť sa po kliknutí len
+   jemne zvýrazní. SOFT: bez vplyvu na matching, brány a skóre.
+   -------------------------------------------------------------- */
+const TwoBags = {
+  KEY: 'synced_twobags_v1',
+  idx: 0,
+  answered: false,
+  phase: 'scene',   // scene → medzikrok → otazka → zaver
+  done: false,
+
+  init() {
+    this.D = window.TWO_BAGS;
+    this.stage = document.getElementById('tbStage');
+    if (!this.D || !this.stage) return;
+
+    const intro = document.getElementById('tbIntro');
+    if (intro) intro.textContent = this.D.intro;
+
+    this.load();
+    this.render();
+
+    this.stage.addEventListener('click', (e) => {
+      const opt = e.target.closest('button[data-tb-opt]');
+      if (opt && !this.answered) { this.choose(Number(opt.dataset.tbOpt)); return; }
+      if (e.target.closest('[data-tb-next]')) { this.next(); return; }
+      if (e.target.closest('[data-tb-restart]')) { this.restart(); }
+    });
+  },
+
+  choose(i) {
+    this.answered = true;
+    const s = this.D.scenes[this.idx];
+    this.stage.querySelectorAll('.tb-opt').forEach((b, k) => {
+      b.disabled = true;
+      b.classList.toggle('is-chosen', k === i);
+      // tretia (otvorená) možnosť sa jemne zvýrazní – nikoho netrestá
+      if (k === s.moznosti.length - 1) b.classList.add('is-open');
+    });
+    const box = document.getElementById('tbReveal');
+    box.hidden = false;
+    box.innerHTML = `
+      <p class="tb-ack">${s.ack}</p>
+      <div class="tb-bag">
+        <span class="tb-bag__icon" aria-hidden="true">🎒</span>
+        <p class="tb-bag__text">${s.batoh}</p>
+      </div>
+      <p class="tb-reflect">${s.reflect}</p>
+      <button type="button" class="btn-primary" data-tb-next>Ďalej</button>`;
+  },
+
+  next() {
+    if (this.phase === 'scene') {
+      this.idx++;
+      this.answered = false;
+      if (this.idx >= this.D.scenes.length) this.phase = 'medzikrok';
+    } else if (this.phase === 'medzikrok') {
+      this.phase = 'otazka';
+    } else if (this.phase === 'otazka') {
+      this.phase = 'zaver';
+      this.markDone();
+    }
+    this.render();
+  },
+
+  restart() {
+    this.idx = 0; this.answered = false; this.phase = 'scene';
+    this.render();
+  },
+
+  markDone() {
+    if (this.done) return;
+    this.done = true;
+    AppState.userProfile.twoBagsDone = true;
+    try { localStorage.setItem(this.KEY, JSON.stringify({ done: true })); } catch (_) {}
+    if (typeof Dashboard !== 'undefined') Dashboard.render();
+  },
+
+  load() {
+    try {
+      const raw = localStorage.getItem(this.KEY);
+      if (raw && JSON.parse(raw).done) {
+        this.done = true;
+        AppState.userProfile.twoBagsDone = true;
+      }
+    } catch (_) { /* poškodené dáta ignorujeme */ }
+  },
+
+  render() {
+    const D = this.D;
+
+    if (this.phase === 'scene') {
+      const s = D.scenes[this.idx];
+      this.stage.innerHTML = `
+        <p class="at-progress">Okamih ${this.idx + 1}/${D.scenes.length}</p>
+        <p class="tb-situacia">${s.situacia}</p>
+        <p class="tb-question">${D.question}</p>
+        <div class="at-answers">
+          ${s.moznosti.map((m, i) => `
+            <button type="button" class="at-answer tb-opt" data-tb-opt="${i}">${m}</button>`).join('')}
+        </div>
+        <div class="at-feedback" id="tbReveal" hidden></div>`;
+      return;
+    }
+
+    if (this.phase === 'medzikrok') {
+      this.stage.innerHTML = `
+        <p class="tb-medzikrok">${D.medzikrok}</p>
+        <button type="button" class="btn-primary" data-tb-next>Ďalej</button>`;
+      return;
+    }
+
+    // otázka stojí chvíľu sama – odpoveď sa odkryje až na klik
+    if (this.phase === 'otazka') {
+      this.stage.innerHTML = `
+        <p class="tb-zaver-otazka">${D.zaver_otazka}</p>
+        <p class="tb-hint">Nechaj to chvíľu doznieť.</p>
+        <button type="button" class="btn-secondary" data-tb-next>Povedz mi to</button>`;
+      return;
+    }
+
+    this.stage.innerHTML = `
+      <p class="tb-echo">${D.zaver_echo}</p>
+      <p class="tb-obrat">${D.obrat_k_sebe}</p>
+      <p class="tb-pointa">${D.pointa}</p>
+      <div class="tb-links">
+        <a class="btn-secondary" href="#rt-test" data-scroll="#rt-test">🏰 Späť k môjmu archetypu</a>
+        <a class="btn-secondary" href="#egogram" data-scroll="#egogram">🎭 Späť k Egogramu</a>
+      </div>
+      <button type="button" class="tb-again" data-tb-restart>Prejsť znova</button>`;
   }
 };
 
@@ -4352,6 +4493,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ['EssenceName',      () => EssenceName.init()],    // po RTTest a hrách – návrhy čítajú ich výsledky
     ['AssertTraining',   () => AssertTraining.init()],
     ['FeedbackTraining', () => FeedbackTraining.init()],
+    ['TwoBags',          () => TwoBags.init()],
     ['Egogram',          () => Egogram.init()],
     ['Mode',             () => Mode.init()],           // prekreslí rozcestník podľa režimu
     ['Dashboard.render', () => Dashboard.render()],

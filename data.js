@@ -1185,6 +1185,83 @@ window.EGOGRAM = EGOGRAM;
 
 
 /* ==============================================================
+   DVA BATOHY – objavný zážitok o pochopení druhých
+   --------------------------------------------------------------
+   Objav, NIE prednáška: pointa sa nikde nevyslovuje vopred,
+   vynára sa zo scénok. Každá scénka končí pri pochopení, nie
+   v odsudku. SOFT: žiadny vplyv na matching, brány ani skóre.
+   ============================================================== */
+
+const TWO_BAGS = {
+  intro: 'Niekedy nás druhí zrania alebo nahnevajú — a zdajú sa nám nelogickí, ' +
+    'hluchí, či zlí. Poď sa pozrieť za tri okamihy. 💛',
+
+  question: 'Čo ti napadne ako prvé?',
+
+  scenes: [
+    {
+      id: 'partner',
+      situacia: 'Tešil(a) si sa na spoločný večer. Partner ho na poslednú chvíľu ' +
+        'zrušil krátkou správou: „Dnes to nedám." Nič nevysvetlil.',
+      moznosti: ['Nezáleží mu na mne.', 'Je bezohľadný.', 'Možno sa niečo deje.'],
+      ack: 'Je úplne ľudské pomyslieť si to prvé. Poď sa pozrieť, čo bolo pod tým.',
+      batoh: 'V ten deň sa v práci dozvedel, že prepúšťajú. Sadol do auta a nevládal ' +
+        'ani hovoriť. Večer nezrušil preto, že mu na tebe nezáleží — ale preto, že sa ' +
+        'práve rozpadal a nechcel, aby si ho videla zlomeného.',
+      reflect: 'Zmenilo sa niečo v tom, ako to vidíš?'
+    },
+    {
+      id: 'kolega',
+      situacia: 'Napísal(a) si kolegovi milú správu a on odpovedal jednou vetou, ' +
+        'sucho, bez pozdravu. Cítiš sa odbytý(á).',
+      moznosti: ['Je namyslený, mám ho na háku.', 'Spravil(a) som niečo zle.', 'Možno má toho veľa.'],
+      ack: 'Je ľudské cítiť sa odbytý(á). Poď sa pozrieť pod povrch.',
+      batoh: 'V rodine ho učili, že v práci sa nekamaráti — buď stručný, nezdržuj. ' +
+        'Suchá odpoveď preňho nie je neúcta; je to spôsob, akým ho naučili „byť ' +
+        'profesionálny". Doma je to najsrdečnejší človek, akého poznáš.',
+      reflect: 'A teraz?'
+    },
+    {
+      id: 'mama',
+      situacia: 'Mama ti už tretíkrát volá, či si sa naobedoval(a), a pýta sa na ' +
+        'veci, čo pokladáš za samozrejmé. Trochu ťa to hnevá.',
+      moznosti: ['Nedôveruje mi, že sa o seba postarám.', 'Otravuje.', 'Možno je to jej spôsob lásky.'],
+      ack: 'Je ľudské, že ťa to hnevá. Poď sa pozrieť, odkiaľ to pramení.',
+      batoh: 'Vyrastala v časoch, keď starosť o jedlo bola starosťou o prežitie. ' +
+        'Inak to nevie — tie otázky sú jediný jazyk lásky, ktorý dostala. Nepýta sa ' +
+        'preto, že ti neverí; pýta sa, lebo ťa má rada a inak to povedať nevie.',
+      reflect: 'A teraz?'
+    }
+  ],
+
+  medzikrok: 'Všimni si jednu vec: ty si tú istú správu, to isté gesto, ' +
+    'prečítal(a) najprv cez svoj batoh — a vyšiel z toho jeden význam. Cez ich ' +
+    'batoh mal ten istý okamih význam úplne iný. A funguje to aj naopak: keď ' +
+    'niečo povieš ty, druhý si to prečíta cez svoj batoh — a môže z toho vyjsť ' +
+    'čosi celkom iné, než si myslel(a). Nie preto, že by ťa nechcel pochopiť. ' +
+    'Len počúva cez to svoje.',
+
+  zaver_otazka: 'Čo mali tie tri príbehy spoločné?',
+
+  zaver_echo: 'Zakaždým to zvonku vyzeralo inak, než to bolo znútra. Každý z nás ' +
+    'prijíma aj vysiela cez svoj batoh — a tým sa tá istá informácia cestou premení.',
+
+  obrat_k_sebe: 'A čo nosíš ty vo svojom batohu? Aj tvoje správanie má svoj ' +
+    'príbeh — a možno aj ty niekedy vyzeráš zvonku inak, než si znútra. Tvoj ' +
+    'archetyp a Egogram ti napovedia, čo v ňom máš.',
+
+  pointa: 'Keď to vieš o sebe aj o druhých, prestaneš súdiť a začneš rozumieť. ' +
+    'A možno si uvedomíš aj to najtichšie: nikto nevidí svet presne tak ako ty — ' +
+    'a ty ako ktokoľvek iný. Nie je to samota — je to jedinečnosť. Každý nesie ' +
+    'svet, ktorý ty nevidíš. A keď sa dvaja takí stretnú, nevzniká spor — ' +
+    'otvárajú si navzájom nové svety a obohacujú sa. Práve preto je každé ' +
+    'skutočné stretnutie malý zázrak. 💛'
+};
+
+window.TWO_BAGS = TWO_BAGS;
+
+
+/* ==============================================================
    MENO TVOJEJ PODSTATY (prídavné + podstatné meno)
    --------------------------------------------------------------
    Neutrálny, univerzálny rámec (zámerne bez „indiánskeho"

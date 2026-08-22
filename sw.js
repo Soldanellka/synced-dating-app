@@ -19,7 +19,7 @@
 
 'use strict';
 
-const CACHE_VERSION = 'synced-v10';
+const CACHE_VERSION = 'synced-v11';
 const OFFLINE_URL = './index.html';
 
 /* App shell – to, čo appka potrebuje na otvorenie */

@@ -2305,6 +2305,79 @@ input:focus, select:focus {
 }
 
 /* ------------------------------
+   15. DVA BATOHY – objavný zážitok
+------------------------------ */
+
+.tb-box { max-width: 720px; }
+
+.tb-situacia {
+  font-size: 16.5px;
+  line-height: 1.6;
+  margin: 0 0 14px;
+  padding-left: 14px;
+  border-left: 3px solid var(--c-primary);
+}
+.tb-question { margin: 0 0 12px; font-weight: 700; }
+
+/* Otvorená (tretia) možnosť sa po výbere len jemne zvýrazní */
+.tb-opt.is-open { box-shadow: inset 4px 0 0 var(--c-highlight); }
+
+.tb-ack { margin: 0 0 12px; font-size: 14.5px; }
+.tb-bag {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--c-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+.tb-bag__icon { font-size: 26px; line-height: 1; flex-shrink: 0; }
+.tb-bag__text { margin: 0; font-size: 15px; line-height: 1.6; }
+.tb-reflect {
+  margin: 0 0 14px;
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+.tb-medzikrok, .tb-echo, .tb-obrat, .tb-pointa {
+  font-size: 15.5px;
+  line-height: 1.65;
+  margin: 0 0 16px;
+}
+.tb-zaver-otazka {
+  font-family: "Baloo 2", sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--primary-dark);
+  margin: 8px 0 6px;
+}
+.tb-hint { margin: 0 0 16px; font-size: 13.5px; color: var(--text-light); }
+.tb-pointa {
+  background: var(--accent);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.tb-links { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.tb-links .btn-secondary { text-decoration: none; display: inline-flex; align-items: center; }
+.tb-again {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--primary-dark);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .tb-links .btn-secondary { width: 100%; justify-content: center; }
+  .tb-zaver-otazka { font-size: 19px; }
+}
+
+/* ------------------------------
    14. EGOGRAM – komunikačné polohy
 ------------------------------ */
 
