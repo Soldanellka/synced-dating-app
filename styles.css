@@ -2155,6 +2155,35 @@ input:focus, select:focus {
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
 }
+
+/* Tri svety rozcestníka – nadpis + jeden riadok úvodu + dlaždice */
+.dash-worlds { display: flex; flex-direction: column; gap: 34px; }
+
+.dash-world__title {
+  margin: 0 0 4px;
+  font-size: 22px;
+  color: var(--primary-dark);
+}
+.dash-world__lead {
+  margin: 0 0 14px;
+  max-width: 70ch;
+  font-size: 14.5px;
+  color: var(--text-light);
+  line-height: 1.55;
+}
+/* jemné odlíšenie sveta – ľavý pás v značkovej ružovej */
+.dash-world {
+  border-left: 4px solid var(--c-primary);
+  padding-left: 18px;
+}
+.dash-world--dating { border-left-color: var(--c-primary-dark); }
+
+@media (max-width: 700px) {
+  .dash-worlds { gap: 26px; }
+  .dash-world { border-left: 0; padding-left: 0; border-top: 3px solid var(--c-primary); padding-top: 14px; }
+  .dash-world--dating { border-top-color: var(--c-primary-dark); }
+  .dash-world__title { font-size: 19px; }
+}
 .dash-tile {
   display: flex;
   align-items: center;

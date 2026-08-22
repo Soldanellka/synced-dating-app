@@ -883,32 +883,32 @@ const Dashboard = {
   tiles: [
     { id: 'rt',      icon: '🧭', name: 'Vzťahový kompas',   target: '#rt-test',
       desc: 'Zisti svoje vzťahové ladenie a archetyp.', time: '3 min',
-      done: () => typeof RTTest !== 'undefined' && RTTest.done, world: 'growth' },
+      done: () => typeof RTTest !== 'undefined' && RTTest.done, world: 'self' },
     { id: 'pref',    icon: '🏰', name: 'Koho hľadám',       target: '#archetype-pref',
       desc: 'Zoraď archetypy podľa svojho srdca.', time: '2 min',
-      done: () => typeof ArchetypePref !== 'undefined' && !!ArchetypePref.result, world: 'growth' },
+      done: () => typeof ArchetypePref !== 'undefined' && !!ArchetypePref.result, world: 'dating' },
     { id: 'essence', icon: '✨', name: 'Meno tvojej podstaty', target: '#essence-name',
       desc: 'Dve slová, ktoré vystihujú tvoje jadro.', time: '1 min',
-      done: () => !!AppState.userProfile.essenceName, world: 'growth' },
+      done: () => !!AppState.userProfile.essenceName, world: 'self' },
     { id: 'assert',  icon: '🛡️', name: 'Asertivita',        target: '#assert-training',
       desc: 'Tréning: udrž hranicu bez boja.', time: '5 min',
-      done: () => typeof AssertTraining !== 'undefined' && !!AssertTraining.result, world: 'growth' },
+      done: () => typeof AssertTraining !== 'undefined' && !!AssertTraining.result, world: 'others' },
     { id: 'egogram', icon: '🎭', name: 'Egogram: ako vediem komunikáciu', target: '#egogram',
       desc: 'Šesť polôh, z ktorých hovoríš — a čo nimi v druhom prebúdzaš.', time: '5 min',
-      done: () => typeof Egogram !== 'undefined' && Egogram.done, world: 'growth' },
+      done: () => typeof Egogram !== 'undefined' && Egogram.done, world: 'self' },
     { id: 'feedback', icon: '🪞', name: 'Spätná väzba',      target: '#feedback-training',
       desc: 'Joharyho okno, polievanie kvetov a ja-výroky.', time: '6 min',
       done: () => typeof FeedbackTraining !== 'undefined'
-        && Object.values(FeedbackTraining.progress || {}).filter(Boolean).length >= 4, world: 'growth' },
+        && Object.values(FeedbackTraining.progress || {}).filter(Boolean).length >= 4, world: 'others' },
     { id: 'interests', icon: '🎧', name: 'Záľuby a hudba',   target: '#profile',
       desc: 'Čo ťa baví a čo počúvaš — spoločné body do rozhovoru.', time: '2 min',
       done: () => !!AppState.userProfile.hobbies?.length
-        || !!AppState.userProfile.musicGenres?.length, world: 'growth' },
-    { id: 'games',   icon: '🎭', name: 'Hry o tebe',         target: '#values-game',
+        || !!AppState.userProfile.musicGenres?.length, world: 'self' },
+    { id: 'games',   icon: '🎲', name: 'Hry o tebe',         target: '#values-game',
       desc: 'Rebríček hodnôt, kuchynský test, panáčik z tvarov.', time: '2 min',
       done: () => !!AppState.userProfile.valuesRanking?.length
         && !!AppState.userProfile.kitchenRanking?.length
-        && !!AppState.userProfile.shapePersona, world: 'growth' },
+        && !!AppState.userProfile.shapePersona, world: 'self' },
     { id: 'matches', icon: '💞', name: 'Matchy',             target: '#matches',
       desc: 'Ľudia, ktorí sú na rovnakej vlne.', time: '',
       done: () => false, world: 'dating' },
@@ -916,6 +916,25 @@ const Dashboard = {
       desc: 'Napíš tým, s ktorými to má zmysel.', time: '',
       done: () => false, world: 'dating' }
   ],
+
+  /* Tri svety rozcestníka. „others" má miesto pripravené pre budúce
+     „Dva batohy" – stačí pridať dlaždicu s world: 'others'. */
+  worlds: {
+    self: {
+      icon: '🌱', title: 'Spoznaj seba',
+      lead: 'Toto nie je test, v ktorom môžeš prepadnúť — všetky odpovede sú ' +
+        'správne. Každý z nás je jedinečný a neopakovateľný, a tvoj výsledok tiež. ' +
+        'Sebapoznanie ti okrem toho ukáže aj to, čo svojím správaním spôsobuješ druhým.'
+    },
+    others: {
+      icon: '🤝', title: 'Spoznaj druhých',
+      lead: 'Druhí nie sú mimo — len nesú iný príbeh. Poď ho zbadať.'
+    },
+    dating: {
+      icon: '💛', title: 'Zoznámenie',
+      lead: 'Ľudia na rovnakej vlne — a rozhovory, ktoré majú kam viesť.'
+    }
+  },
 
   init() {
     const grid = document.getElementById('dashGrid');
@@ -927,25 +946,36 @@ const Dashboard = {
   render() {
     if (!this.grid) return;
     const growth = typeof Mode !== 'undefined' && Mode.isGrowth();
-    // Rast: testy a sebapoznanie prvé. Zoznamovanie: matchy a chat prvé.
-    const first = growth ? 'growth' : 'dating';
-    const order = [...this.tiles].sort((a, b) =>
-      (a.world === first ? 0 : 1) - (b.world === first ? 0 : 1));
+    // Rast: oba svety rastu navrchu, Zoznámenie nižšie (ostáva viditeľné).
+    // Zoznamovanie: Zoznámenie navrchu, pod ním svety rastu.
+    const order = growth ? ['self', 'others', 'dating'] : ['dating', 'self', 'others'];
 
-    this.grid.innerHTML = order.map(t => {
-      const done = (() => { try { return !!t.done(); } catch (_) { return false; } })();
-      const status = done ? '<span class="dash-tile__done">hotové ✓</span>'
-        : (t.time ? `<span class="dash-tile__time">${t.time}</span>` : '');
+    this.grid.innerHTML = order.map(w => {
+      const meta = this.worlds[w];
+      const tiles = this.tiles.filter(t => t.world === w);
+      if (!meta || !tiles.length) return '';
       return `
-        <a class="dash-tile ${done ? 'is-done' : ''}" href="${t.target}" data-scroll="${t.target}">
-          <span class="dash-tile__icon">${t.icon}</span>
-          <span class="dash-tile__body">
-            <span class="dash-tile__name">${t.name}</span>
-            <span class="dash-tile__desc">${t.desc}</span>
-          </span>
-          ${status}
-        </a>`;
+        <section class="dash-world dash-world--${w}">
+          <h3 class="dash-world__title">${meta.icon} ${meta.title}</h3>
+          <p class="dash-world__lead">${meta.lead}</p>
+          <div class="dash-grid">${tiles.map(t => this.tileHTML(t)).join('')}</div>
+        </section>`;
     }).join('');
+  },
+
+  tileHTML(t) {
+    const done = (() => { try { return !!t.done(); } catch (_) { return false; } })();
+    const status = done ? '<span class="dash-tile__done">hotové ✓</span>'
+      : (t.time ? `<span class="dash-tile__time">${t.time}</span>` : '');
+    return `
+      <a class="dash-tile ${done ? 'is-done' : ''}" href="${t.target}" data-scroll="${t.target}">
+        <span class="dash-tile__icon">${t.icon}</span>
+        <span class="dash-tile__body">
+          <span class="dash-tile__name">${t.name}</span>
+          <span class="dash-tile__desc">${t.desc}</span>
+        </span>
+        ${status}
+      </a>`;
   }
 };
 
