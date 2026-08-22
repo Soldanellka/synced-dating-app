@@ -619,6 +619,43 @@ img { max-width: 100%; display: block; }
 .steps--compact .step { padding: 20px; }
 .steps--compact .step h3 { font-size: 18px; margin: 6px 0; }
 .steps--compact .step p { margin: 0; font-size: 14px; color: var(--text-light); }
+/* Manifest – tvár appky, preto dýcha a stojí sám */
+.manifest {
+  max-width: 62ch;
+  margin: 8px auto 0;
+  padding: 30px 34px;
+  background: var(--c-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  border-top: 5px solid var(--c-primary);
+}
+.manifest__claim {
+  margin: 0 0 18px;
+  font-size: 30px;
+  line-height: 1.25;
+  color: var(--primary-dark);
+}
+.manifest p {
+  margin: 0 0 16px;
+  font-size: 16.5px;
+  line-height: 1.7;
+}
+.manifest p:last-child { margin-bottom: 0; }
+.manifest__lead { font-size: 17.5px !important; }
+.manifest__close {
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .manifest { padding: 22px 20px; }
+  .manifest__claim { font-size: 24px; }
+  .manifest p { font-size: 15.5px; }
+  .manifest__lead { font-size: 16.5px !important; }
+}
+
 .why-cta { margin-top: 24px; text-align: center; }
 .locked-note {
   margin: 12px 0 0;
